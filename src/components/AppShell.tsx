@@ -5,9 +5,10 @@ import { BottomNav } from "./BottomNav";
 export function AppShell() {
   const { pathname } = useLocation();
   const isToday = pathname === "/";
+  const isAtlas = pathname === "/atlas";
   const isArticle = pathname.startsWith("/article/");
 
-  const showGlobalHeader = !isToday && !isArticle;
+  const showGlobalHeader = !isToday && !isAtlas && !isArticle;
   const showBottomNav = !isArticle;
 
   return (
