@@ -331,7 +331,7 @@ function ArticleView() {
                 fontSize: 13,
                 fontWeight: 700,
                 backgroundColor: active ? "#FFFFFF" : "#1C1C1E",
-                color: active ? "#111111" : "#8E8E93",
+                color: active ? "#111111" : "rgba(255,255,255,0.5)",
                 border: active ? "1px solid #FFFFFF" : "1px solid #2C2C2E",
                 whiteSpace: "nowrap",
               }}
