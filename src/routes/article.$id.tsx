@@ -574,14 +574,14 @@ function SourceRow({
   initial,
   name,
   bias,
-  overlap,
+  diversity,
   wireCopy = false,
   last = false,
 }: {
   initial: string;
   name: string;
   bias: string;
-  overlap: string;
+  diversity: string;
   wireCopy?: boolean;
   last?: boolean;
 }) {
@@ -633,7 +633,16 @@ function SourceRow({
           display: "inline-block",
         }}
       />
-      <span style={{ color: "#8E8E93", fontSize: 12 }}>{overlap}</span>
+      <span
+        style={{
+          color: "#8E8E93",
+          fontSize: 11,
+          fontWeight: 700,
+          letterSpacing: "0.08em",
+        }}
+      >
+        DIV {diversity}
+      </span>
     </div>
   );
 }
