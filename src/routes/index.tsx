@@ -44,7 +44,7 @@ function TodayPage() {
                 letterSpacing: "-0.02em",
               }}
             >
-              Today.
+              Today{!breaking && "."}
               {breaking && (
                 <span
                   aria-label="Breaking news live"
@@ -53,7 +53,7 @@ function TodayPage() {
                     height: 6,
                     borderRadius: 999,
                     backgroundColor: "#00C864",
-                    marginLeft: 6,
+                    marginLeft: 4,
                     marginBottom: 6,
                     alignSelf: "flex-end",
                     animation: "lex-pulse 1.6s ease-in-out infinite",
