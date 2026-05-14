@@ -73,14 +73,18 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
+      { title: "Lexinoori - Every angle. One story." },
+      { name: "description", content: "Lexinoori News Hub is a dark-themed PWA for mobile news aggregation." },
       { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { property: "og:title", content: "Lexinoori - Every angle. One story." },
+      { property: "og:description", content: "Lexinoori News Hub is a dark-themed PWA for mobile news aggregation." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:site", content: "@Lovable" },
+      { name: "twitter:title", content: "Lexinoori - Every angle. One story." },
+      { name: "twitter:description", content: "Lexinoori News Hub is a dark-themed PWA for mobile news aggregation." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/48fe2495-277f-4a69-953b-40988a5ea12b/id-preview-db2a3138--2919db39-93b4-449f-8944-6b84bef10e2f.lovable.app-1778784937695.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/48fe2495-277f-4a69-953b-40988a5ea12b/id-preview-db2a3138--2919db39-93b4-449f-8944-6b84bef10e2f.lovable.app-1778784937695.png" },
     ],
     links: [
       {
