@@ -16,11 +16,14 @@ export function BreakingNewsCard({ headline, sources, timeAgo }: BreakingNewsCar
         overflow: "hidden",
       }}
     >
-      <div className="flex items-start justify-between" style={{ padding: "16px 16px 0" }}>
+      <div
+        className="flex items-start justify-between"
+        style={{ padding: "16px 16px 0" }}
+      >
         <span
           className="inline-flex items-center gap-1.5"
           style={{
-            backgroundColor: "rgba(255,255,255,0.2)",
+            backgroundColor: "rgba(255,255,255,0.125)",
             color: "#FFFFFF",
             fontWeight: 700,
             fontSize: 11,
@@ -28,6 +31,7 @@ export function BreakingNewsCard({ headline, sources, timeAgo }: BreakingNewsCar
             padding: "6px 8px",
             borderRadius: 8,
             lineHeight: 1,
+            textTransform: "uppercase",
           }}
         >
           <span
@@ -44,10 +48,11 @@ export function BreakingNewsCard({ headline, sources, timeAgo }: BreakingNewsCar
         </span>
         <span
           style={{
-            color: "rgba(255,255,255,0.8)",
+            color: "rgba(255,255,255,0.5)",
             fontSize: 11,
             fontWeight: 700,
             letterSpacing: "0.08em",
+            textTransform: "uppercase",
           }}
         >
           {timeAgo}
@@ -59,14 +64,20 @@ export function BreakingNewsCard({ headline, sources, timeAgo }: BreakingNewsCar
           style={{
             color: "#FFFFFF",
             fontWeight: 700,
-            fontSize: 22,
+            fontSize: 24,
             lineHeight: 1.2,
             letterSpacing: "-0.01em",
           }}
         >
           {headline}
         </h2>
-        <p style={{ color: "rgba(255,255,255,0.5)", fontSize: 13, marginTop: 8 }}>
+        <p
+          style={{
+            color: "rgba(255,255,255,0.5)",
+            fontSize: 13,
+            marginTop: 8,
+          }}
+        >
           Merged · {sources} sources
         </p>
 
@@ -77,7 +88,7 @@ export function BreakingNewsCard({ headline, sources, timeAgo }: BreakingNewsCar
             style={{
               width: 36,
               height: 36,
-              color: "rgba(255,255,255,0.8)",
+              color: "rgba(255,255,255,0.5)",
             }}
           >
             <Bookmark size={20} />
@@ -89,7 +100,7 @@ export function BreakingNewsCard({ headline, sources, timeAgo }: BreakingNewsCar
               width: 36,
               height: 36,
               borderRadius: 999,
-              backgroundColor: "rgba(255,255,255,0.2)",
+              backgroundColor: "rgba(255,255,255,0.125)",
               color: "#FFFFFF",
             }}
           >
