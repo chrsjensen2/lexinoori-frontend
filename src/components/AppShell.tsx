@@ -1,11 +1,15 @@
-import { Outlet } from "@tanstack/react-router";
+import { Outlet, useLocation } from "@tanstack/react-router";
 import { GlobalHeader } from "./GlobalHeader";
 import { BottomNav } from "./BottomNav";
 
 export function AppShell() {
+  const { pathname } = useLocation();
+  // Today screen renders its own header
+  const showGlobalHeader = pathname !== "/";
+
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <GlobalHeader />
+      {showGlobalHeader && <GlobalHeader />}
       <main
         className="mx-auto w-full"
         style={{
