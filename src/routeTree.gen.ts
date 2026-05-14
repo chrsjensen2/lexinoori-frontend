@@ -14,6 +14,7 @@ import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as DigestRouteImport } from './routes/digest'
 import { Route as AtlasRouteImport } from './routes/atlas'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ArticleIdRouteImport } from './routes/article.$id'
 
 const SavedRoute = SavedRouteImport.update({
   id: '/saved',
@@ -40,6 +41,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ArticleIdRoute = ArticleIdRouteImport.update({
+  id: '/article/$id',
+  path: '/article/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -47,6 +53,7 @@ export interface FileRoutesByFullPath {
   '/digest': typeof DigestRoute
   '/profile': typeof ProfileRoute
   '/saved': typeof SavedRoute
+  '/article/$id': typeof ArticleIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -54,6 +61,7 @@ export interface FileRoutesByTo {
   '/digest': typeof DigestRoute
   '/profile': typeof ProfileRoute
   '/saved': typeof SavedRoute
+  '/article/$id': typeof ArticleIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -62,13 +70,21 @@ export interface FileRoutesById {
   '/digest': typeof DigestRoute
   '/profile': typeof ProfileRoute
   '/saved': typeof SavedRoute
+  '/article/$id': typeof ArticleIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/atlas' | '/digest' | '/profile' | '/saved'
+  fullPaths: '/' | '/atlas' | '/digest' | '/profile' | '/saved' | '/article/$id'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/atlas' | '/digest' | '/profile' | '/saved'
-  id: '__root__' | '/' | '/atlas' | '/digest' | '/profile' | '/saved'
+  to: '/' | '/atlas' | '/digest' | '/profile' | '/saved' | '/article/$id'
+  id:
+    | '__root__'
+    | '/'
+    | '/atlas'
+    | '/digest'
+    | '/profile'
+    | '/saved'
+    | '/article/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -77,6 +93,7 @@ export interface RootRouteChildren {
   DigestRoute: typeof DigestRoute
   ProfileRoute: typeof ProfileRoute
   SavedRoute: typeof SavedRoute
+  ArticleIdRoute: typeof ArticleIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -116,6 +133,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/article/$id': {
+      id: '/article/$id'
+      path: '/article/$id'
+      fullPath: '/article/$id'
+      preLoaderRoute: typeof ArticleIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -125,7 +149,18 @@ const rootRouteChildren: RootRouteChildren = {
   DigestRoute: DigestRoute,
   ProfileRoute: ProfileRoute,
   SavedRoute: SavedRoute,
+  ArticleIdRoute: ArticleIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
