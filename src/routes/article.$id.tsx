@@ -56,39 +56,23 @@ function ArticleView() {
             paddingTop: "calc(env(safe-area-inset-top) + 16px)",
           }}
         >
-          {/* Left cluster: back + topic label */}
-          <div className="flex flex-col items-start gap-2">
-            <span
-              style={{
-                color: topicColor,
-                fontSize: 11,
-                fontWeight: 700,
-                letterSpacing: "0.08em",
-                backgroundColor: "rgba(17,17,17,0.5)",
-                padding: "4px 8px",
-                borderRadius: 6,
-              }}
-            >
-              {TOPIC_LABEL}
-            </span>
-            <button
-              onClick={() => router.history.back()}
-              aria-label="Back"
-              className="flex items-center justify-center"
-              style={{
-                width: 40,
-                height: 40,
-                borderRadius: 8,
-                backgroundColor: "rgba(17,17,17,0.5)",
-                color: "#FFFFFF",
-              }}
-            >
-              <ArrowLeft size={20} />
-            </button>
-          </div>
+          <button
+            onClick={() => router.history.back()}
+            aria-label="Back"
+            className="flex items-center justify-center"
+            style={{
+              width: 40,
+              height: 40,
+              borderRadius: 8,
+              backgroundColor: "rgba(17,17,17,0.5)",
+              color: "#FFFFFF",
+            }}
+          >
+            <ArrowLeft size={20} />
+          </button>
 
           {/* Right cluster: Aa + ... */}
-          <div className="flex items-center gap-2" style={{ marginTop: 24 }}>
+          <div className="flex items-center gap-2">
             <button
               aria-label="Reading options"
               className="flex items-center justify-center"
@@ -347,7 +331,7 @@ function ArticleView() {
                 fontSize: 13,
                 fontWeight: 700,
                 backgroundColor: active ? "#FFFFFF" : "#1C1C1E",
-                color: active ? "#111111" : "#8E8E93",
+                color: active ? "#111111" : "rgba(255,255,255,0.5)",
                 border: active ? "1px solid #FFFFFF" : "1px solid #2C2C2E",
                 whiteSpace: "nowrap",
               }}
@@ -442,7 +426,7 @@ function ArticleView() {
         <div
           style={{
             borderLeft: "2px solid #E8873A",
-            paddingLeft: 12,
+            paddingLeft: 16,
             color: "#FFFFFF",
             fontSize: 14,
             lineHeight: 1.5,
@@ -464,11 +448,11 @@ function ArticleView() {
         >
           SOURCES · 9 OUTLETS
         </div>
-        <SourceRow initial="R" name="Reuters" bias="#00C864" overlap="92%" />
-        <SourceRow initial="A" name="AP" bias="#00C864" overlap="88%" />
-        <SourceRow initial="B" name="BBC" bias="#00C864" overlap="84%" />
-        <SourceRow initial="D" name="DR" bias="#FFD000" overlap="71%" />
-        <SourceRow initial="T" name="TV2" bias="#FFD000" overlap="64%" wireCopy last />
+        <SourceRow initial="R" name="Reuters" bias="#00C864" diversity="9.2" />
+        <SourceRow initial="A" name="AP" bias="#00C864" diversity="8.8" />
+        <SourceRow initial="B" name="BBC" bias="#00C864" diversity="8.4" />
+        <SourceRow initial="D" name="DR" bias="#FFD000" diversity="7.1" />
+        <SourceRow initial="T" name="TV2" bias="#FFD000" diversity="6.4" wireCopy last />
 
         {/* Bottom action */}
         <button
@@ -494,7 +478,9 @@ function ArticleView() {
           height: 52,
           border: "1px solid #2C2C2E",
           borderRadius: 12,
-          backgroundColor: "transparent",
+          background: "transparent",
+          appearance: "none",
+          WebkitAppearance: "none",
           color: "#FFFFFF",
           fontSize: 15,
           fontWeight: 700,
@@ -588,14 +574,14 @@ function SourceRow({
   initial,
   name,
   bias,
-  overlap,
+  diversity,
   wireCopy = false,
   last = false,
 }: {
   initial: string;
   name: string;
   bias: string;
-  overlap: string;
+  diversity: string;
   wireCopy?: boolean;
   last?: boolean;
 }) {
@@ -647,7 +633,16 @@ function SourceRow({
           display: "inline-block",
         }}
       />
-      <span style={{ color: "#8E8E93", fontSize: 12 }}>{overlap}</span>
+      <span
+        style={{
+          color: "#8E8E93",
+          fontSize: 11,
+          fontWeight: 700,
+          letterSpacing: "0.08em",
+        }}
+      >
+        DIV {diversity}
+      </span>
     </div>
   );
 }
