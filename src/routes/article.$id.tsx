@@ -56,36 +56,20 @@ function ArticleView() {
             paddingTop: "calc(env(safe-area-inset-top) + 16px)",
           }}
         >
-          {/* Left cluster: back + topic label */}
-          <div className="flex flex-col items-start gap-2">
-            <span
-              style={{
-                color: topicColor,
-                fontSize: 11,
-                fontWeight: 700,
-                letterSpacing: "0.08em",
-                backgroundColor: "rgba(17,17,17,0.5)",
-                padding: "4px 8px",
-                borderRadius: 6,
-              }}
-            >
-              {TOPIC_LABEL}
-            </span>
-            <button
-              onClick={() => router.history.back()}
-              aria-label="Back"
-              className="flex items-center justify-center"
-              style={{
-                width: 40,
-                height: 40,
-                borderRadius: 8,
-                backgroundColor: "rgba(17,17,17,0.5)",
-                color: "#FFFFFF",
-              }}
-            >
-              <ArrowLeft size={20} />
-            </button>
-          </div>
+          <button
+            onClick={() => router.history.back()}
+            aria-label="Back"
+            className="flex items-center justify-center"
+            style={{
+              width: 40,
+              height: 40,
+              borderRadius: 8,
+              backgroundColor: "rgba(17,17,17,0.5)",
+              color: "#FFFFFF",
+            }}
+          >
+            <ArrowLeft size={20} />
+          </button>
 
           {/* Right cluster: Aa + ... */}
           <div className="flex items-center gap-2" style={{ marginTop: 24 }}>
