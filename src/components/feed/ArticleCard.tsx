@@ -1,3 +1,4 @@
+import { Link } from "@tanstack/react-router";
 import { TopicPill, WhatsNewPill, TOPIC_COLORS, type Topic } from "./TopicPill";
 
 type Bias = "low" | "medium" | "high";
@@ -9,6 +10,7 @@ const BIAS_COLOR: Record<Bias, string> = {
 };
 
 interface ArticleCardProps {
+  id: string;
   topic: Topic;
   timeAgo: string;
   headline: string;
@@ -22,6 +24,7 @@ interface ArticleCardProps {
 }
 
 export function ArticleCard({
+  id,
   topic,
   timeAgo,
   headline,
@@ -36,13 +39,18 @@ export function ArticleCard({
   const topicColor = TOPIC_COLORS[topic];
 
   return (
-    <article
+    <Link
+      to="/article/$id"
+      params={{ id }}
+      className="block"
       style={{
         backgroundColor: "#1C1C1E",
         border: "1px solid #2C2C2E",
         borderRadius: 12,
         margin: "0 16px",
         padding: 16,
+        color: "inherit",
+        textDecoration: "none",
       }}
     >
       {/* Row 1: pills + timestamp */}
@@ -119,6 +127,6 @@ export function ArticleCard({
           }}
         />
       )}
-    </article>
+    </Link>
   );
 }
