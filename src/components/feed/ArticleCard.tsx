@@ -39,6 +39,7 @@ export function ArticleCard({
     <article
       style={{
         backgroundColor: "#1C1C1E",
+        border: "1px solid #2C2C2E",
         borderRadius: 12,
         margin: "0 16px",
         padding: 16,
