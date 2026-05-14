@@ -39,6 +39,7 @@ export function ArticleCard({
     <article
       style={{
         backgroundColor: "#1C1C1E",
+        border: "1px solid #2C2C2E",
         borderRadius: 12,
         margin: "0 16px",
         padding: 16,
@@ -114,7 +115,7 @@ export function ArticleCard({
             height: 180,
             borderRadius: 8,
             marginTop: 8,
-            background: `linear-gradient(135deg, ${topicColor} 0%, ${topicColor}55 60%, #1C1C1E 100%)`,
+            background: `linear-gradient(180deg, ${topicColor} 0%, #111111 100%)`,
           }}
         />
       )}

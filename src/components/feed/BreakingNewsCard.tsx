@@ -55,20 +55,20 @@ export function BreakingNewsCard({ headline, sources, timeAgo }: BreakingNewsCar
       </div>
 
       <div style={{ padding: 24 }}>
-        <p style={{ color: "rgba(255,255,255,0.8)", fontSize: 13, marginBottom: 8 }}>
-          Merged · {sources} sources
-        </p>
         <h2
           style={{
             color: "#FFFFFF",
             fontWeight: 700,
-            fontSize: 26,
+            fontSize: 22,
             lineHeight: 1.2,
             letterSpacing: "-0.01em",
           }}
         >
           {headline}
         </h2>
+        <p style={{ color: "rgba(255,255,255,0.5)", fontSize: 13, marginTop: 8 }}>
+          Merged · {sources} sources
+        </p>
 
         <div className="mt-4 flex items-center justify-end gap-2">
           <button
