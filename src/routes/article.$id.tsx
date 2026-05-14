@@ -72,7 +72,7 @@ function ArticleView() {
           </button>
 
           {/* Right cluster: Aa + ... */}
-          <div className="flex items-center gap-2" style={{ marginTop: 24 }}>
+          <div className="flex items-center gap-2">
             <button
               aria-label="Reading options"
               className="flex items-center justify-center"
