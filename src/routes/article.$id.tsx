@@ -426,7 +426,7 @@ function ArticleView() {
         <div
           style={{
             borderLeft: "2px solid #E8873A",
-            paddingLeft: 12,
+            paddingLeft: 16,
             color: "#FFFFFF",
             fontSize: 14,
             lineHeight: 1.5,
@@ -448,11 +448,11 @@ function ArticleView() {
         >
           SOURCES · 9 OUTLETS
         </div>
-        <SourceRow initial="R" name="Reuters" bias="#00C864" overlap="92%" />
-        <SourceRow initial="A" name="AP" bias="#00C864" overlap="88%" />
-        <SourceRow initial="B" name="BBC" bias="#00C864" overlap="84%" />
-        <SourceRow initial="D" name="DR" bias="#FFD000" overlap="71%" />
-        <SourceRow initial="T" name="TV2" bias="#FFD000" overlap="64%" wireCopy last />
+        <SourceRow initial="R" name="Reuters" bias="#00C864" diversity="9.2" />
+        <SourceRow initial="A" name="AP" bias="#00C864" diversity="8.8" />
+        <SourceRow initial="B" name="BBC" bias="#00C864" diversity="8.4" />
+        <SourceRow initial="D" name="DR" bias="#FFD000" diversity="7.1" />
+        <SourceRow initial="T" name="TV2" bias="#FFD000" diversity="6.4" wireCopy last />
 
         {/* Bottom action */}
         <button
@@ -478,7 +478,9 @@ function ArticleView() {
           height: 52,
           border: "1px solid #2C2C2E",
           borderRadius: 12,
-          backgroundColor: "transparent",
+          background: "transparent",
+          appearance: "none",
+          WebkitAppearance: "none",
           color: "#FFFFFF",
           fontSize: 15,
           fontWeight: 700,
