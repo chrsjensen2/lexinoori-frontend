@@ -1,6 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Search, ArrowRight } from "lucide-react";
-import { useRef, useState } from "react";
 
 export const Route = createFileRoute("/atlas")({
   head: () => ({
@@ -15,10 +14,9 @@ export const Route = createFileRoute("/atlas")({
   component: AtlasPage,
 });
 
-// Bubble positions in % of map area (W: 390, H: 420)
 type Bubble = {
-  x: number; // %
-  y: number; // %
+  x: number;
+  y: number;
   size: number;
   color: string;
   pulse?: boolean;
@@ -26,36 +24,36 @@ type Bubble = {
 };
 
 const BUBBLES: Bubble[] = [
-  { x: 50, y: 36, size: 32, color: "#4D6EFF", pulse: true, label: "Western Europe" }, // Denmark
-  { x: 53, y: 42, size: 24, color: "#FFD000", label: "Central Europe" },
-  { x: 60, y: 62, size: 32, color: "#FF0000", pulse: true, label: "East Africa" },
-  { x: 22, y: 42, size: 24, color: "#00E5CC", label: "North America" },
-  { x: 70, y: 56, size: 24, color: "#00C864", label: "South Asia" },
+  { x: 50, y: 32, size: 32, color: "#4D6EFF", pulse: true, label: "Western Europe" },
+  { x: 54, y: 40, size: 24, color: "#FFD000", label: "Central Europe" },
+  { x: 58, y: 65, size: 32, color: "#FF0000", pulse: true, label: "East Africa" },
+  { x: 18, y: 42, size: 24, color: "#00E5CC", label: "North America" },
+  { x: 72, y: 56, size: 24, color: "#00C864", label: "South Asia" },
   { x: 60, y: 50, size: 16, color: "#4D6EFF", label: "Middle East" },
-  { x: 82, y: 44, size: 16, color: "#FFD000", label: "East Asia" },
-  { x: 51, y: 28, size: 16, color: "#00BFFF", label: "Nordic" },
+  { x: 84, y: 44, size: 16, color: "#FFD000", label: "East Asia" },
+  { x: 50, y: 22, size: 16, color: "#00BFFF", label: "Nordic" },
 ];
 
 function AtlasPage() {
-  const [sheetExpanded, setSheetExpanded] = useState(false);
-  const startY = useRef<number | null>(null);
-
-  const onPointerDown = (e: React.PointerEvent) => {
-    startY.current = e.clientY;
-    (e.target as HTMLElement).setPointerCapture(e.pointerId);
-  };
-  const onPointerUp = (e: React.PointerEvent) => {
-    if (startY.current === null) return;
-    const dy = e.clientY - startY.current;
-    if (dy < -30) setSheetExpanded(true);
-    else if (dy > 30) setSheetExpanded(false);
-    startY.current = null;
-  };
-
   return (
-    <div style={{ position: "relative", minHeight: "100vh" }}>
-      {/* Header */}
-      <header style={{ paddingTop: "env(safe-area-inset-top)" }}>
+    <div
+      style={{
+        // Fill the area inside AppShell main (which reserves bottom nav space).
+        height:
+          "calc(100dvh - 64px - env(safe-area-inset-bottom) - 16px)",
+        display: "flex",
+        flexDirection: "column",
+        overflow: "hidden",
+      }}
+    >
+      {/* LAYER 1 — Fixed header */}
+      <header
+        style={{
+          flexShrink: 0,
+          paddingTop: "env(safe-area-inset-top)",
+          backgroundColor: "#111111",
+        }}
+      >
         <div style={{ padding: "16px 24px 12px" }}>
           <div className="flex items-start justify-between gap-3">
             <div>
@@ -83,70 +81,54 @@ function AtlasPage() {
                 Country · Denmark · 12 stories in view
               </p>
             </div>
-            <button
-              aria-label="Search"
-              style={{ color: "#8E8E93", paddingTop: 6 }}
-            >
+            <button aria-label="Search" style={{ color: "#8E8E93", paddingTop: 6 }}>
               <Search size={24} />
             </button>
           </div>
         </div>
       </header>
 
-      {/* Map area */}
+      {/* LAYER 2 — Fixed map */}
       <div
         style={{
+          flexShrink: 0,
           position: "relative",
           width: "100%",
-          height: 420,
+          height: 360,
           backgroundColor: "#0A0A0F",
           overflow: "hidden",
         }}
       >
         <WorldMap />
-
-        {/* Bubbles */}
         {BUBBLES.map((b, i) => (
           <MapBubble key={i} bubble={b} />
         ))}
-
-        {/* Zoom control */}
         <ZoomControl />
       </div>
 
-      {/* Spacer so content below sheet doesn't shift; sheet is absolutely placed */}
-      <div style={{ height: sheetExpanded ? 420 : 280 }} />
-
-      {/* Bottom sheet */}
+      {/* LAYER 3 — Bottom sheet (only scrollable layer) */}
       <div
         style={{
-          position: "fixed",
-          left: "50%",
-          transform: "translateX(-50%)",
-          bottom: "calc(64px + env(safe-area-inset-bottom))",
-          width: "100%",
-          maxWidth: 390,
+          flex: 1,
+          minHeight: 0,
           backgroundColor: "#1C1C1E",
           borderTopLeftRadius: 20,
           borderTopRightRadius: 20,
-          height: sheetExpanded ? 420 : 280,
-          transition: "height 280ms ease",
-          zIndex: 20,
+          marginTop: -12,
+          position: "relative",
+          display: "flex",
+          flexDirection: "column",
           boxShadow: "0 -8px 24px rgba(0,0,0,0.4)",
-          overflow: "hidden",
         }}
       >
         {/* Drag handle */}
         <div
-          onPointerDown={onPointerDown}
-          onPointerUp={onPointerUp}
           style={{
             display: "flex",
             justifyContent: "center",
             paddingTop: 12,
-            paddingBottom: 12,
-            cursor: "grab",
-            touchAction: "none",
+            paddingBottom: 8,
+            flexShrink: 0,
           }}
         >
           <div
@@ -159,8 +141,15 @@ function AtlasPage() {
           />
         </div>
 
-        <div style={{ padding: "4px 20px 20px", display: "flex", flexDirection: "column", gap: 16 }}>
-          {/* Breaking story */}
+        {/* Scrollable inner content */}
+        <div
+          style={{
+            flex: 1,
+            minHeight: 0,
+            overflowY: "auto",
+            padding: "8px 20px 24px",
+          }}
+        >
           <StoryRow
             pillLabel="BREAKING"
             pillBg="#FF0000"
@@ -168,34 +157,39 @@ function AtlasPage() {
             meta="EAST AFRICA · NOW"
             headline="Cease-fire collapses; mediators withdraw overnight."
           />
-
-          <Divider />
-
           <StoryRow
             pillLabel="POLITICS"
-            pillBg="rgba(77,110,255,0.15)"
+            pillBg="rgba(77,110,255,0.18)"
             pillColor="#4D6EFF"
             meta="EU · 1H AGO"
             headline="EU digital sovereignty bill fast-tracks past national vetoes."
           />
-
-          <Divider />
-
           <StoryRow
             pillLabel="ECONOMICS"
-            pillBg="rgba(255,208,0,0.15)"
-            pillColor="#FFD000"
+            pillBg="#FFD000"
+            pillColor="#111111"
             meta="GERMANY · 3H AGO"
             headline="German industrial output contracts for third consecutive quarter."
+          />
+          <StoryRow
+            pillLabel="CLIMATE"
+            pillBg="rgba(0,200,100,0.18)"
+            pillColor="#00C864"
+            meta="SOUTH ASIA · 4H AGO"
+            headline="Monsoon onset arrives ten days early across the subcontinent."
+          />
+          <StoryRow
+            pillLabel="TECHNOLOGY"
+            pillBg="rgba(0,229,204,0.18)"
+            pillColor="#00E5CC"
+            meta="USA · 5H AGO"
+            headline="Open-weights vision model undercuts closed competitors on benchmarks."
+            last
           />
         </div>
       </div>
     </div>
   );
-}
-
-function Divider() {
-  return <div style={{ height: 1, backgroundColor: "#2C2C2E" }} />;
 }
 
 function StoryRow({
@@ -204,15 +198,23 @@ function StoryRow({
   pillColor,
   meta,
   headline,
+  last,
 }: {
   pillLabel: string;
   pillBg: string;
   pillColor: string;
   meta: string;
   headline: string;
+  last?: boolean;
 }) {
   return (
-    <div>
+    <div
+      style={{
+        paddingTop: 16,
+        paddingBottom: 16,
+        borderBottom: last ? "none" : "1px solid #2C2C2E",
+      }}
+    >
       <div className="flex items-center gap-2">
         <span
           style={{
@@ -318,7 +320,6 @@ function ZoomControl() {
         width: 80,
       }}
     >
-      {/* Track */}
       <div
         style={{
           position: "absolute",
@@ -330,7 +331,6 @@ function ZoomControl() {
           borderRadius: 999,
         }}
       />
-      {/* Handle at COUNTRY (lower third = 80px) */}
       <div
         style={{
           position: "absolute",
@@ -343,7 +343,6 @@ function ZoomControl() {
           boxShadow: "0 0 8px rgba(26,122,94,0.6)",
         }}
       />
-      {/* Labels to the left of track */}
       {levels.map((l) => (
         <span
           key={l.key}
@@ -367,64 +366,67 @@ function ZoomControl() {
 }
 
 function WorldMap() {
-  // Stylised continent silhouettes — abstract polygons on dark background
+  // Stylised continent silhouettes — abstract, real-world relative proportions.
+  // viewBox 390x360. Africa is the largest landmass; Americas extend further left.
   const fill = "#1A1A2A";
   return (
     <svg
-      viewBox="0 0 390 420"
+      viewBox="0 0 390 360"
       width="100%"
       height="100%"
       preserveAspectRatio="none"
       style={{ display: "block" }}
       aria-hidden
     >
-      {/* North America */}
+      {/* North America — wider, extends further left */}
       <path
-        d={`M 30 120 L 70 105 L 110 115 L 120 150 L 105 195 L 80 215 L 55 200 L 40 170 Z`}
+        d="M 8 80 L 55 60 L 105 70 L 130 95 L 135 135 L 115 175 L 80 195 L 45 180 L 22 150 L 10 115 Z"
         fill={fill}
       />
+      {/* Central America bridge */}
+      <path d="M 95 195 L 120 195 L 130 215 L 110 225 L 98 215 Z" fill={fill} />
       {/* South America */}
       <path
-        d={`M 95 235 L 120 230 L 130 270 L 120 320 L 100 345 L 88 325 L 92 280 Z`}
+        d="M 110 225 L 145 225 L 160 270 L 150 320 L 125 345 L 108 325 L 105 280 Z"
         fill={fill}
       />
+      {/* Greenland */}
+      <path d="M 160 50 L 195 45 L 200 75 L 175 85 L 158 72 Z" fill={fill} />
       {/* Europe */}
       <path
-        d={`M 180 115 L 215 110 L 230 130 L 225 160 L 200 165 L 180 150 Z`}
+        d="M 195 90 L 230 85 L 245 105 L 240 130 L 215 138 L 195 125 Z"
         fill={fill}
       />
-      {/* Africa */}
+      {/* Africa — largest continent */}
       <path
-        d={`M 195 180 L 240 175 L 260 220 L 255 280 L 230 320 L 210 310 L 195 270 L 188 220 Z`}
+        d="M 200 145 L 260 140 L 285 175 L 295 225 L 280 280 L 245 320 L 215 320 L 195 285 L 188 235 L 188 185 Z"
         fill={fill}
       />
-      {/* Middle East / Western Asia */}
+      {/* Middle East */}
       <path
-        d={`M 235 165 L 270 160 L 285 185 L 275 205 L 250 200 Z`}
+        d="M 250 145 L 285 140 L 300 165 L 290 185 L 260 180 Z"
         fill={fill}
       />
-      {/* Asia */}
+      {/* Asia — large landmass east of Europe */}
       <path
-        d={`M 245 130 L 320 115 L 360 140 L 355 180 L 320 200 L 285 195 L 260 170 Z`}
+        d="M 245 90 L 320 75 L 370 95 L 380 135 L 370 175 L 330 195 L 295 185 L 270 160 L 252 130 Z"
         fill={fill}
       />
       {/* India / South Asia */}
       <path
-        d={`M 275 200 L 305 195 L 310 230 L 290 245 L 278 225 Z`}
+        d="M 295 195 L 325 190 L 332 225 L 312 245 L 298 220 Z"
         fill={fill}
       />
-      {/* Southeast Asia / Oceania */}
+      {/* Southeast Asia islands */}
       <path
-        d={`M 320 240 L 360 245 L 365 275 L 335 285 L 322 265 Z`}
+        d="M 335 230 L 375 235 L 380 265 L 350 275 L 338 255 Z"
         fill={fill}
       />
       {/* Australia */}
       <path
-        d={`M 320 305 L 360 300 L 370 325 L 345 345 L 320 335 Z`}
+        d="M 330 290 L 375 285 L 385 315 L 358 335 L 330 325 Z"
         fill={fill}
       />
-      {/* Greenland */}
-      <path d={`M 145 75 L 175 70 L 180 95 L 160 105 L 145 95 Z`} fill={fill} />
     </svg>
   );
 }
