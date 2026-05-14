@@ -4,8 +4,11 @@ import { BottomNav } from "./BottomNav";
 
 export function AppShell() {
   const { pathname } = useLocation();
-  // Today screen renders its own header
-  const showGlobalHeader = pathname !== "/";
+  const isToday = pathname === "/";
+  const isArticle = pathname.startsWith("/article/");
+
+  const showGlobalHeader = !isToday && !isArticle;
+  const showBottomNav = !isArticle;
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -14,12 +17,14 @@ export function AppShell() {
         className="mx-auto w-full"
         style={{
           maxWidth: 390,
-          paddingBottom: "calc(64px + env(safe-area-inset-bottom) + 16px)",
+          paddingBottom: showBottomNav
+            ? "calc(64px + env(safe-area-inset-bottom) + 16px)"
+            : 0,
         }}
       >
         <Outlet />
       </main>
-      <BottomNav />
+      {showBottomNav && <BottomNav />}
     </div>
   );
 }
