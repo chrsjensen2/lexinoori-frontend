@@ -116,6 +116,7 @@ function TodayPage() {
 
       <div className="flex flex-col" style={{ gap: 12 }}>
         <ArticleCard
+          id="placeholder"
           topic="politics"
           timeAgo="3H AGO"
           headline="EU finance ministers split over emergency defence spending package ahead of summit."
@@ -127,6 +128,7 @@ function TodayPage() {
           thumbnail
         />
         <ArticleCard
+          id="placeholder"
           topic="climate"
           timeAgo="5H AGO"
           headline="Atlantic hurricane season opens with two named storms in single week, NOAA warns."
@@ -137,6 +139,7 @@ function TodayPage() {
           biasLabel="Centre · 8.1 diversity"
         />
         <ArticleCard
+          id="placeholder"
           topic="economics"
           timeAgo="6H AGO"
           headline="Yen tumbles to 38-year low as Bank of Japan signals reluctance to intervene."
@@ -147,6 +150,7 @@ function TodayPage() {
           biasLabel="Centre-right · 5.9 diversity"
         />
         <ArticleCard
+          id="placeholder"
           topic="technology"
           timeAgo="2H AGO"
           headline="Meta releases open-weights vision model, undercutting closed competitors on benchmarks."
