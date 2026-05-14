@@ -3,10 +3,10 @@ import { Newspaper, Globe, Bookmark, Clock, User } from "lucide-react";
 
 const tabs = [
   { to: "/", label: "Today", Icon: Newspaper, exact: true },
-  { to: "/atlas", label: "Atlas", Icon: Globe },
-  { to: "/saved", label: "Saved", Icon: Bookmark },
-  { to: "/digest", label: "Digest", Icon: Clock },
-  { to: "/profile", label: "Profile", Icon: User },
+  { to: "/atlas", label: "Atlas", Icon: Globe, exact: false },
+  { to: "/saved", label: "Saved", Icon: Bookmark, exact: false },
+  { to: "/digest", label: "Digest", Icon: Clock, exact: false },
+  { to: "/profile", label: "Profile", Icon: User, exact: false },
 ] as const;
 
 export function BottomNav() {
