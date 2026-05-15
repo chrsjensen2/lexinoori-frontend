@@ -455,7 +455,9 @@ function ArticleView() {
         <SourceRow initial="T" name="TV2" bias="#FFD000" diversity="6.4" wireCopy last />
 
         {/* Bottom action */}
-        <button
+        <Link
+          to="/timeline/$id"
+          params={{ id: "1" }}
           style={{
             display: "block",
             width: "100%",
@@ -466,7 +468,7 @@ function ArticleView() {
           }}
         >
           View story timeline →
-        </button>
+        </Link>
       </section>
 
       {/* Share button */}
