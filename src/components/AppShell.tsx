@@ -7,9 +7,10 @@ export function AppShell() {
   const isToday = pathname === "/";
   const isAtlas = pathname === "/atlas";
   const isArticle = pathname.startsWith("/article/");
+  const isTimeline = pathname.startsWith("/timeline/");
 
-  const showGlobalHeader = !isToday && !isAtlas && !isArticle;
-  const showBottomNav = !isArticle;
+  const showGlobalHeader = !isToday && !isAtlas && !isArticle && !isTimeline;
+  const showBottomNav = !isArticle && !isTimeline;
 
   return (
     <div className="min-h-screen bg-background text-foreground">

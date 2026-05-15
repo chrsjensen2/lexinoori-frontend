@@ -14,6 +14,7 @@ import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as DigestRouteImport } from './routes/digest'
 import { Route as AtlasRouteImport } from './routes/atlas'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as TimelineIdRouteImport } from './routes/timeline.$id'
 import { Route as ArticleIdRouteImport } from './routes/article.$id'
 
 const SavedRoute = SavedRouteImport.update({
@@ -41,6 +42,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TimelineIdRoute = TimelineIdRouteImport.update({
+  id: '/timeline/$id',
+  path: '/timeline/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ArticleIdRoute = ArticleIdRouteImport.update({
   id: '/article/$id',
   path: '/article/$id',
@@ -54,6 +60,7 @@ export interface FileRoutesByFullPath {
   '/profile': typeof ProfileRoute
   '/saved': typeof SavedRoute
   '/article/$id': typeof ArticleIdRoute
+  '/timeline/$id': typeof TimelineIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -62,6 +69,7 @@ export interface FileRoutesByTo {
   '/profile': typeof ProfileRoute
   '/saved': typeof SavedRoute
   '/article/$id': typeof ArticleIdRoute
+  '/timeline/$id': typeof TimelineIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -71,12 +79,27 @@ export interface FileRoutesById {
   '/profile': typeof ProfileRoute
   '/saved': typeof SavedRoute
   '/article/$id': typeof ArticleIdRoute
+  '/timeline/$id': typeof TimelineIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/atlas' | '/digest' | '/profile' | '/saved' | '/article/$id'
+  fullPaths:
+    | '/'
+    | '/atlas'
+    | '/digest'
+    | '/profile'
+    | '/saved'
+    | '/article/$id'
+    | '/timeline/$id'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/atlas' | '/digest' | '/profile' | '/saved' | '/article/$id'
+  to:
+    | '/'
+    | '/atlas'
+    | '/digest'
+    | '/profile'
+    | '/saved'
+    | '/article/$id'
+    | '/timeline/$id'
   id:
     | '__root__'
     | '/'
@@ -85,6 +108,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/saved'
     | '/article/$id'
+    | '/timeline/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -94,6 +118,7 @@ export interface RootRouteChildren {
   ProfileRoute: typeof ProfileRoute
   SavedRoute: typeof SavedRoute
   ArticleIdRoute: typeof ArticleIdRoute
+  TimelineIdRoute: typeof TimelineIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -133,6 +158,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/timeline/$id': {
+      id: '/timeline/$id'
+      path: '/timeline/$id'
+      fullPath: '/timeline/$id'
+      preLoaderRoute: typeof TimelineIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/article/$id': {
       id: '/article/$id'
       path: '/article/$id'
@@ -150,6 +182,7 @@ const rootRouteChildren: RootRouteChildren = {
   ProfileRoute: ProfileRoute,
   SavedRoute: SavedRoute,
   ArticleIdRoute: ArticleIdRoute,
+  TimelineIdRoute: TimelineIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
