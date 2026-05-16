@@ -1,5 +1,5 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
-import { ArrowLeft, Plus } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 
 export const Route = createFileRoute("/journalist/$id")({
   head: () => ({ meta: [{ title: "Journalist — lexinoori." }] }),
@@ -46,7 +46,19 @@ function JournalistPage() {
           JOURNALIST
         </div>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
-          <Plus size={24} color="#1A7A5E" />
+          <button
+            style={{
+              background: "transparent",
+              border: "none",
+              cursor: "pointer",
+              color: "#1A7A5E",
+              fontWeight: 700,
+              fontSize: 14,
+              padding: 0,
+            }}
+          >
+            Follow
+          </button>
         </div>
       </div>
 
@@ -114,8 +126,8 @@ function JournalistPage() {
           gap: 8,
         }}
       >
-        <StatCol label="LOADED LANG." value="0.18/1" tag="LOW" tagColor="#00C864" />
-        <StatCol label="SOURCE DIV." value="7.4/10" tag="GOOD" tagColor="#00C864" />
+        <StatCol label="LOADED LANGUAGE" value="0.18/1" tag="LOW" tagColor="#00C864" />
+        <StatCol label="SOURCE DIVERSITY" value="7.4/10" tag="GOOD" tagColor="#00C864" />
         <StatCol label="BIAS · NOW" value="L · 4" tag="CENTRE-LEFT" tagColor="#8E8E93" />
       </div>
 
@@ -363,20 +375,23 @@ function CareerTimeline() {
           position: "relative",
         }}
       >
-        {items.map((it) => (
-          <div key={it.year} style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-            <div
-              style={{
-                width: 8,
-                height: 8,
-                borderRadius: 999,
-                backgroundColor: "#2C2C2E",
-              }}
-            />
-            <div style={{ color: "#8E8E93", fontSize: 10, marginTop: 8 }}>{it.year}</div>
-            <div style={{ color: "#8E8E93", fontSize: 11, marginTop: 2 }}>{it.outlet}</div>
-          </div>
-        ))}
+        {items.map((it, i) => {
+          const isCurrent = i === items.length - 1;
+          return (
+            <div key={it.year} style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+              <div
+                style={{
+                  width: 8,
+                  height: 8,
+                  borderRadius: 999,
+                  backgroundColor: isCurrent ? "#1A7A5E" : "#2C2C2E",
+                }}
+              />
+              <div style={{ color: "#8E8E93", fontSize: 10, marginTop: 8 }}>{it.year}</div>
+              <div style={{ color: isCurrent ? "#FFFFFF" : "#8E8E93", fontSize: 11, marginTop: 2 }}>{it.outlet}</div>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
