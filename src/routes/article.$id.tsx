@@ -1,6 +1,6 @@
 import { createFileRoute, useRouter, Link } from "@tanstack/react-router";
 import { useState } from "react";
-import { ArrowLeft, Bookmark, Share2, MoreHorizontal } from "lucide-react";
+import { ArrowLeft, Bookmark, Share2, MoreHorizontal, ChevronRight } from "lucide-react";
 import { TopicPill, TOPIC_COLORS, type Topic } from "@/components/feed/TopicPill";
 
 export const Route = createFileRoute("/article/$id")({
@@ -588,12 +588,15 @@ function SourceRow({
   last?: boolean;
 }) {
   return (
-    <div
+    <Link
+      to="/journalist/$id"
+      params={{ id: "1" }}
       className="flex items-center"
       style={{
         height: 44,
         gap: 12,
         borderBottom: last ? "none" : "1px solid #2C2C2E",
+        textDecoration: "none",
       }}
     >
       <span
@@ -645,6 +648,7 @@ function SourceRow({
       >
         DIV {diversity}
       </span>
-    </div>
+      <ChevronRight size={12} style={{ color: "#8E8E93" }} />
+    </Link>
   );
 }
