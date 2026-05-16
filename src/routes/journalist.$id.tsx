@@ -46,7 +46,19 @@ function JournalistPage() {
           JOURNALIST
         </div>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
-          <Plus size={24} color="#1A7A5E" />
+          <button
+            style={{
+              background: "transparent",
+              border: "none",
+              cursor: "pointer",
+              color: "#1A7A5E",
+              fontWeight: 700,
+              fontSize: 14,
+              padding: 0,
+            }}
+          >
+            Follow
+          </button>
         </div>
       </div>
 
@@ -114,8 +126,8 @@ function JournalistPage() {
           gap: 8,
         }}
       >
-        <StatCol label="LOADED LANG." value="0.18/1" tag="LOW" tagColor="#00C864" />
-        <StatCol label="SOURCE DIV." value="7.4/10" tag="GOOD" tagColor="#00C864" />
+        <StatCol label="LOADED LANGUAGE" value="0.18/1" tag="LOW" tagColor="#00C864" />
+        <StatCol label="SOURCE DIVERSITY" value="7.4/10" tag="GOOD" tagColor="#00C864" />
         <StatCol label="BIAS · NOW" value="L · 4" tag="CENTRE-LEFT" tagColor="#8E8E93" />
       </div>
 
