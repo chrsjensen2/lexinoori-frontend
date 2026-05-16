@@ -15,6 +15,7 @@ import { Route as DigestRouteImport } from './routes/digest'
 import { Route as AtlasRouteImport } from './routes/atlas'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as TimelineIdRouteImport } from './routes/timeline.$id'
+import { Route as JournalistIdRouteImport } from './routes/journalist.$id'
 import { Route as ArticleIdRouteImport } from './routes/article.$id'
 
 const SavedRoute = SavedRouteImport.update({
@@ -47,6 +48,11 @@ const TimelineIdRoute = TimelineIdRouteImport.update({
   path: '/timeline/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const JournalistIdRoute = JournalistIdRouteImport.update({
+  id: '/journalist/$id',
+  path: '/journalist/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ArticleIdRoute = ArticleIdRouteImport.update({
   id: '/article/$id',
   path: '/article/$id',
@@ -60,6 +66,7 @@ export interface FileRoutesByFullPath {
   '/profile': typeof ProfileRoute
   '/saved': typeof SavedRoute
   '/article/$id': typeof ArticleIdRoute
+  '/journalist/$id': typeof JournalistIdRoute
   '/timeline/$id': typeof TimelineIdRoute
 }
 export interface FileRoutesByTo {
@@ -69,6 +76,7 @@ export interface FileRoutesByTo {
   '/profile': typeof ProfileRoute
   '/saved': typeof SavedRoute
   '/article/$id': typeof ArticleIdRoute
+  '/journalist/$id': typeof JournalistIdRoute
   '/timeline/$id': typeof TimelineIdRoute
 }
 export interface FileRoutesById {
@@ -79,6 +87,7 @@ export interface FileRoutesById {
   '/profile': typeof ProfileRoute
   '/saved': typeof SavedRoute
   '/article/$id': typeof ArticleIdRoute
+  '/journalist/$id': typeof JournalistIdRoute
   '/timeline/$id': typeof TimelineIdRoute
 }
 export interface FileRouteTypes {
@@ -90,6 +99,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/saved'
     | '/article/$id'
+    | '/journalist/$id'
     | '/timeline/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -99,6 +109,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/saved'
     | '/article/$id'
+    | '/journalist/$id'
     | '/timeline/$id'
   id:
     | '__root__'
@@ -108,6 +119,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/saved'
     | '/article/$id'
+    | '/journalist/$id'
     | '/timeline/$id'
   fileRoutesById: FileRoutesById
 }
@@ -118,6 +130,7 @@ export interface RootRouteChildren {
   ProfileRoute: typeof ProfileRoute
   SavedRoute: typeof SavedRoute
   ArticleIdRoute: typeof ArticleIdRoute
+  JournalistIdRoute: typeof JournalistIdRoute
   TimelineIdRoute: typeof TimelineIdRoute
 }
 
@@ -165,6 +178,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TimelineIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/journalist/$id': {
+      id: '/journalist/$id'
+      path: '/journalist/$id'
+      fullPath: '/journalist/$id'
+      preLoaderRoute: typeof JournalistIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/article/$id': {
       id: '/article/$id'
       path: '/article/$id'
@@ -182,6 +202,7 @@ const rootRouteChildren: RootRouteChildren = {
   ProfileRoute: ProfileRoute,
   SavedRoute: SavedRoute,
   ArticleIdRoute: ArticleIdRoute,
+  JournalistIdRoute: JournalistIdRoute,
   TimelineIdRoute: TimelineIdRoute,
 }
 export const routeTree = rootRouteImport
