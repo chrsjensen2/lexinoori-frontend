@@ -375,20 +375,23 @@ function CareerTimeline() {
           position: "relative",
         }}
       >
-        {items.map((it) => (
-          <div key={it.year} style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-            <div
-              style={{
-                width: 8,
-                height: 8,
-                borderRadius: 999,
-                backgroundColor: "#2C2C2E",
-              }}
-            />
-            <div style={{ color: "#8E8E93", fontSize: 10, marginTop: 8 }}>{it.year}</div>
-            <div style={{ color: "#8E8E93", fontSize: 11, marginTop: 2 }}>{it.outlet}</div>
-          </div>
-        ))}
+        {items.map((it, i) => {
+          const isCurrent = i === items.length - 1;
+          return (
+            <div key={it.year} style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+              <div
+                style={{
+                  width: 8,
+                  height: 8,
+                  borderRadius: 999,
+                  backgroundColor: isCurrent ? "#1A7A5E" : "#2C2C2E",
+                }}
+              />
+              <div style={{ color: "#8E8E93", fontSize: 10, marginTop: 8 }}>{it.year}</div>
+              <div style={{ color: isCurrent ? "#FFFFFF" : "#8E8E93", fontSize: 11, marginTop: 2 }}>{it.outlet}</div>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
