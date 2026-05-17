@@ -9,8 +9,9 @@ export function AppShell() {
   const isArticle = pathname.startsWith("/article/");
   const isTimeline = pathname.startsWith("/timeline/");
   const isJournalist = pathname.startsWith("/journalist/");
+  const isProfile = pathname === "/profile";
 
-  const showGlobalHeader = !isToday && !isAtlas && !isArticle && !isTimeline && !isJournalist;
+  const showGlobalHeader = !isToday && !isAtlas && !isArticle && !isTimeline && !isJournalist && !isProfile;
   const showBottomNav = !isArticle && !isTimeline;
 
   return (
