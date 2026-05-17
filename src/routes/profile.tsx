@@ -341,3 +341,35 @@ function SettingRow({ label, value }: { label: string; value: string }) {
     </div>
   );
 }
+
+function AccountRow({
+  to,
+  Icon,
+  label,
+}: {
+  to: string;
+  Icon: typeof Bookmark;
+  label: string;
+}) {
+  return (
+    <Link
+      to={to}
+      style={{
+        height: 44,
+        padding: "0 16px",
+        borderBottom: "1px solid #2C2C2E",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        gap: 12,
+        textDecoration: "none",
+      }}
+    >
+      <span style={{ display: "flex", alignItems: "center", gap: 12 }}>
+        <Icon size={18} color="#8E8E93" />
+        <span style={{ color: "#FFFFFF", fontSize: 15 }}>{label}</span>
+      </span>
+      <ChevronRight size={18} color="#8E8E93" />
+    </Link>
+  );
+}
