@@ -1,5 +1,6 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
+import { Bookmark, User as UserIcon, ChevronRight } from "lucide-react";
 
 export const Route = createFileRoute("/profile")({
   head: () => ({ meta: [{ title: "Settings — lexinoori." }] }),
@@ -200,6 +201,13 @@ function SettingsPage() {
         >
           Settings.
         </h1>
+      </div>
+
+      {/* Account */}
+      <SectionHeader top={24}>ACCOUNT</SectionHeader>
+      <div style={{ background: "#1C1C1E" }}>
+        <AccountRow to="/saved" Icon={Bookmark} label="Saved articles" />
+        <AccountRow to="/following" Icon={UserIcon} label="Following" />
       </div>
 
       {/* Reading level card */}
