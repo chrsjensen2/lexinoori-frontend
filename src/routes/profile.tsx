@@ -188,14 +188,7 @@ function SettingsPage() {
   return (
     <div style={{ paddingTop: "env(safe-area-inset-top)" }}>
       {/* Header */}
-      <div
-        style={{
-          padding: "20px 16px 0",
-          display: "flex",
-          alignItems: "baseline",
-          justifyContent: "space-between",
-        }}
-      >
+      <div style={{ padding: "20px 16px 0" }}>
         <h1
           style={{
             color: "#FFFFFF",
@@ -207,7 +200,6 @@ function SettingsPage() {
         >
           Settings.
         </h1>
-        <span style={{ color: "#8E8E93", fontSize: 13 }}>V 1.0</span>
       </div>
 
       {/* Reading level card */}
@@ -248,7 +240,7 @@ function SettingsPage() {
       <SectionHeader>REGION · LANGUAGE · GEOGRAPHY</SectionHeader>
       <div style={{ background: "#1C1C1E" }}>
         <SettingRow label="Reading language" value="English ›" />
-        <SettingRow label="Expat secondary" value="Dansk ›" />
+        <SettingRow label="Secondary language" value="Dansk ›" />
         <div
           style={{
             minHeight: 56,
