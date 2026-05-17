@@ -1,5 +1,6 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
+import { Bookmark, User as UserIcon, ChevronRight } from "lucide-react";
 
 export const Route = createFileRoute("/profile")({
   head: () => ({ meta: [{ title: "Settings — lexinoori." }] }),
@@ -202,6 +203,13 @@ function SettingsPage() {
         </h1>
       </div>
 
+      {/* Account */}
+      <SectionHeader top={24}>ACCOUNT</SectionHeader>
+      <div style={{ background: "#1C1C1E" }}>
+        <AccountRow to="/saved" Icon={Bookmark} label="Saved articles" />
+        <AccountRow to="/following" Icon={UserIcon} label="Following" />
+      </div>
+
       {/* Reading level card */}
       <SectionHeader top={24}>READING LEVEL · APPLIES EVERYWHERE</SectionHeader>
       <div
@@ -331,5 +339,37 @@ function SettingRow({ label, value }: { label: string; value: string }) {
       <span style={{ color: "#FFFFFF", fontSize: 15 }}>{label}</span>
       <span style={{ color: "#8E8E93", fontSize: 15 }}>{value}</span>
     </div>
+  );
+}
+
+function AccountRow({
+  to,
+  Icon,
+  label,
+}: {
+  to: string;
+  Icon: typeof Bookmark;
+  label: string;
+}) {
+  return (
+    <Link
+      to={to}
+      style={{
+        height: 44,
+        padding: "0 16px",
+        borderBottom: "1px solid #2C2C2E",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        gap: 12,
+        textDecoration: "none",
+      }}
+    >
+      <span style={{ display: "flex", alignItems: "center", gap: 12 }}>
+        <Icon size={18} color="#8E8E93" />
+        <span style={{ color: "#FFFFFF", fontSize: 15 }}>{label}</span>
+      </span>
+      <ChevronRight size={18} color="#8E8E93" />
+    </Link>
   );
 }

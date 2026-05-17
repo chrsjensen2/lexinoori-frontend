@@ -1,10 +1,10 @@
 import { Link, useLocation } from "@tanstack/react-router";
-import { Newspaper, Globe, Bookmark, Clock, User } from "lucide-react";
+import { Newspaper, Globe, PlaySquare, Clock, User } from "lucide-react";
 
 const tabs = [
   { to: "/", label: "Today", Icon: Newspaper, exact: true },
   { to: "/atlas", label: "Atlas", Icon: Globe, exact: false },
-  { to: "/saved", label: "Saved", Icon: Bookmark, exact: false },
+  { to: "/stories", label: "Stories", Icon: PlaySquare, exact: false },
   { to: "/digest", label: "Digest", Icon: Clock, exact: false },
   { to: "/profile", label: "Profile", Icon: User, exact: false },
 ] as const;
