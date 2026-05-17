@@ -199,7 +199,7 @@ function SettingsPage() {
             lineHeight: 1.1,
           }}
         >
-          Settings.
+          Profile.
         </h1>
       </div>
 
