@@ -9,8 +9,10 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as StoriesRouteImport } from './routes/stories'
 import { Route as SavedRouteImport } from './routes/saved'
 import { Route as ProfileRouteImport } from './routes/profile'
+import { Route as FollowingRouteImport } from './routes/following'
 import { Route as DigestRouteImport } from './routes/digest'
 import { Route as AtlasRouteImport } from './routes/atlas'
 import { Route as IndexRouteImport } from './routes/index'
@@ -18,6 +20,11 @@ import { Route as TimelineIdRouteImport } from './routes/timeline.$id'
 import { Route as JournalistIdRouteImport } from './routes/journalist.$id'
 import { Route as ArticleIdRouteImport } from './routes/article.$id'
 
+const StoriesRoute = StoriesRouteImport.update({
+  id: '/stories',
+  path: '/stories',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SavedRoute = SavedRouteImport.update({
   id: '/saved',
   path: '/saved',
@@ -26,6 +33,11 @@ const SavedRoute = SavedRouteImport.update({
 const ProfileRoute = ProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FollowingRoute = FollowingRouteImport.update({
+  id: '/following',
+  path: '/following',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DigestRoute = DigestRouteImport.update({
@@ -63,8 +75,10 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/atlas': typeof AtlasRoute
   '/digest': typeof DigestRoute
+  '/following': typeof FollowingRoute
   '/profile': typeof ProfileRoute
   '/saved': typeof SavedRoute
+  '/stories': typeof StoriesRoute
   '/article/$id': typeof ArticleIdRoute
   '/journalist/$id': typeof JournalistIdRoute
   '/timeline/$id': typeof TimelineIdRoute
@@ -73,8 +87,10 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/atlas': typeof AtlasRoute
   '/digest': typeof DigestRoute
+  '/following': typeof FollowingRoute
   '/profile': typeof ProfileRoute
   '/saved': typeof SavedRoute
+  '/stories': typeof StoriesRoute
   '/article/$id': typeof ArticleIdRoute
   '/journalist/$id': typeof JournalistIdRoute
   '/timeline/$id': typeof TimelineIdRoute
@@ -84,8 +100,10 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/atlas': typeof AtlasRoute
   '/digest': typeof DigestRoute
+  '/following': typeof FollowingRoute
   '/profile': typeof ProfileRoute
   '/saved': typeof SavedRoute
+  '/stories': typeof StoriesRoute
   '/article/$id': typeof ArticleIdRoute
   '/journalist/$id': typeof JournalistIdRoute
   '/timeline/$id': typeof TimelineIdRoute
@@ -96,8 +114,10 @@ export interface FileRouteTypes {
     | '/'
     | '/atlas'
     | '/digest'
+    | '/following'
     | '/profile'
     | '/saved'
+    | '/stories'
     | '/article/$id'
     | '/journalist/$id'
     | '/timeline/$id'
@@ -106,8 +126,10 @@ export interface FileRouteTypes {
     | '/'
     | '/atlas'
     | '/digest'
+    | '/following'
     | '/profile'
     | '/saved'
+    | '/stories'
     | '/article/$id'
     | '/journalist/$id'
     | '/timeline/$id'
@@ -116,8 +138,10 @@ export interface FileRouteTypes {
     | '/'
     | '/atlas'
     | '/digest'
+    | '/following'
     | '/profile'
     | '/saved'
+    | '/stories'
     | '/article/$id'
     | '/journalist/$id'
     | '/timeline/$id'
@@ -127,8 +151,10 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AtlasRoute: typeof AtlasRoute
   DigestRoute: typeof DigestRoute
+  FollowingRoute: typeof FollowingRoute
   ProfileRoute: typeof ProfileRoute
   SavedRoute: typeof SavedRoute
+  StoriesRoute: typeof StoriesRoute
   ArticleIdRoute: typeof ArticleIdRoute
   JournalistIdRoute: typeof JournalistIdRoute
   TimelineIdRoute: typeof TimelineIdRoute
@@ -136,6 +162,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/stories': {
+      id: '/stories'
+      path: '/stories'
+      fullPath: '/stories'
+      preLoaderRoute: typeof StoriesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/saved': {
       id: '/saved'
       path: '/saved'
@@ -148,6 +181,13 @@ declare module '@tanstack/react-router' {
       path: '/profile'
       fullPath: '/profile'
       preLoaderRoute: typeof ProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/following': {
+      id: '/following'
+      path: '/following'
+      fullPath: '/following'
+      preLoaderRoute: typeof FollowingRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/digest': {
@@ -199,8 +239,10 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AtlasRoute: AtlasRoute,
   DigestRoute: DigestRoute,
+  FollowingRoute: FollowingRoute,
   ProfileRoute: ProfileRoute,
   SavedRoute: SavedRoute,
+  StoriesRoute: StoriesRoute,
   ArticleIdRoute: ArticleIdRoute,
   JournalistIdRoute: JournalistIdRoute,
   TimelineIdRoute: TimelineIdRoute,
@@ -208,3 +250,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
