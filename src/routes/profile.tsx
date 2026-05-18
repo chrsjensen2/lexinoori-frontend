@@ -252,6 +252,49 @@ function SettingsPage() {
         </div>
       </div>
 
+      {/* Article depth */}
+      <SectionHeader top={20}>ARTICLE DEPTH · SET PER ARTICLE</SectionHeader>
+      <div style={{ padding: "0 16px" }}>
+        <div style={{ display: "flex", gap: 8 }}>
+          {DEPTH_PILLS.map((pill, i) => {
+            const disabled = pill.requiresAdult && readingIdx < 2;
+            const isActive = i === depthIdx && !disabled;
+            return (
+              <button
+                key={pill.key}
+                disabled={disabled}
+                onClick={() => !disabled && setDepthIdx(i)}
+                style={{
+                  flex: 1,
+                  height: 36,
+                  borderRadius: 18,
+                  border: isActive
+                    ? "1px solid #FFFFFF"
+                    : disabled
+                      ? "1px solid #1C1C1E"
+                      : "1px solid #2C2C2E",
+                  background: isActive ? "#FFFFFF" : "#1C1C1E",
+                  color: isActive
+                    ? "#111111"
+                    : disabled
+                      ? "#FFFFFF30"
+                      : "#FFFFFF80",
+                  fontSize: 13,
+                  fontWeight: 700,
+                  cursor: disabled ? "not-allowed" : "pointer",
+                  padding: 0,
+                }}
+              >
+                {pill.label}
+              </button>
+            );
+          })}
+        </div>
+        <div style={{ color: "#8E8E93", fontSize: 13, marginTop: 8, lineHeight: 1.4 }}>
+          Deep Dive requires Adult or Expert reading level and sufficient source material.
+        </div>
+      </div>
+
       {/* Region section */}
       <SectionHeader>REGION · LANGUAGE · GEOGRAPHY</SectionHeader>
       <div style={{ background: "#1C1C1E" }}>
