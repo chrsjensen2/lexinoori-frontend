@@ -327,7 +327,7 @@ function ArticleView() {
               className="flex-1"
               style={{
                 padding: "10px 12px",
-                borderRadius: 8,
+                borderRadius: 20,
                 fontSize: 13,
                 fontWeight: 700,
                 backgroundColor: active ? "#FFFFFF" : "#1C1C1E",
