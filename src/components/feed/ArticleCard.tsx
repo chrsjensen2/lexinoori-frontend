@@ -21,6 +21,7 @@ interface ArticleCardProps {
   biasLabel: string;
   whatsNew?: boolean;
   thumbnail?: boolean;
+  hideTopic?: boolean;
 }
 
 export function ArticleCard({
