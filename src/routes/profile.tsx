@@ -9,29 +9,36 @@ export const Route = createFileRoute("/profile")({
 
 const READING_STOPS = [
   {
-    key: "beginner",
-    label: "BEGINNER",
-    title: "Beginner",
-    desc: "~200 words. Simple language, no jargon, key facts only.",
+    key: "kids",
+    label: "KIDS",
+    title: "Kids",
+    desc: "Simple vocabulary. Concepts explained. No assumed context.",
   },
   {
-    key: "standard",
-    label: "STANDARD",
-    title: "Standard",
-    desc: "~600 words per article. We assume context and define jargon.",
+    key: "young",
+    label: "YOUNG",
+    title: "Young",
+    desc: "Accessible language. Jargon explained.",
+  },
+  {
+    key: "adult",
+    label: "ADULT",
+    title: "Adult",
+    desc: "Standard news language. Context assumed.",
   },
   {
     key: "expert",
     label: "EXPERT",
     title: "Expert",
-    desc: "~1200 words. Full context, multiple angles, data included.",
+    desc: "Specialist vocabulary. Deep background assumed.",
   },
-  {
-    key: "deepdive",
-    label: "DEEP DIVE",
-    title: "Deep Dive",
-    desc: "~2500 words. Everything. Pull quotes, subheadings, full source list.",
-  },
+] as const;
+
+const DEPTH_PILLS = [
+  { key: "bullets", label: "Bullets", requiresAdult: false },
+  { key: "brief", label: "Brief", requiresAdult: false },
+  { key: "standard", label: "Standard", requiresAdult: false },
+  { key: "deepdive", label: "Deep Dive", requiresAdult: true },
 ] as const;
 
 const ZOOM_STOPS = ["WORLD", "CONTINENT", "COUNTRY", "LOCAL"] as const;
