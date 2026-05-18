@@ -118,52 +118,9 @@ function TodayPage() {
       </div>
 
       <div className="flex flex-col" style={{ gap: 12 }}>
-        <ArticleCard hideTopic={hideTopic}
-          id="1"
-          topic="politics"
-          timeAgo="3H AGO"
-          headline="EU finance ministers split over emergency defence spending package ahead of summit."
-          outletInitial="R"
-          sources={9}
-          readMinutes={6}
-          bias="low"
-          biasLabel="Centre-left · 7.4 diversity"
-          thumbnail
-        />
-        <ArticleCard hideTopic={hideTopic}
-          id="2"
-          topic="climate"
-          timeAgo="5H AGO"
-          headline="Atlantic hurricane season opens with two named storms in single week, NOAA warns."
-          outletInitial="N"
-          sources={14}
-          readMinutes={4}
-          bias="low"
-          biasLabel="Centre · 8.1 diversity"
-        />
-        <ArticleCard hideTopic={hideTopic}
-          id="3"
-          topic="economics"
-          timeAgo="6H AGO"
-          headline="Yen tumbles to 38-year low as Bank of Japan signals reluctance to intervene."
-          outletInitial="F"
-          sources={22}
-          readMinutes={5}
-          bias="medium"
-          biasLabel="Centre-right · 5.9 diversity"
-        />
-        <ArticleCard hideTopic={hideTopic}
-          id="4"
-          topic="technology"
-          timeAgo="2H AGO"
-          headline="Meta releases open-weights vision model, undercutting closed competitors on benchmarks."
-          outletInitial="V"
-          sources={11}
-          readMinutes={7}
-          bias="low"
-          biasLabel="Centre · 6.8 diversity"
-          whatsNew
-        />
+        {ARTICLES_BY_TAB[activeTab].map((a) => (
+          <ArticleCard key={a.id} {...a} hideTopic={hideTopic} />
+        ))}
       </div>
 
       <div style={{ height: 24 }} />
