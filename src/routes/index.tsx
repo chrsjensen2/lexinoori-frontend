@@ -83,7 +83,7 @@ function TodayPage() {
         </div>
 
         <div style={{ paddingBottom: 4 }}>
-          <TopicTabs />
+          <TopicTabs active={activeTab} onChange={setActiveTab} />
         </div>
         <div style={{ height: 1, backgroundColor: "#2C2C2E" }} />
       </header>
