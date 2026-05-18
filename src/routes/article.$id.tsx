@@ -13,7 +13,7 @@ const TOPIC_LABEL = "POLITICS";
 const HEADLINE =
   "EU digital sovereignty bill fast-tracks past national vetoes after marathon trilogue.";
 
-const READ_LENGTHS = ["Bullets", "Standard", "Expert", "Deep Dive"] as const;
+const READ_LENGTHS = ["Bullets", "Brief", "Standard", "Deep Dive"] as const;
 type ReadLength = (typeof READ_LENGTHS)[number];
 
 function ArticleView() {
