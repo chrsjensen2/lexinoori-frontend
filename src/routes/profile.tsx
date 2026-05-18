@@ -9,29 +9,36 @@ export const Route = createFileRoute("/profile")({
 
 const READING_STOPS = [
   {
-    key: "beginner",
-    label: "BEGINNER",
-    title: "Beginner",
-    desc: "~200 words. Simple language, no jargon, key facts only.",
+    key: "kids",
+    label: "KIDS",
+    title: "Kids",
+    desc: "Simple vocabulary. Concepts explained. No assumed context.",
   },
   {
-    key: "standard",
-    label: "STANDARD",
-    title: "Standard",
-    desc: "~600 words per article. We assume context and define jargon.",
+    key: "young",
+    label: "YOUNG",
+    title: "Young",
+    desc: "Accessible language. Jargon explained.",
+  },
+  {
+    key: "adult",
+    label: "ADULT",
+    title: "Adult",
+    desc: "Standard news language. Context assumed.",
   },
   {
     key: "expert",
     label: "EXPERT",
     title: "Expert",
-    desc: "~1200 words. Full context, multiple angles, data included.",
+    desc: "Specialist vocabulary. Deep background assumed.",
   },
-  {
-    key: "deepdive",
-    label: "DEEP DIVE",
-    title: "Deep Dive",
-    desc: "~2500 words. Everything. Pull quotes, subheadings, full source list.",
-  },
+] as const;
+
+const DEPTH_PILLS = [
+  { key: "bullets", label: "Bullets", requiresAdult: false },
+  { key: "brief", label: "Brief", requiresAdult: false },
+  { key: "standard", label: "Standard", requiresAdult: false },
+  { key: "deepdive", label: "Deep Dive", requiresAdult: true },
 ] as const;
 
 const ZOOM_STOPS = ["WORLD", "CONTINENT", "COUNTRY", "LOCAL"] as const;
@@ -171,7 +178,8 @@ function SectionHeader({ children, top = 20 }: { children: React.ReactNode; top?
 }
 
 function SettingsPage() {
-  const [readingIdx, setReadingIdx] = useState(1);
+  const [readingIdx, setReadingIdx] = useState(2);
+  const [depthIdx, setDepthIdx] = useState(2);
   const [zoomIdx, setZoomIdx] = useState(2);
   const [topics, setTopics] = useState<Record<string, boolean>>({
     breaking: true,
@@ -241,6 +249,49 @@ function SettingsPage() {
             activeIndex={readingIdx}
             onChange={setReadingIdx}
           />
+        </div>
+      </div>
+
+      {/* Article depth */}
+      <SectionHeader top={20}>ARTICLE DEPTH · SET PER ARTICLE</SectionHeader>
+      <div style={{ padding: "0 16px" }}>
+        <div style={{ display: "flex", gap: 8 }}>
+          {DEPTH_PILLS.map((pill, i) => {
+            const disabled = pill.requiresAdult && readingIdx < 2;
+            const isActive = i === depthIdx && !disabled;
+            return (
+              <button
+                key={pill.key}
+                disabled={disabled}
+                onClick={() => !disabled && setDepthIdx(i)}
+                style={{
+                  flex: 1,
+                  height: 36,
+                  borderRadius: 18,
+                  border: isActive
+                    ? "1px solid #FFFFFF"
+                    : disabled
+                      ? "1px solid #1C1C1E"
+                      : "1px solid #2C2C2E",
+                  background: isActive ? "#FFFFFF" : "#1C1C1E",
+                  color: isActive
+                    ? "#111111"
+                    : disabled
+                      ? "#FFFFFF30"
+                      : "#FFFFFF80",
+                  fontSize: 13,
+                  fontWeight: 700,
+                  cursor: disabled ? "not-allowed" : "pointer",
+                  padding: 0,
+                }}
+              >
+                {pill.label}
+              </button>
+            );
+          })}
+        </div>
+        <div style={{ color: "#8E8E93", fontSize: 13, marginTop: 8, lineHeight: 1.4 }}>
+          Deep Dive requires Adult or Expert reading level and sufficient source material.
         </div>
       </div>
 

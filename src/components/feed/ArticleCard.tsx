@@ -21,6 +21,7 @@ interface ArticleCardProps {
   biasLabel: string;
   whatsNew?: boolean;
   thumbnail?: boolean;
+  hideTopic?: boolean;
 }
 
 export function ArticleCard({
@@ -35,6 +36,7 @@ export function ArticleCard({
   biasLabel,
   whatsNew = false,
   thumbnail = false,
+  hideTopic = false,
 }: ArticleCardProps) {
   const topicColor = TOPIC_COLORS[topic];
 
@@ -56,7 +58,7 @@ export function ArticleCard({
       {/* Row 1: pills + timestamp */}
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2">
-          <TopicPill topic={topic} />
+          {!hideTopic && <TopicPill topic={topic} />}
           {whatsNew && <WhatsNewPill />}
         </div>
         <span style={{ color: "#8E8E93", fontSize: 12 }}>{timeAgo}</span>

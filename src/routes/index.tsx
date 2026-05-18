@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useState } from "react";
 import { TopicTabs } from "@/components/feed/TopicTabs";
 import { BreakingNewsCard } from "@/components/feed/BreakingNewsCard";
 import { ArticleCard } from "@/components/feed/ArticleCard";
@@ -24,6 +25,8 @@ function formatDateTime(d: Date) {
 function TodayPage() {
   const breaking = true;
   const dateLabel = formatDateTime(new Date());
+  const [activeTab, setActiveTab] = useState("Today");
+  const hideTopic = activeTab !== "Today";
 
   return (
     <div>
@@ -80,7 +83,7 @@ function TodayPage() {
         </div>
 
         <div style={{ paddingBottom: 4 }}>
-          <TopicTabs />
+          <TopicTabs active={activeTab} onChange={setActiveTab} />
         </div>
         <div style={{ height: 1, backgroundColor: "#2C2C2E" }} />
       </header>
@@ -115,7 +118,7 @@ function TodayPage() {
       </div>
 
       <div className="flex flex-col" style={{ gap: 12 }}>
-        <ArticleCard
+        <ArticleCard hideTopic={hideTopic}
           id="1"
           topic="politics"
           timeAgo="3H AGO"
@@ -127,7 +130,7 @@ function TodayPage() {
           biasLabel="Centre-left · 7.4 diversity"
           thumbnail
         />
-        <ArticleCard
+        <ArticleCard hideTopic={hideTopic}
           id="2"
           topic="climate"
           timeAgo="5H AGO"
@@ -138,7 +141,7 @@ function TodayPage() {
           bias="low"
           biasLabel="Centre · 8.1 diversity"
         />
-        <ArticleCard
+        <ArticleCard hideTopic={hideTopic}
           id="3"
           topic="economics"
           timeAgo="6H AGO"
@@ -149,7 +152,7 @@ function TodayPage() {
           bias="medium"
           biasLabel="Centre-right · 5.9 diversity"
         />
-        <ArticleCard
+        <ArticleCard hideTopic={hideTopic}
           id="4"
           topic="technology"
           timeAgo="2H AGO"
