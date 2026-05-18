@@ -3,6 +3,7 @@ import { useState } from "react";
 import { TopicTabs } from "@/components/feed/TopicTabs";
 import { BreakingNewsCard } from "@/components/feed/BreakingNewsCard";
 import { ArticleCard } from "@/components/feed/ArticleCard";
+import type { Topic } from "@/components/feed/TopicPill";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -13,6 +14,69 @@ export const Route = createFileRoute("/")({
   }),
   component: TodayPage,
 });
+
+type Article = {
+  id: string;
+  topic: Topic;
+  timeAgo: string;
+  headline: string;
+  outletInitial: string;
+  sources: number;
+  readMinutes: number;
+  bias: "low" | "medium" | "high";
+  biasLabel: string;
+  whatsNew?: boolean;
+  thumbnail?: boolean;
+};
+
+const TODAY_ARTICLES: Article[] = [
+  { id: "1", topic: "politics", timeAgo: "3H AGO", headline: "EU finance ministers split over emergency defence spending package ahead of summit.", outletInitial: "R", sources: 9, readMinutes: 6, bias: "low", biasLabel: "Centre-left · 7.4 diversity", thumbnail: true },
+  { id: "2", topic: "climate", timeAgo: "5H AGO", headline: "Atlantic hurricane season opens with two named storms in single week, NOAA warns.", outletInitial: "N", sources: 14, readMinutes: 4, bias: "low", biasLabel: "Centre · 8.1 diversity" },
+  { id: "3", topic: "economics", timeAgo: "6H AGO", headline: "Yen tumbles to 38-year low as Bank of Japan signals reluctance to intervene.", outletInitial: "F", sources: 22, readMinutes: 5, bias: "medium", biasLabel: "Centre-right · 5.9 diversity" },
+  { id: "4", topic: "technology", timeAgo: "2H AGO", headline: "Meta releases open-weights vision model, undercutting closed competitors on benchmarks.", outletInitial: "V", sources: 11, readMinutes: 7, bias: "low", biasLabel: "Centre · 6.8 diversity", whatsNew: true },
+];
+
+const POLITICS_ARTICLES: Article[] = [
+  { id: "p1", topic: "politics", timeAgo: "3H AGO", headline: "EU finance ministers split over emergency defence spending package ahead of summit.", outletInitial: "R", sources: 9, readMinutes: 6, bias: "low", biasLabel: "Centre-left · 7.4 diversity" },
+  { id: "p2", topic: "politics", timeAgo: "5H AGO", headline: "French parliament votes to extend state of emergency by 90 days.", outletInitial: "L", sources: 12, readMinutes: 5, bias: "low", biasLabel: "Centre · 7.8 diversity" },
+  { id: "p3", topic: "politics", timeAgo: "8H AGO", headline: "NATO secretary general calls emergency summit following Baltic incident.", outletInitial: "A", sources: 18, readMinutes: 4, bias: "low", biasLabel: "Centre · 8.2 diversity" },
+];
+
+const CLIMATE_ARTICLES: Article[] = [
+  { id: "c1", topic: "climate", timeAgo: "5H AGO", headline: "Atlantic hurricane season opens with two named storms in single week, NOAA warns.", outletInitial: "N", sources: 14, readMinutes: 4, bias: "low", biasLabel: "Centre · 8.1 diversity" },
+  { id: "c2", topic: "climate", timeAgo: "9H AGO", headline: "Arctic permafrost thaw accelerating faster than models predicted, study finds.", outletInitial: "G", sources: 8, readMinutes: 6, bias: "low", biasLabel: "Centre-left · 7.6 diversity" },
+  { id: "c3", topic: "climate", timeAgo: "12H AGO", headline: "EU carbon border tax faces legal challenge from six member states.", outletInitial: "P", sources: 11, readMinutes: 5, bias: "medium", biasLabel: "Centre · 6.9 diversity" },
+];
+
+const TECH_ARTICLES: Article[] = [
+  { id: "t1", topic: "technology", timeAgo: "2H AGO", headline: "Meta releases open-weights vision model, undercutting closed competitors on benchmarks.", outletInitial: "V", sources: 11, readMinutes: 7, bias: "low", biasLabel: "Centre · 6.8 diversity" },
+  { id: "t2", topic: "technology", timeAgo: "4H AGO", headline: "Apple delays AI feature rollout in Europe citing regulatory uncertainty.", outletInitial: "B", sources: 16, readMinutes: 5, bias: "low", biasLabel: "Centre · 7.4 diversity" },
+  { id: "t3", topic: "technology", timeAgo: "7H AGO", headline: "OpenAI announces GPT-5 with extended context window and reasoning improvements.", outletInitial: "T", sources: 22, readMinutes: 6, bias: "low", biasLabel: "Centre · 7.1 diversity" },
+];
+
+const ECONOMY_ARTICLES: Article[] = [
+  { id: "e1", topic: "economics", timeAgo: "6H AGO", headline: "Yen tumbles to 38-year low as Bank of Japan signals reluctance to intervene.", outletInitial: "F", sources: 22, readMinutes: 5, bias: "medium", biasLabel: "Centre-right · 5.9 diversity" },
+  { id: "e2", topic: "economics", timeAgo: "10H AGO", headline: "German industrial output contracts for third consecutive quarter.", outletInitial: "H", sources: 9, readMinutes: 4, bias: "low", biasLabel: "Centre · 7.2 diversity" },
+  { id: "e3", topic: "economics", timeAgo: "1D AGO", headline: "IMF revises global growth forecast downward citing trade fragmentation.", outletInitial: "I", sources: 19, readMinutes: 6, bias: "low", biasLabel: "Centre · 8.0 diversity" },
+];
+
+const SPORT_ARTICLES: Article[] = [
+  { id: "s1", topic: "sport", timeAgo: "1H AGO", headline: "Champions League final ends in penalty shootout as Real Madrid claim record title.", outletInitial: "M", sources: 28, readMinutes: 5, bias: "low", biasLabel: "Centre · 8.4 diversity" },
+  { id: "s2", topic: "sport", timeAgo: "5H AGO", headline: "Tour de France route unveiled with three summit finishes in final week.", outletInitial: "L", sources: 12, readMinutes: 4, bias: "low", biasLabel: "Centre · 7.6 diversity" },
+  { id: "s3", topic: "sport", timeAgo: "9H AGO", headline: "ICC announces expanded World Cup format from 2027 with 16 teams.", outletInitial: "C", sources: 14, readMinutes: 4, bias: "low", biasLabel: "Centre · 7.3 diversity" },
+];
+
+const ARTICLES_BY_TAB: Record<string, Article[]> = {
+  Today: TODAY_ARTICLES,
+  Politics: POLITICS_ARTICLES,
+  Climate: CLIMATE_ARTICLES,
+  Tech: TECH_ARTICLES,
+  Economy: ECONOMY_ARTICLES,
+  Sport: SPORT_ARTICLES,
+  Health: [],
+  Culture: [],
+  Local: [],
+};
 
 function formatDateTime(d: Date) {
   const days = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
