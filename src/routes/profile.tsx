@@ -172,7 +172,6 @@ function SectionHeader({ children, top = 20 }: { children: React.ReactNode; top?
 
 function SettingsPage() {
   const [readingIdx, setReadingIdx] = useState(2);
-  const [depthIdx, setDepthIdx] = useState(2);
   const [zoomIdx, setZoomIdx] = useState(2);
   const [topics, setTopics] = useState<Record<string, boolean>>({
     breaking: true,
