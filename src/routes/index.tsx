@@ -25,6 +25,8 @@ function formatDateTime(d: Date) {
 function TodayPage() {
   const breaking = true;
   const dateLabel = formatDateTime(new Date());
+  const [activeTab, setActiveTab] = useState("Today");
+  const hideTopic = activeTab !== "Today";
 
   return (
     <div>
