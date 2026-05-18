@@ -118,7 +118,7 @@ function TodayPage() {
       </div>
 
       <div className="flex flex-col" style={{ gap: 12 }}>
-        <ArticleCard
+        <ArticleCard hideTopic={hideTopic}
           id="1"
           topic="politics"
           timeAgo="3H AGO"
@@ -130,7 +130,7 @@ function TodayPage() {
           biasLabel="Centre-left · 7.4 diversity"
           thumbnail
         />
-        <ArticleCard
+        <ArticleCard hideTopic={hideTopic}
           id="2"
           topic="climate"
           timeAgo="5H AGO"
@@ -141,7 +141,7 @@ function TodayPage() {
           bias="low"
           biasLabel="Centre · 8.1 diversity"
         />
-        <ArticleCard
+        <ArticleCard hideTopic={hideTopic}
           id="3"
           topic="economics"
           timeAgo="6H AGO"
@@ -152,7 +152,7 @@ function TodayPage() {
           bias="medium"
           biasLabel="Centre-right · 5.9 diversity"
         />
-        <ArticleCard
+        <ArticleCard hideTopic={hideTopic}
           id="4"
           topic="technology"
           timeAgo="2H AGO"
