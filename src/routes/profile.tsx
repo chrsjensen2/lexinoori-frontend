@@ -34,13 +34,6 @@ const READING_STOPS = [
   },
 ] as const;
 
-const DEPTH_PILLS = [
-  { key: "bullets", label: "Bullets", requiresAdult: false },
-  { key: "brief", label: "Brief", requiresAdult: false },
-  { key: "standard", label: "Standard", requiresAdult: false },
-  { key: "deepdive", label: "Deep Dive", requiresAdult: true },
-] as const;
-
 const ZOOM_STOPS = ["WORLD", "CONTINENT", "COUNTRY", "LOCAL"] as const;
 
 const TOPICS = [
