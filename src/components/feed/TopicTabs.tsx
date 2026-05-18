@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useRef } from "react";
 
 const TABS = [
   "Today",
@@ -12,8 +12,13 @@ const TABS = [
   "Local",
 ];
 
-export function TopicTabs() {
-  const [active, setActive] = useState("Today");
+export function TopicTabs({
+  active,
+  onChange,
+}: {
+  active: string;
+  onChange: (tab: string) => void;
+}) {
   const scrollRef = useRef<HTMLDivElement>(null);
 
   return (
@@ -35,7 +40,7 @@ export function TopicTabs() {
           return (
             <button
               key={tab}
-              onClick={() => setActive(tab)}
+              onClick={() => onChange(tab)}
               className="relative whitespace-nowrap"
               style={{
                 color: isActive ? "#FFFFFF" : "#8E8E93",
