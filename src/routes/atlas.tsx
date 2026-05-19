@@ -392,6 +392,7 @@ function CollapsedPeek({ story }: { story: Story }) {
           }}
         />
       </div>
+    </div>
   );
 }
 
