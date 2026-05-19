@@ -129,17 +129,25 @@ function TodayPage() {
                 />
               )}
             </h1>
-            <span
-              style={{
-                color: "#8E8E93",
-                fontSize: 13,
-                letterSpacing: "0.08em",
-                paddingTop: 12,
-                whiteSpace: "nowrap",
-              }}
-            >
-              {dateLabel}
-            </span>
+            <div style={{ display: "flex", alignItems: "center", gap: 12, paddingTop: 12 }}>
+              <span
+                style={{
+                  color: "#8E8E93",
+                  fontSize: 13,
+                  letterSpacing: "0.08em",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                {dateLabel}
+              </span>
+              <Link
+                to="/search"
+                aria-label="Search"
+                style={{ color: "#8E8E93", display: "inline-flex" }}
+              >
+                <Search size={24} />
+              </Link>
+            </div>
           </div>
 
           <p style={{ color: "#8E8E93", fontSize: 13, marginTop: 8 }}>
