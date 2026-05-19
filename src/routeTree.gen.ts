@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as StoriesRouteImport } from './routes/stories'
+import { Route as SearchRouteImport } from './routes/search'
 import { Route as SavedRouteImport } from './routes/saved'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as FollowingRouteImport } from './routes/following'
@@ -26,6 +27,11 @@ import { Route as ArticleIdRouteImport } from './routes/article.$id'
 const StoriesRoute = StoriesRouteImport.update({
   id: '/stories',
   path: '/stories',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SearchRoute = SearchRouteImport.update({
+  id: '/search',
+  path: '/search',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SavedRoute = SavedRouteImport.update({
@@ -96,6 +102,7 @@ export interface FileRoutesByFullPath {
   '/following': typeof FollowingRoute
   '/profile': typeof ProfileRoute
   '/saved': typeof SavedRoute
+  '/search': typeof SearchRoute
   '/stories': typeof StoriesRoute
   '/article/$id': typeof ArticleIdRoute
   '/auth/forgot': typeof AuthForgotRoute
@@ -111,6 +118,7 @@ export interface FileRoutesByTo {
   '/following': typeof FollowingRoute
   '/profile': typeof ProfileRoute
   '/saved': typeof SavedRoute
+  '/search': typeof SearchRoute
   '/stories': typeof StoriesRoute
   '/article/$id': typeof ArticleIdRoute
   '/auth/forgot': typeof AuthForgotRoute
@@ -127,6 +135,7 @@ export interface FileRoutesById {
   '/following': typeof FollowingRoute
   '/profile': typeof ProfileRoute
   '/saved': typeof SavedRoute
+  '/search': typeof SearchRoute
   '/stories': typeof StoriesRoute
   '/article/$id': typeof ArticleIdRoute
   '/auth/forgot': typeof AuthForgotRoute
@@ -144,6 +153,7 @@ export interface FileRouteTypes {
     | '/following'
     | '/profile'
     | '/saved'
+    | '/search'
     | '/stories'
     | '/article/$id'
     | '/auth/forgot'
@@ -159,6 +169,7 @@ export interface FileRouteTypes {
     | '/following'
     | '/profile'
     | '/saved'
+    | '/search'
     | '/stories'
     | '/article/$id'
     | '/auth/forgot'
@@ -174,6 +185,7 @@ export interface FileRouteTypes {
     | '/following'
     | '/profile'
     | '/saved'
+    | '/search'
     | '/stories'
     | '/article/$id'
     | '/auth/forgot'
@@ -190,6 +202,7 @@ export interface RootRouteChildren {
   FollowingRoute: typeof FollowingRoute
   ProfileRoute: typeof ProfileRoute
   SavedRoute: typeof SavedRoute
+  SearchRoute: typeof SearchRoute
   StoriesRoute: typeof StoriesRoute
   ArticleIdRoute: typeof ArticleIdRoute
   AuthForgotRoute: typeof AuthForgotRoute
@@ -206,6 +219,13 @@ declare module '@tanstack/react-router' {
       path: '/stories'
       fullPath: '/stories'
       preLoaderRoute: typeof StoriesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/search': {
+      id: '/search'
+      path: '/search'
+      fullPath: '/search'
+      preLoaderRoute: typeof SearchRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/saved': {
@@ -302,6 +322,7 @@ const rootRouteChildren: RootRouteChildren = {
   FollowingRoute: FollowingRoute,
   ProfileRoute: ProfileRoute,
   SavedRoute: SavedRoute,
+  SearchRoute: SearchRoute,
   StoriesRoute: StoriesRoute,
   ArticleIdRoute: ArticleIdRoute,
   AuthForgotRoute: AuthForgotRoute,
