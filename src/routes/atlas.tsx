@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Search, ArrowRight } from "lucide-react";
+import { useEffect, useRef, useState, useCallback } from "react";
 
 export const Route = createFileRoute("/atlas")({
   head: () => ({
@@ -34,16 +35,159 @@ const BUBBLES: Bubble[] = [
   { x: 50, y: 22, size: 16, color: "#00BFFF", label: "Nordic" },
 ];
 
+type Story = {
+  pillLabel: string;
+  pillBg: string;
+  pillColor: string;
+  meta: string;
+  headline: string;
+  breaking?: boolean;
+};
+
+const STORIES: Story[] = [
+  {
+    pillLabel: "BREAKING",
+    pillBg: "#FF0000",
+    pillColor: "#FFFFFF",
+    meta: "EAST AFRICA · NOW",
+    headline: "Cease-fire collapses; mediators withdraw overnight.",
+    breaking: true,
+  },
+  {
+    pillLabel: "POLITICS",
+    pillBg: "rgba(77,110,255,0.18)",
+    pillColor: "#4D6EFF",
+    meta: "EU · 1H AGO",
+    headline: "EU digital sovereignty bill fast-tracks past national vetoes.",
+  },
+  {
+    pillLabel: "ECONOMICS",
+    pillBg: "#FFD000",
+    pillColor: "#111111",
+    meta: "GERMANY · 3H AGO",
+    headline: "German industrial output contracts for third consecutive quarter.",
+  },
+  {
+    pillLabel: "CLIMATE",
+    pillBg: "rgba(0,200,100,0.18)",
+    pillColor: "#00C864",
+    meta: "SOUTH ASIA · 4H AGO",
+    headline: "Monsoon onset arrives ten days early across the subcontinent.",
+  },
+  {
+    pillLabel: "TECHNOLOGY",
+    pillBg: "rgba(0,229,204,0.18)",
+    pillColor: "#00E5CC",
+    meta: "USA · 5H AGO",
+    headline: "Open-weights vision model undercuts closed competitors on benchmarks.",
+  },
+];
+
+type SnapKey = "collapsed" | "default" | "expanded";
+
 function AtlasPage() {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [containerH, setContainerH] = useState(700);
+  const [snap, setSnap] = useState<SnapKey>("collapsed");
+  const [dragOffset, setDragOffset] = useState(0); // px delta during drag (negative = up)
+  const [dragging, setDragging] = useState(false);
+  const dragStartY = useRef<number | null>(null);
+  const dragMoved = useRef(false);
+
+  useEffect(() => {
+    const update = () => {
+      if (containerRef.current) {
+        setContainerH(containerRef.current.clientHeight);
+      }
+    };
+    update();
+    window.addEventListener("resize", update);
+    return () => window.removeEventListener("resize", update);
+  }, []);
+
+  const snapHeights: Record<SnapKey, number> = {
+    collapsed: 120,
+    default: Math.round(containerH * 0.55),
+    expanded: Math.round(containerH * 0.8),
+  };
+
+  const baseH = snapHeights[snap];
+  // Dragging up (negative offset) increases sheet height.
+  const liveH = Math.max(
+    snapHeights.collapsed,
+    Math.min(snapHeights.expanded, baseH - dragOffset),
+  );
+
+  const onPointerDown = useCallback((e: React.PointerEvent) => {
+    dragStartY.current = e.clientY;
+    dragMoved.current = false;
+    setDragging(true);
+    (e.target as Element).setPointerCapture?.(e.pointerId);
+  }, []);
+
+  const onPointerMove = useCallback((e: React.PointerEvent) => {
+    if (dragStartY.current == null) return;
+    const dy = e.clientY - dragStartY.current;
+    if (Math.abs(dy) > 4) dragMoved.current = true;
+    setDragOffset(dy);
+  }, []);
+
+  const cycle = (s: SnapKey): SnapKey =>
+    s === "collapsed" ? "default" : s === "default" ? "expanded" : "collapsed";
+
+  const onPointerUp = useCallback(
+    (e: React.PointerEvent) => {
+      const moved = dragMoved.current;
+      const dy = dragOffset;
+      dragStartY.current = null;
+      setDragging(false);
+      setDragOffset(0);
+
+      if (!moved) {
+        // Tap → cycle
+        setSnap((s) => cycle(s));
+        return;
+      }
+
+      // Determine snap target based on resulting height and 30% threshold.
+      const order: SnapKey[] = ["collapsed", "default", "expanded"];
+      const idx = order.indexOf(snap);
+      const goingUp = dy < 0;
+      const goingDown = dy > 0;
+
+      if (goingUp && idx < 2) {
+        const next = order[idx + 1];
+        const distance = snapHeights[next] - snapHeights[snap];
+        if (Math.abs(dy) >= distance * 0.3) {
+          setSnap(next);
+          return;
+        }
+      }
+      if (goingDown && idx > 0) {
+        const prev = order[idx - 1];
+        const distance = snapHeights[snap] - snapHeights[prev];
+        if (dy >= distance * 0.3) {
+          setSnap(prev);
+          return;
+        }
+      }
+      // otherwise stay
+      void e;
+    },
+    [dragOffset, snap, snapHeights],
+  );
+
+  const topStory = STORIES.find((s) => s.breaking) ?? STORIES[0];
+
   return (
     <div
+      ref={containerRef}
       style={{
-        // Fill the area inside AppShell main (which reserves bottom nav space).
-        height:
-          "calc(100dvh - 64px - env(safe-area-inset-bottom) - 16px)",
+        height: "calc(100dvh - 64px - env(safe-area-inset-bottom) - 16px)",
         display: "flex",
         flexDirection: "column",
         overflow: "hidden",
+        position: "relative",
       }}
     >
       {/* LAYER 1 — Fixed header */}
@@ -88,13 +232,13 @@ function AtlasPage() {
         </div>
       </header>
 
-      {/* LAYER 2 — Fixed map */}
+      {/* LAYER 2 — Map fills remaining space above sheet */}
       <div
         style={{
-          flexShrink: 0,
+          flex: 1,
+          minHeight: 0,
           position: "relative",
           width: "100%",
-          height: 360,
           backgroundColor: "#0A0A0F",
           overflow: "hidden",
         }}
@@ -106,29 +250,39 @@ function AtlasPage() {
         <ZoomControl />
       </div>
 
-      {/* LAYER 3 — Bottom sheet (only scrollable layer) */}
+      {/* LAYER 3 — Draggable bottom sheet (absolute) */}
       <div
         style={{
-          flex: 1,
-          minHeight: 0,
+          position: "absolute",
+          left: 0,
+          right: 0,
+          bottom: 0,
+          height: liveH,
           backgroundColor: "#1C1C1E",
           borderTopLeftRadius: 20,
           borderTopRightRadius: 20,
-          marginTop: -12,
-          position: "relative",
           display: "flex",
           flexDirection: "column",
           boxShadow: "0 -8px 24px rgba(0,0,0,0.4)",
+          transition: dragging ? "none" : "height 300ms ease-in-out",
+          touchAction: "none",
+          zIndex: 5,
         }}
       >
-        {/* Drag handle */}
+        {/* Drag handle area (captures pointer) */}
         <div
+          onPointerDown={onPointerDown}
+          onPointerMove={onPointerMove}
+          onPointerUp={onPointerUp}
+          onPointerCancel={onPointerUp}
           style={{
             display: "flex",
             justifyContent: "center",
             paddingTop: 12,
             paddingBottom: 8,
             flexShrink: 0,
+            cursor: "grab",
+            touchAction: "none",
           }}
         >
           <div
@@ -141,53 +295,84 @@ function AtlasPage() {
           />
         </div>
 
-        {/* Scrollable inner content */}
-        <div
+        {snap === "collapsed" && !dragging ? (
+          <CollapsedPeek story={topStory} />
+        ) : (
+          <div
+            style={{
+              flex: 1,
+              minHeight: 0,
+              overflowY: snap === "expanded" ? "auto" : "hidden",
+              padding: "8px 20px 24px",
+            }}
+          >
+            {STORIES.map((s, i) => (
+              <StoryRow key={i} {...s} last={i === STORIES.length - 1} />
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function CollapsedPeek({ story }: { story: Story }) {
+  const words = story.headline.split(" ").slice(0, 5).join(" ");
+  return (
+    <div
+      style={{
+        position: "relative",
+        flex: 1,
+        minHeight: 0,
+        padding: "0 20px",
+        overflow: "hidden",
+      }}
+    >
+      <div className="flex items-center gap-2" style={{ paddingTop: 4 }}>
+        <span
           style={{
-            flex: 1,
-            minHeight: 0,
-            overflowY: "auto",
-            padding: "8px 20px 24px",
+            backgroundColor: story.pillBg,
+            color: story.pillColor,
+            fontWeight: 700,
+            fontSize: 11,
+            letterSpacing: "0.08em",
+            padding: "4px 8px",
+            borderRadius: 20,
+            lineHeight: 1,
+            textTransform: "uppercase",
+            flexShrink: 0,
+            whiteSpace: "nowrap",
           }}
         >
-          <StoryRow
-            pillLabel="BREAKING"
-            pillBg="#FF0000"
-            pillColor="#FFFFFF"
-            meta="EAST AFRICA · NOW"
-            headline="Cease-fire collapses; mediators withdraw overnight."
-          />
-          <StoryRow
-            pillLabel="POLITICS"
-            pillBg="rgba(77,110,255,0.18)"
-            pillColor="#4D6EFF"
-            meta="EU · 1H AGO"
-            headline="EU digital sovereignty bill fast-tracks past national vetoes."
-          />
-          <StoryRow
-            pillLabel="ECONOMICS"
-            pillBg="#FFD000"
-            pillColor="#111111"
-            meta="GERMANY · 3H AGO"
-            headline="German industrial output contracts for third consecutive quarter."
-          />
-          <StoryRow
-            pillLabel="CLIMATE"
-            pillBg="rgba(0,200,100,0.18)"
-            pillColor="#00C864"
-            meta="SOUTH ASIA · 4H AGO"
-            headline="Monsoon onset arrives ten days early across the subcontinent."
-          />
-          <StoryRow
-            pillLabel="TECHNOLOGY"
-            pillBg="rgba(0,229,204,0.18)"
-            pillColor="#00E5CC"
-            meta="USA · 5H AGO"
-            headline="Open-weights vision model undercuts closed competitors on benchmarks."
-            last
-          />
-        </div>
+          {story.breaking ? "● BREAKING" : story.pillLabel}
+        </span>
+        <span
+          style={{
+            color: "#FFFFFF",
+            fontWeight: 700,
+            fontSize: 16,
+            letterSpacing: "-0.01em",
+            whiteSpace: "nowrap",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            flex: 1,
+          }}
+        >
+          {words}…
+        </span>
       </div>
+      {/* Bottom fade */}
+      <div
+        style={{
+          position: "absolute",
+          left: 0,
+          right: 0,
+          bottom: 0,
+          height: 24,
+          background: "linear-gradient(to bottom, rgba(28,28,30,0), #1C1C1E)",
+          pointerEvents: "none",
+        }}
+      />
     </div>
   );
 }
@@ -199,14 +384,7 @@ function StoryRow({
   meta,
   headline,
   last,
-}: {
-  pillLabel: string;
-  pillBg: string;
-  pillColor: string;
-  meta: string;
-  headline: string;
-  last?: boolean;
-}) {
+}: Story & { last?: boolean }) {
   return (
     <div
       style={{
@@ -366,8 +544,6 @@ function ZoomControl() {
 }
 
 function WorldMap() {
-  // Stylised continent silhouettes — abstract, real-world relative proportions.
-  // viewBox 390x360. Africa is the largest landmass; Americas extend further left.
   const fill = "#1A1A2A";
   return (
     <svg
@@ -378,55 +554,32 @@ function WorldMap() {
       style={{ display: "block" }}
       aria-hidden
     >
-      {/* North America — wider, extends further left */}
       <path
         d="M 8 80 L 55 60 L 105 70 L 130 95 L 135 135 L 115 175 L 80 195 L 45 180 L 22 150 L 10 115 Z"
         fill={fill}
       />
-      {/* Central America bridge */}
       <path d="M 95 195 L 120 195 L 130 215 L 110 225 L 98 215 Z" fill={fill} />
-      {/* South America */}
       <path
         d="M 110 225 L 145 225 L 160 270 L 150 320 L 125 345 L 108 325 L 105 280 Z"
         fill={fill}
       />
-      {/* Greenland */}
       <path d="M 160 50 L 195 45 L 200 75 L 175 85 L 158 72 Z" fill={fill} />
-      {/* Europe */}
       <path
         d="M 195 90 L 230 85 L 245 105 L 240 130 L 215 138 L 195 125 Z"
         fill={fill}
       />
-      {/* Africa — largest continent */}
       <path
         d="M 200 145 L 260 140 L 285 175 L 295 225 L 280 280 L 245 320 L 215 320 L 195 285 L 188 235 L 188 185 Z"
         fill={fill}
       />
-      {/* Middle East */}
-      <path
-        d="M 250 145 L 285 140 L 300 165 L 290 185 L 260 180 Z"
-        fill={fill}
-      />
-      {/* Asia — large landmass east of Europe */}
+      <path d="M 250 145 L 285 140 L 300 165 L 290 185 L 260 180 Z" fill={fill} />
       <path
         d="M 245 90 L 320 75 L 370 95 L 380 135 L 370 175 L 330 195 L 295 185 L 270 160 L 252 130 Z"
         fill={fill}
       />
-      {/* India / South Asia */}
-      <path
-        d="M 295 195 L 325 190 L 332 225 L 312 245 L 298 220 Z"
-        fill={fill}
-      />
-      {/* Southeast Asia islands */}
-      <path
-        d="M 335 230 L 375 235 L 380 265 L 350 275 L 338 255 Z"
-        fill={fill}
-      />
-      {/* Australia */}
-      <path
-        d="M 330 290 L 375 285 L 385 315 L 358 335 L 330 325 Z"
-        fill={fill}
-      />
+      <path d="M 295 195 L 325 190 L 332 225 L 312 245 L 298 220 Z" fill={fill} />
+      <path d="M 335 230 L 375 235 L 380 265 L 350 275 L 338 255 Z" fill={fill} />
+      <path d="M 330 290 L 375 285 L 385 315 L 358 335 L 330 325 Z" fill={fill} />
     </svg>
   );
 }
