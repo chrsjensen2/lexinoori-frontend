@@ -1,5 +1,6 @@
 import { useState, type InputHTMLAttributes } from "react";
 import { Eye, EyeOff } from "lucide-react";
+import { SerifLogo } from "@/components/SerifLogo";
 
 export function AuthScreen({ children }: { children: React.ReactNode }) {
   return (
