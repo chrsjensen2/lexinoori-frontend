@@ -4,8 +4,112 @@ import { Bookmark, User as UserIcon, ChevronRight } from "lucide-react";
 
 export const Route = createFileRoute("/profile")({
   head: () => ({ meta: [{ title: "Settings — lexinoori." }] }),
-  component: SettingsPage,
+  component: ProfileGate,
 });
+
+function ProfileGate() {
+  // No auth wired up yet — always show pre-auth screen.
+  const isLoggedIn = false;
+  return isLoggedIn ? <SettingsPage /> : <PreAuthScreen />;
+}
+
+function PreAuthScreen() {
+  return (
+    <div
+      style={{
+        minHeight: "100vh",
+        background: "#111111",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: "0 24px",
+        paddingTop: "env(safe-area-inset-top)",
+      }}
+    >
+      <div style={{ width: "100%", maxWidth: 342 }}>
+        <div
+          style={{
+            color: "#1A7A5E",
+            fontSize: 28,
+            fontWeight: 700,
+            textAlign: "center",
+            lineHeight: 1.1,
+          }}
+        >
+          lexinoori.
+        </div>
+        <div
+          style={{
+            color: "#8E8E93",
+            fontSize: 14,
+            textAlign: "center",
+            marginTop: 8,
+          }}
+        >
+          Your personal news profile.
+        </div>
+
+        <div style={{ height: 48 }} />
+
+        <Link
+          to="/auth/login"
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            width: "100%",
+            height: 56,
+            background: "#1A7A5E",
+            color: "#FFFFFF",
+            fontSize: 16,
+            fontWeight: 700,
+            borderRadius: 24,
+            textDecoration: "none",
+          }}
+        >
+          Sign in
+        </Link>
+
+        <div style={{ height: 12 }} />
+
+        <Link
+          to="/auth/signup"
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            width: "100%",
+            height: 56,
+            background: "transparent",
+            border: "1px solid #2C2C2E",
+            color: "#FFFFFF",
+            fontSize: 16,
+            fontWeight: 700,
+            borderRadius: 24,
+            textDecoration: "none",
+          }}
+        >
+          Create account
+        </Link>
+
+        <div style={{ height: 32 }} />
+
+        <div
+          style={{
+            color: "#8E8E93",
+            fontSize: 13,
+            textAlign: "center",
+            padding: "0 32px",
+            lineHeight: 1.4,
+          }}
+        >
+          Read up to 3 articles per day without an account. Sign up free for unlimited access.
+        </div>
+      </div>
+    </div>
+  );
+}
 
 const READING_STOPS = [
   {
