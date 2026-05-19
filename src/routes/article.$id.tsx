@@ -1,6 +1,6 @@
-import { createFileRoute, useRouter, Link } from "@tanstack/react-router";
+import { createFileRoute, useRouter, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { ArrowLeft, Bookmark, Share2, MoreHorizontal, ChevronRight } from "lucide-react";
+import { ArrowLeft, Bookmark, Share2, MoreHorizontal, ChevronRight, Clock } from "lucide-react";
 import { TopicPill, TOPIC_COLORS, type Topic } from "@/components/feed/TopicPill";
 
 export const Route = createFileRoute("/article/$id")({
@@ -18,8 +18,12 @@ type ReadLength = (typeof READ_LENGTHS)[number];
 
 function ArticleView() {
   const router = useRouter();
+  const navigate = useNavigate();
   const topicColor = TOPIC_COLORS[TOPIC];
   const [readLength, setReadLength] = useState<ReadLength>("Standard");
+  const [sheet, setSheet] = useState<null | "aa" | "more">(null);
+  const [savedTop, setSavedTop] = useState(false);
+  const [sharedTop, setSharedTop] = useState(false);
 
   return (
     <div style={{ paddingBottom: 32 }}>
