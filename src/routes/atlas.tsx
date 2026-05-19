@@ -106,7 +106,7 @@ function AtlasPage() {
   }, []);
 
   const snapHeights: Record<SnapKey, number> = {
-    collapsed: 130,
+    collapsed: 220,
     default: Math.round(containerH * 0.55),
     expanded: Math.round(containerH * 0.8),
   };
