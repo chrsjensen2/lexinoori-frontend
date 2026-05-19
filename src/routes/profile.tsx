@@ -29,16 +29,8 @@ function PreAuthScreen() {
       }}
     >
       <div style={{ width: "100%", maxWidth: 342 }}>
-        <div
-          style={{
-            color: "#1A7A5E",
-            fontSize: 28,
-            fontWeight: 700,
-            textAlign: "center",
-            lineHeight: 1.1,
-          }}
-        >
-          lexinoori.
+        <div style={{ display: "flex", justifyContent: "center" }}>
+          <SerifLogo height={32} color="#1A7A5E" />
         </div>
         <div
           style={{
