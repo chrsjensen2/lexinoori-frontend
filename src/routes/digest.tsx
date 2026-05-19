@@ -74,6 +74,7 @@ const GROUPS: {
   {
     brief: "EVENING BRIEF",
     date: "MON · 18 MAY",
+    opacity: 0.75,
     cards: [
       {
         id: "d4",
@@ -113,7 +114,7 @@ const GROUPS: {
   {
     brief: "MORNING BRIEF",
     date: "MON · 18 MAY",
-    opacity: 0.7,
+    opacity: 0.75,
     cards: [
       {
         id: "d7",
