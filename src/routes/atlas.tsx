@@ -221,9 +221,9 @@ function AtlasPage() {
                 Country · Denmark · 12 stories in view
               </p>
             </div>
-            <button aria-label="Search" style={{ color: "#8E8E93", paddingTop: 6 }}>
+            <Link to="/search" aria-label="Search" style={{ color: "#8E8E93", paddingTop: 6, display: "inline-flex" }}>
               <Search size={24} />
-            </button>
+            </Link>
           </div>
         </div>
       </header>
