@@ -79,6 +79,7 @@ function ArticleView() {
           <div className="flex items-center gap-2">
             <button
               aria-label="Reading options"
+              onClick={() => setSheet("aa")}
               className="flex items-center justify-center"
               style={{
                 height: 40,
@@ -94,6 +95,7 @@ function ArticleView() {
             </button>
             <button
               aria-label="More"
+              onClick={() => setSheet("more")}
               className="flex items-center justify-center"
               style={{
                 width: 40,
