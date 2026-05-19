@@ -1,4 +1,4 @@
-import { createFileRoute, useRouter } from "@tanstack/react-router";
+import { createFileRoute, useRouter, Link } from "@tanstack/react-router";
 import { useState, useRef } from "react";
 import { ArrowLeft, Search, Trash2, Bookmark } from "lucide-react";
 import { TOPIC_COLORS, type Topic } from "@/components/feed/TopicPill";
