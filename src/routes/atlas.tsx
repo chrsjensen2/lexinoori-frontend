@@ -360,31 +360,38 @@ function CollapsedPeek({ story }: { story: Story }) {
           {story.meta}
         </span>
       </div>
-      <h3
-        style={{
-          color: "#FFFFFF",
-          fontWeight: 700,
-          fontSize: 18,
-          lineHeight: 1.3,
-          letterSpacing: "-0.01em",
-          marginTop: 8,
-        }}
-      >
-        {story.headline}
-      </h3>
-      {/* Bottom fade through second line */}
       <div
         style={{
-          position: "absolute",
-          left: 0,
-          right: 0,
-          bottom: 0,
-          height: 20,
-          background: "linear-gradient(to bottom, rgba(28,28,30,0), #1C1C1E)",
-          pointerEvents: "none",
+          position: "relative",
+          marginTop: 8,
+          maxHeight: 35,
+          overflow: "hidden",
         }}
-      />
-    </div>
+      >
+        <h3
+          style={{
+            color: "#FFFFFF",
+            fontWeight: 700,
+            fontSize: 18,
+            lineHeight: 1.3,
+            letterSpacing: "-0.01em",
+          }}
+        >
+          {story.headline}
+        </h3>
+        {/* Fade through middle of second line */}
+        <div
+          style={{
+            position: "absolute",
+            left: 0,
+            right: 0,
+            bottom: 0,
+            height: 24,
+            background: "linear-gradient(to bottom, rgba(28,28,30,0), #1C1C1E)",
+            pointerEvents: "none",
+          }}
+        />
+      </div>
   );
 }
 
