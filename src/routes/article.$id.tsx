@@ -557,7 +557,151 @@ function ArticleView() {
       >
         Share
       </button>
+
+      {/* Bottom sheets */}
+      {sheet !== null && (
+        <div
+          onClick={() => setSheet(null)}
+          style={{
+            position: "fixed",
+            inset: 0,
+            backgroundColor: "rgba(0,0,0,0.5)",
+            zIndex: 50,
+            display: "flex",
+            alignItems: "flex-end",
+            justifyContent: "center",
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              width: "100%",
+              backgroundColor: "#1C1C1E",
+              borderTopLeftRadius: 20,
+              borderTopRightRadius: 20,
+              padding: 24,
+              paddingBottom: "calc(24px + env(safe-area-inset-bottom))",
+            }}
+          >
+            {sheet === "aa" && (
+              <>
+                <div
+                  style={{
+                    color: "#8E8E93",
+                    fontSize: 11,
+                    fontWeight: 700,
+                    letterSpacing: "0.08em",
+                    marginBottom: 16,
+                  }}
+                >
+                  ARTICLE DEPTH
+                </div>
+                <div className="flex" style={{ gap: 8, flexWrap: "wrap" }}>
+                  {READ_LENGTHS.map((rl) => {
+                    const active = rl === readLength;
+                    return (
+                      <button
+                        key={rl}
+                        onClick={() => {
+                          setReadLength(rl);
+                          setSheet(null);
+                        }}
+                        style={{
+                          padding: "10px 12px",
+                          borderRadius: 20,
+                          fontSize: 13,
+                          fontWeight: 700,
+                          backgroundColor: active ? "#FFFFFF" : "#1C1C1E",
+                          color: active ? "#111111" : "rgba(255,255,255,0.5)",
+                          border: active ? "1px solid #FFFFFF" : "1px solid #2C2C2E",
+                          whiteSpace: "nowrap",
+                          flex: 1,
+                          minWidth: 0,
+                        }}
+                      >
+                        {rl}
+                      </button>
+                    );
+                  })}
+                </div>
+              </>
+            )}
+
+            {sheet === "more" && (
+              <>
+                <SheetRow
+                  icon={<Bookmark size={20} fill={savedTop ? "#8E8E93" : "none"} />}
+                  label="Save article"
+                  onClick={() => setSavedTop((s) => !s)}
+                />
+                <SheetRow
+                  icon={<Share2 size={20} />}
+                  label="Share"
+                  onClick={() => setSharedTop((s) => !s)}
+                />
+                <SheetRow
+                  icon={<Clock size={20} />}
+                  label="View story timeline"
+                  last
+                  onClick={() => {
+                    setSheet(null);
+                    navigate({ to: "/timeline/$id", params: { id: "1" } });
+                  }}
+                />
+                <button
+                  onClick={() => setSheet(null)}
+                  style={{
+                    marginTop: 16,
+                    width: "100%",
+                    height: 48,
+                    border: "1px solid #2C2C2E",
+                    borderRadius: 24,
+                    background: "transparent",
+                    color: "#FFFFFF",
+                    fontSize: 15,
+                    fontWeight: 400,
+                  }}
+                >
+                  Cancel
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </div>
+  );
+}
+
+function SheetRow({
+  icon,
+  label,
+  onClick,
+  last,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  onClick?: () => void;
+  last?: boolean;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className="flex items-center w-full"
+      style={{
+        height: 48,
+        gap: 12,
+        borderBottom: last ? "none" : "1px solid #2C2C2E",
+        background: "transparent",
+        color: "#FFFFFF",
+        fontSize: 16,
+        fontWeight: 400,
+        textAlign: "left",
+      }}
+    >
+      <span style={{ color: "#8E8E93", display: "inline-flex" }}>{icon}</span>
+      <span>{label}</span>
+    </button>
   );
 }
 
