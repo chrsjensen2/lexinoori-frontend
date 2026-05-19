@@ -1,7 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Bookmark, User as UserIcon, ChevronRight } from "lucide-react";
 import { SerifLogo } from "@/components/SerifLogo";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/profile")({
   head: () => ({ meta: [{ title: "Settings — lexinoori." }] }),
@@ -9,8 +10,17 @@ export const Route = createFileRoute("/profile")({
 });
 
 function ProfileGate() {
-  // No auth wired up yet — always show pre-auth screen.
-  const isLoggedIn = false;
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => {
+      setIsLoggedIn(!!data.session);
+    });
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, session) => {
+      setIsLoggedIn(!!session);
+    });
+    return () => subscription.unsubscribe();
+  }, []);
+  if (isLoggedIn === null) return <div style={{ minHeight: "100vh", background: "#111111" }} />;
   return isLoggedIn ? <SettingsPage /> : <PreAuthScreen />;
 }
 
