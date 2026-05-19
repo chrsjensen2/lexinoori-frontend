@@ -323,6 +323,7 @@ function AtlasPage() {
 }
 
 function CollapsedPeek({ story }: { story: Story }) {
+  const second = STORIES.find((s) => s !== story) ?? STORIES[1];
   return (
     <div
       style={{
@@ -333,6 +334,7 @@ function CollapsedPeek({ story }: { story: Story }) {
         overflow: "hidden",
       }}
     >
+      {/* First (breaking) story */}
       <div className="flex items-center gap-2" style={{ paddingTop: 4 }}>
         <span
           style={{
@@ -366,14 +368,54 @@ function CollapsedPeek({ story }: { story: Story }) {
           {story.meta}
         </span>
       </div>
-      <div
+      <h3
         style={{
-          position: "relative",
+          color: "#FFFFFF",
+          fontWeight: 700,
+          fontSize: 18,
+          lineHeight: 1.3,
+          letterSpacing: "-0.01em",
           marginTop: 8,
-          maxHeight: 35,
-          overflow: "hidden",
         }}
       >
+        {story.headline}
+      </h3>
+
+      {/* Second story peek with fade */}
+      <div style={{ marginTop: 12 }}>
+        <div className="flex items-center gap-2">
+          <span
+            style={{
+              backgroundColor: second.pillBg,
+              color: second.pillColor,
+              fontWeight: 700,
+              fontSize: 11,
+              letterSpacing: "0.08em",
+              padding: "4px 8px",
+              borderRadius: 20,
+              lineHeight: 1,
+              textTransform: "uppercase",
+              flexShrink: 0,
+              whiteSpace: "nowrap",
+            }}
+          >
+            {second.pillLabel}
+          </span>
+          <span
+            style={{
+              color: "#8E8E93",
+              fontSize: 11,
+              letterSpacing: "0.08em",
+              fontWeight: 700,
+              textTransform: "uppercase",
+              whiteSpace: "nowrap",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+            }}
+          >
+            {second.meta}
+          </span>
+        </div>
         <h3
           style={{
             color: "#FFFFFF",
@@ -381,23 +423,26 @@ function CollapsedPeek({ story }: { story: Story }) {
             fontSize: 18,
             lineHeight: 1.3,
             letterSpacing: "-0.01em",
+            marginTop: 8,
           }}
         >
-          {story.headline}
+          {second.headline}
         </h3>
-        {/* Fade through middle of second line */}
-        <div
-          style={{
-            position: "absolute",
-            left: 0,
-            right: 0,
-            bottom: 0,
-            height: 24,
-            background: "linear-gradient(to bottom, rgba(28,28,30,0), #1C1C1E)",
-            pointerEvents: "none",
-          }}
-        />
       </div>
+
+      {/* Gradient fade cuts through middle of second headline */}
+      <div
+        style={{
+          position: "absolute",
+          left: 0,
+          right: 0,
+          bottom: 0,
+          height: 56,
+          background:
+            "linear-gradient(to bottom, rgba(28,28,30,0), #1C1C1E 70%)",
+          pointerEvents: "none",
+        }}
+      />
     </div>
   );
 }
