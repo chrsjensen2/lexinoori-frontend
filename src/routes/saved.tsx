@@ -1,4 +1,4 @@
-import { createFileRoute, useRouter } from "@tanstack/react-router";
+import { createFileRoute, useRouter, Link } from "@tanstack/react-router";
 import { useState, useRef } from "react";
 import { ArrowLeft, Search, Trash2, Bookmark } from "lucide-react";
 import { TOPIC_COLORS, type Topic } from "@/components/feed/TopicPill";
@@ -108,9 +108,9 @@ function SavedPage() {
           >
             <ArrowLeft size={24} />
           </button>
-          <button aria-label="Search" style={{ color: "#8E8E93", background: "transparent", padding: 4 }}>
+          <Link to="/search" aria-label="Search" style={{ color: "#8E8E93", background: "transparent", padding: 4, display: "inline-flex" }}>
             <Search size={24} />
-          </button>
+          </Link>
         </div>
         <h1
           style={{
