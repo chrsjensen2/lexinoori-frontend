@@ -6,6 +6,7 @@ export function AppShell() {
   const { pathname } = useLocation();
   const isToday = pathname === "/";
   const isAtlas = pathname === "/atlas";
+  const isStories = pathname === "/stories" || pathname.startsWith("/stories/");
   const isArticle = pathname.startsWith("/article/");
   const isTimeline = pathname.startsWith("/timeline/");
   const isJournalist = pathname.startsWith("/journalist/");
@@ -13,8 +14,8 @@ export function AppShell() {
   const isAuth = pathname.startsWith("/auth");
 
   const showGlobalHeader =
-    !isToday && !isAtlas && !isArticle && !isTimeline && !isJournalist && !isProfile && !isAuth;
-  const showBottomNav = !isArticle && !isTimeline && !isAuth;
+    !isToday && !isAtlas && !isStories && !isArticle && !isTimeline && !isJournalist && !isProfile && !isAuth;
+  const showBottomNav = !isArticle && !isTimeline && !isAuth && !isStories;
 
   return (
     <div className="min-h-screen bg-background text-foreground">
