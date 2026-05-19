@@ -254,11 +254,14 @@ function AtlasPage() {
       {/* LAYER 3 — Draggable bottom sheet (absolute) */}
       <div
         style={{
-          position: "absolute",
-          left: 0,
-          right: 0,
-          bottom: 0,
+          position: "fixed",
+          left: "50%",
+          right: "auto",
+          bottom: "calc(64px + env(safe-area-inset-bottom))",
+          width: "100%",
+          maxWidth: 390,
           height: liveH,
+          transform: "translateX(-50%)",
           backgroundColor: "#1C1C1E",
           borderTopLeftRadius: 20,
           borderTopRightRadius: 20,
