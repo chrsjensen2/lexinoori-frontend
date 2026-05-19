@@ -106,17 +106,14 @@ function AtlasPage() {
   }, []);
 
   const snapHeights: Record<SnapKey, number> = {
-    collapsed: 220,
+    collapsed: 130,
     default: Math.round(containerH * 0.55),
     expanded: Math.round(containerH * 0.8),
   };
 
   const baseH = snapHeights[snap];
   // Dragging up (negative offset) increases sheet height.
-  const liveH = Math.max(
-    snapHeights.collapsed,
-    Math.min(snapHeights.expanded, baseH - dragOffset),
-  );
+  const liveH = Math.max(snapHeights.collapsed, Math.min(snapHeights.expanded, baseH - dragOffset));
 
   const onPointerDown = useCallback((e: React.PointerEvent) => {
     dragStartY.current = e.clientY;
@@ -132,8 +129,7 @@ function AtlasPage() {
     setDragOffset(dy);
   }, []);
 
-  const cycle = (s: SnapKey): SnapKey =>
-    s === "collapsed" ? "default" : s === "default" ? "expanded" : "collapsed";
+  const cycle = (s: SnapKey): SnapKey => (s === "collapsed" ? "default" : s === "default" ? "expanded" : "collapsed");
 
   const onPointerUp = useCallback(
     (e: React.PointerEvent) => {
@@ -258,8 +254,6 @@ function AtlasPage() {
           left: "50%",
           right: "auto",
           bottom: "calc(64px + env(safe-area-inset-bottom))",
-          marginBottom: 0,
-          paddingBottom: 0,
           width: "100%",
           maxWidth: 390,
           height: liveH,
@@ -308,7 +302,7 @@ function AtlasPage() {
             style={{
               flex: 1,
               minHeight: 0,
-              overflowY: snap === "expanded" ? "auto" : "hidden",
+              overflowY: "auto",
               padding: "8px 20px 24px",
             }}
           >
@@ -323,7 +317,6 @@ function AtlasPage() {
 }
 
 function CollapsedPeek({ story }: { story: Story }) {
-  const second = STORIES.find((s) => s !== story) ?? STORIES[1];
   return (
     <div
       style={{
@@ -334,7 +327,6 @@ function CollapsedPeek({ story }: { story: Story }) {
         overflow: "hidden",
       }}
     >
-      {/* First (breaking) story */}
       <div className="flex items-center gap-2" style={{ paddingTop: 4 }}>
         <span
           style={{
@@ -368,54 +360,14 @@ function CollapsedPeek({ story }: { story: Story }) {
           {story.meta}
         </span>
       </div>
-      <h3
+      <div
         style={{
-          color: "#FFFFFF",
-          fontWeight: 700,
-          fontSize: 18,
-          lineHeight: 1.3,
-          letterSpacing: "-0.01em",
+          position: "relative",
           marginTop: 8,
+          maxHeight: 35,
+          overflow: "hidden",
         }}
       >
-        {story.headline}
-      </h3>
-
-      {/* Second story peek with fade */}
-      <div style={{ marginTop: 12 }}>
-        <div className="flex items-center gap-2">
-          <span
-            style={{
-              backgroundColor: second.pillBg,
-              color: second.pillColor,
-              fontWeight: 700,
-              fontSize: 11,
-              letterSpacing: "0.08em",
-              padding: "4px 8px",
-              borderRadius: 20,
-              lineHeight: 1,
-              textTransform: "uppercase",
-              flexShrink: 0,
-              whiteSpace: "nowrap",
-            }}
-          >
-            {second.pillLabel}
-          </span>
-          <span
-            style={{
-              color: "#8E8E93",
-              fontSize: 11,
-              letterSpacing: "0.08em",
-              fontWeight: 700,
-              textTransform: "uppercase",
-              whiteSpace: "nowrap",
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-            }}
-          >
-            {second.meta}
-          </span>
-        </div>
         <h3
           style={{
             color: "#FFFFFF",
@@ -423,40 +375,30 @@ function CollapsedPeek({ story }: { story: Story }) {
             fontSize: 18,
             lineHeight: 1.3,
             letterSpacing: "-0.01em",
-            marginTop: 8,
           }}
         >
-          {second.headline}
+          {story.headline}
         </h3>
+        {/* Fade through middle of second line */}
+        <div
+          style={{
+            position: "absolute",
+            left: 0,
+            right: 0,
+            bottom: 0,
+            height: 24,
+            background: "linear-gradient(to bottom, rgba(28,28,30,0), #1C1C1E)",
+            pointerEvents: "none",
+          }}
+        />
       </div>
-
-      {/* Gradient fade cuts through middle of second headline */}
-      <div
-        style={{
-          position: "absolute",
-          left: 0,
-          right: 0,
-          bottom: 0,
-          height: 56,
-          background:
-            "linear-gradient(to bottom, rgba(28,28,30,0), #1C1C1E 70%)",
-          pointerEvents: "none",
-        }}
-      />
     </div>
   );
 }
 
 type StoryRowProps = Story & { last?: boolean };
 
-function StoryRow({
-  pillLabel,
-  pillBg,
-  pillColor,
-  meta,
-  headline,
-  last,
-}: StoryRowProps) {
+function StoryRow({ pillLabel, pillBg, pillColor, meta, headline, last }: StoryRowProps) {
   return (
     <div
       style={{
@@ -631,24 +573,15 @@ function WorldMap() {
         fill={fill}
       />
       <path d="M 95 195 L 120 195 L 130 215 L 110 225 L 98 215 Z" fill={fill} />
-      <path
-        d="M 110 225 L 145 225 L 160 270 L 150 320 L 125 345 L 108 325 L 105 280 Z"
-        fill={fill}
-      />
+      <path d="M 110 225 L 145 225 L 160 270 L 150 320 L 125 345 L 108 325 L 105 280 Z" fill={fill} />
       <path d="M 160 50 L 195 45 L 200 75 L 175 85 L 158 72 Z" fill={fill} />
-      <path
-        d="M 195 90 L 230 85 L 245 105 L 240 130 L 215 138 L 195 125 Z"
-        fill={fill}
-      />
+      <path d="M 195 90 L 230 85 L 245 105 L 240 130 L 215 138 L 195 125 Z" fill={fill} />
       <path
         d="M 200 145 L 260 140 L 285 175 L 295 225 L 280 280 L 245 320 L 215 320 L 195 285 L 188 235 L 188 185 Z"
         fill={fill}
       />
       <path d="M 250 145 L 285 140 L 300 165 L 290 185 L 260 180 Z" fill={fill} />
-      <path
-        d="M 245 90 L 320 75 L 370 95 L 380 135 L 370 175 L 330 195 L 295 185 L 270 160 L 252 130 Z"
-        fill={fill}
-      />
+      <path d="M 245 90 L 320 75 L 370 95 L 380 135 L 370 175 L 330 195 L 295 185 L 270 160 L 252 130 Z" fill={fill} />
       <path d="M 295 195 L 325 190 L 332 225 L 312 245 L 298 220 Z" fill={fill} />
       <path d="M 335 230 L 375 235 L 380 265 L 350 275 L 338 255 Z" fill={fill} />
       <path d="M 330 290 L 375 285 L 385 315 L 358 335 L 330 325 Z" fill={fill} />
