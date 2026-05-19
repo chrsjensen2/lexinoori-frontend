@@ -1,5 +1,6 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
+import { Search } from "lucide-react";
 import { TopicTabs } from "@/components/feed/TopicTabs";
 import { BreakingNewsCard } from "@/components/feed/BreakingNewsCard";
 import { ArticleCard } from "@/components/feed/ArticleCard";
