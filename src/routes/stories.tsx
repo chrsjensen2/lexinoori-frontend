@@ -1,5 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { X } from "lucide-react";
+import { SerifLogo } from "@/components/SerifLogo";
 
 export const Route = createFileRoute("/stories")({
   head: () => ({
@@ -84,14 +86,18 @@ const STORIES: Story[] = [
   },
 ];
 
+const STORY_DURATION_MS = 6000;
+const END_INDEX = STORIES.length; // sentinel for end-state card
+
 function StoriesPage() {
   const navigate = useNavigate();
   const [index, setIndex] = useState(0);
+  const [paused, setPaused] = useState(false);
   const startRef = useRef<{ x: number; y: number; t: number } | null>(null);
   const movedRef = useRef(false);
 
   const goNext = useCallback(() => {
-    setIndex((i) => Math.min(i + 1, STORIES.length - 1));
+    setIndex((i) => Math.min(i + 1, END_INDEX));
   }, []);
   const goPrev = useCallback(() => {
     setIndex((i) => Math.max(i - 1, 0));
@@ -100,9 +106,19 @@ function StoriesPage() {
     navigate({ to: "/" });
   }, [navigate]);
 
+  // Auto-advance
+  useEffect(() => {
+    if (paused || index >= END_INDEX) return;
+    const t = window.setTimeout(() => {
+      setIndex((i) => Math.min(i + 1, END_INDEX));
+    }, STORY_DURATION_MS);
+    return () => window.clearTimeout(t);
+  }, [index, paused]);
+
   const onPointerDown = (e: React.PointerEvent) => {
     startRef.current = { x: e.clientX, y: e.clientY, t: Date.now() };
     movedRef.current = false;
+    setPaused(true);
   };
   const onPointerMove = (e: React.PointerEvent) => {
     if (!startRef.current) return;
@@ -113,33 +129,104 @@ function StoriesPage() {
   const onPointerUp = (e: React.PointerEvent) => {
     const start = startRef.current;
     startRef.current = null;
+    setPaused(false);
     if (!start) return;
     const dx = e.clientX - start.x;
     const dy = e.clientY - start.y;
     const absX = Math.abs(dx);
     const absY = Math.abs(dy);
 
-    // Swipe thresholds
+    // Swipe down → close
+    if (dy > 80 && absY > absX) {
+      close();
+      return;
+    }
+    // Horizontal swipe
     if (absX > 50 && absX > absY) {
       if (dx < 0) goNext();
       else goPrev();
       return;
     }
-    if (dy > 80 && absY > absX) {
-      close();
-      return;
-    }
 
-    // Tap (no significant movement): bottom half opens article
+    // Tap: left half = previous, right half = next
     if (!movedRef.current) {
       const target = e.currentTarget as HTMLElement;
       const rect = target.getBoundingClientRect();
-      const relY = e.clientY - rect.top;
-      if (relY > rect.height / 2) {
-        navigate({ to: "/article/$id", params: { id: "1" } });
-      }
+      const relX = e.clientX - rect.left;
+      if (relX < rect.width / 2) goPrev();
+      else goNext();
     }
   };
+
+  // End-state card
+  if (index >= END_INDEX) {
+    return (
+      <div
+        style={{
+          position: "fixed",
+          inset: 0,
+          backgroundColor: "#111111",
+          zIndex: 50,
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          padding: "0 24px",
+        }}
+      >
+        <button
+          onClick={close}
+          aria-label="Close"
+          style={{
+            position: "absolute",
+            top: "calc(env(safe-area-inset-top) + 16px)",
+            right: 16,
+            color: "#FFFFFF",
+            background: "transparent",
+            border: "none",
+            padding: 4,
+            cursor: "pointer",
+          }}
+        >
+          <X size={20} />
+        </button>
+
+        <div style={{ textAlign: "center" }}>
+          <SerifLogo height={32} color="#1A7A5E" />
+        </div>
+        <h2
+          style={{
+            color: "#FFFFFF",
+            fontWeight: 700,
+            fontSize: 22,
+            marginTop: 24,
+            textAlign: "center",
+            letterSpacing: "-0.01em",
+          }}
+        >
+          You're all caught up.
+        </h2>
+        <button
+          onClick={close}
+          style={{
+            marginTop: 32,
+            backgroundColor: "#1A7A5E",
+            color: "#FFFFFF",
+            fontWeight: 700,
+            fontSize: 16,
+            height: 56,
+            borderRadius: 24,
+            border: "none",
+            width: "calc(100% - 48px)",
+            maxWidth: 342,
+            cursor: "pointer",
+          }}
+        >
+          Back to feed
+        </button>
+      </div>
+    );
+  }
 
   const story = STORIES[index];
   const isBreaking = story.variant === "breaking";
@@ -151,6 +238,7 @@ function StoriesPage() {
       onPointerUp={onPointerUp}
       onPointerCancel={() => {
         startRef.current = null;
+        setPaused(false);
       }}
       style={{
         position: "fixed",
@@ -162,6 +250,13 @@ function StoriesPage() {
         zIndex: 50,
       }}
     >
+      <style>{`
+        @keyframes lex-progress-fill {
+          from { width: 0%; }
+          to { width: 100%; }
+        }
+      `}</style>
+
       {/* Background */}
       <div
         style={{
@@ -205,12 +300,50 @@ function StoriesPage() {
               flex: 1,
               height: 4,
               borderRadius: 6,
-              backgroundColor: i <= index ? "#1A7A5E" : "rgba(255,255,255,0.15)",
-              transition: "background-color 200ms ease",
+              backgroundColor: "rgba(255,255,255,0.15)",
+              overflow: "hidden",
             }}
-          />
+          >
+            <div
+              key={`${i}-${index}-${paused ? "p" : "r"}`}
+              style={{
+                height: "100%",
+                backgroundColor: "#1A7A5E",
+                width: i < index ? "100%" : i === index ? "0%" : "0%",
+                animation:
+                  i === index
+                    ? `lex-progress-fill ${STORY_DURATION_MS}ms linear forwards`
+                    : undefined,
+                animationPlayState: paused && i === index ? "paused" : "running",
+              }}
+            />
+          </div>
         ))}
       </div>
+
+      {/* Close button */}
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+          close();
+        }}
+        onPointerDown={(e) => e.stopPropagation()}
+        onPointerUp={(e) => e.stopPropagation()}
+        aria-label="Close stories"
+        style={{
+          position: "absolute",
+          top: "calc(env(safe-area-inset-top) + 16px)",
+          right: 16,
+          color: "#FFFFFF",
+          background: "transparent",
+          border: "none",
+          padding: 4,
+          zIndex: 3,
+          cursor: "pointer",
+        }}
+      >
+        <X size={20} />
+      </button>
 
       {/* Top-left header */}
       <div
@@ -218,20 +351,11 @@ function StoriesPage() {
           position: "absolute",
           top: "calc(env(safe-area-inset-top) + 12px + 4px + 16px)",
           left: 16,
-          right: 16,
+          right: 56,
           zIndex: 2,
         }}
       >
-        <div
-          style={{
-            color: "#FFFFFF",
-            fontWeight: 700,
-            fontSize: 18,
-            letterSpacing: "-0.01em",
-          }}
-        >
-          lexinoori.
-        </div>
+        <SerifLogo height={28} color="#FFFFFF" />
         <div style={{ marginTop: 8 }}>
           <span
             style={{

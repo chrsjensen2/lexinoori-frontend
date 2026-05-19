@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { TOPIC_COLORS, type Topic } from "@/components/feed/TopicPill";
+import { SerifLogo } from "@/components/SerifLogo";
 
 type DigestCard = {
   id: string;
@@ -73,6 +74,7 @@ const GROUPS: {
   {
     brief: "EVENING BRIEF",
     date: "MON · 18 MAY",
+    opacity: 0.75,
     cards: [
       {
         id: "d4",
@@ -112,7 +114,7 @@ const GROUPS: {
   {
     brief: "MORNING BRIEF",
     date: "MON · 18 MAY",
-    opacity: 0.7,
+    opacity: 0.75,
     cards: [
       {
         id: "d7",

@@ -136,7 +136,7 @@ function SavedPage() {
         <style>{`.lex-saved-filters::-webkit-scrollbar{display:none}`}</style>
         <div
           className="lex-saved-filters flex"
-          style={{ gap: 8, padding: "0 16px", minWidth: "max-content" }}
+          style={{ gap: 8, paddingLeft: 16, paddingRight: 0, minWidth: "max-content" }}
         >
           {FILTERS.map((f) => {
             const isActive = filter === f.topic;
