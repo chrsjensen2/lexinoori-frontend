@@ -396,6 +396,8 @@ function CollapsedPeek({ story }: { story: Story }) {
   );
 }
 
+type StoryRowProps = Story & { last?: boolean };
+
 function StoryRow({
   pillLabel,
   pillBg,
@@ -403,7 +405,7 @@ function StoryRow({
   meta,
   headline,
   last,
-}: Story & { last?: boolean }) {
+}: StoryRowProps) {
   return (
     <div
       style={{
