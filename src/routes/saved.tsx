@@ -129,54 +129,68 @@ function SavedPage() {
       </div>
 
       {/* Filter pills */}
-      <div
-        className="overflow-x-auto"
-        style={{ marginTop: 16, scrollbarWidth: "none" }}
-      >
-        <style>{`.lex-saved-filters::-webkit-scrollbar{display:none}`}</style>
+      <div style={{ position: "relative", marginTop: 16 }}>
         <div
-          className="lex-saved-filters flex"
-          style={{ gap: 8, paddingLeft: 16, paddingRight: 0, minWidth: "max-content" }}
+          className="overflow-x-auto"
+          style={{ scrollbarWidth: "none" }}
         >
-          {FILTERS.map((f) => {
-            const isActive = filter === f.topic;
-            const bg =
-              isActive && f.topic !== "all"
-                ? TOPIC_COLORS[f.topic as Topic]
-                : isActive
-                  ? "#FFFFFF"
-                  : "#1C1C1E";
-            const color =
-              isActive && f.topic !== "all" && DARK_TEXT.includes(f.topic as Topic)
-                ? "#111111"
-                : isActive
-                  ? f.topic === "all"
-                    ? "#111111"
-                    : "#FFFFFF"
-                  : "#8E8E93";
-            return (
-              <button
-                key={f.label}
-                onClick={() => setFilter(f.topic)}
-                style={{
-                  backgroundColor: bg,
-                  color,
-                  fontWeight: 700,
-                  fontSize: 11,
-                  letterSpacing: "0.08em",
-                  textTransform: "uppercase",
-                  padding: "6px 8px",
-                  borderRadius: 20,
-                  border: isActive ? "1px solid transparent" : "1px solid #2C2C2E",
-                  whiteSpace: "nowrap",
-                  lineHeight: 1,
-                }}
-              >
-                {f.label}
-              </button>
-            );
-          })}
+          <style>{`.lex-saved-filters::-webkit-scrollbar{display:none}`}</style>
+          <div
+            className="lex-saved-filters flex"
+            style={{ gap: 8, paddingLeft: 16, paddingRight: 0, minWidth: "max-content" }}
+          >
+            {FILTERS.map((f) => {
+              const isActive = filter === f.topic;
+              const bg =
+                isActive && f.topic !== "all"
+                  ? TOPIC_COLORS[f.topic as Topic]
+                  : isActive
+                    ? "#FFFFFF"
+                    : "#1C1C1E";
+              const color =
+                isActive && f.topic !== "all" && DARK_TEXT.includes(f.topic as Topic)
+                  ? "#111111"
+                  : isActive
+                    ? f.topic === "all"
+                      ? "#111111"
+                      : "#FFFFFF"
+                    : "#8E8E93";
+              return (
+                <button
+                  key={f.label}
+                  onClick={() => setFilter(f.topic)}
+                  style={{
+                    backgroundColor: bg,
+                    color,
+                    fontWeight: 700,
+                    fontSize: 11,
+                    letterSpacing: "0.08em",
+                    textTransform: "uppercase",
+                    padding: "6px 8px",
+                    borderRadius: 20,
+                    border: isActive ? "1px solid transparent" : "1px solid #2C2C2E",
+                    whiteSpace: "nowrap",
+                    lineHeight: 1,
+                  }}
+                >
+                  {f.label}
+                </button>
+              );
+            })}
+          </div>
         </div>
+        <div
+          aria-hidden
+          style={{
+            position: "absolute",
+            top: 0,
+            right: 0,
+            bottom: 0,
+            width: 32,
+            pointerEvents: "none",
+            background: "linear-gradient(90deg, rgba(17,17,17,0) 0%, #111111 100%)",
+          }}
+        />
       </div>
 
       {/* List or empty state */}
