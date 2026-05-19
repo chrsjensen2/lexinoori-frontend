@@ -258,6 +258,8 @@ function AtlasPage() {
           left: "50%",
           right: "auto",
           bottom: "calc(64px + env(safe-area-inset-bottom))",
+          marginBottom: 0,
+          paddingBottom: 0,
           width: "100%",
           maxWidth: 390,
           height: liveH,
