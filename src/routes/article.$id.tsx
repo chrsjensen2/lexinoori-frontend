@@ -366,32 +366,85 @@ function ArticleView() {
           lineHeight: 1.65,
         }}
       >
-        <p style={{ marginBottom: 20 }}>
-          Brussels negotiators reached a provisional agreement late on Tuesday, ending months of
-          procedural delay over the bloc's flagship digital sovereignty package.{" "}
-          <InlineTag kind="fact">
-            The text now requires cloud providers serving EU public sector clients to keep
-            operational control within member states.
-          </InlineTag>{" "}
-          Implementing acts will follow within twelve months.
-        </p>
-        <p style={{ marginBottom: 20 }}>
-          Negotiators framed the deal as a turning point for European technological autonomy.{" "}
-          <InlineTag kind="opinion">
-            Without it, the continent risks ceding the next decade of infrastructure decisions to
-            firms outside its legal reach.
-          </InlineTag>{" "}
-          Industry groups have asked for a longer transition window.
-        </p>
-        <p style={{ marginBottom: 20 }}>
-          Some delegations argued the Council legal service had not been given enough time to weigh
-          in.{" "}
-          <InlineTag kind="contested">
-            Two member states say the 72-hour consultation window violated procedural treaty
-            obligations.
-          </InlineTag>{" "}
-          A Commission spokesperson rejected that reading.
-        </p>
+        {readLength === "Bullets" && (
+          <ul style={{ paddingLeft: 20, listStyle: "disc" }}>
+            {[
+              "EU negotiators reached a provisional agreement ending months of delay",
+              "Cloud providers serving EU public sector must keep operational control within member states",
+              "Council legal service formally objected to the 72-hour consultation window",
+              "Two member states say the process violated procedural treaty obligations",
+              "Industry groups have asked for a longer transition window",
+              "Implementing acts will follow within twelve months",
+            ].map((item) => (
+              <li key={item} style={{ marginBottom: 12 }}>
+                {item}
+              </li>
+            ))}
+          </ul>
+        )}
+
+        {readLength === "Brief" && (
+          <p style={{ marginBottom: 20 }}>
+            Brussels negotiators reached a provisional agreement on the EU digital sovereignty
+            package, ending months of procedural delay. The text requires cloud providers serving
+            EU public sector clients to keep operational control within member states. The
+            Council's own legal service formally objected to the 72-hour consultation window, with
+            two member states claiming the process violated treaty obligations. Industry groups
+            have called for a longer transition window. Implementing acts will follow within twelve
+            months.
+          </p>
+        )}
+
+        {(readLength === "Standard" || readLength === "Deep Dive") && (
+          <>
+            <p style={{ marginBottom: 20 }}>
+              Brussels negotiators reached a provisional agreement late on Tuesday, ending months of
+              procedural delay over the bloc's flagship digital sovereignty package.{" "}
+              <InlineTag kind="fact">
+                The text now requires cloud providers serving EU public sector clients to keep
+                operational control within member states.
+              </InlineTag>{" "}
+              Implementing acts will follow within twelve months.
+            </p>
+            <p style={{ marginBottom: 20 }}>
+              Negotiators framed the deal as a turning point for European technological autonomy.{" "}
+              <InlineTag kind="opinion">
+                Without it, the continent risks ceding the next decade of infrastructure decisions to
+                firms outside its legal reach.
+              </InlineTag>{" "}
+              Industry groups have asked for a longer transition window.
+            </p>
+            <p style={{ marginBottom: 20 }}>
+              Some delegations argued the Council legal service had not been given enough time to weigh
+              in.{" "}
+              <InlineTag kind="contested">
+                Two member states say the 72-hour consultation window violated procedural treaty
+                obligations.
+              </InlineTag>{" "}
+              A Commission spokesperson rejected that reading.
+            </p>
+          </>
+        )}
+
+        {readLength === "Deep Dive" && (
+          <>
+            <p style={{ marginBottom: 20 }}>
+              The sovereignty package has been in negotiation for nearly three years, delayed
+              repeatedly by disagreements between member states over the scope of the operational
+              control requirement. France and Germany pushed for the strongest possible language,
+              while smaller member states with less developed domestic cloud infrastructure argued
+              for longer transition periods.
+            </p>
+            <p style={{ marginBottom: 20 }}>
+              The Council legal service objection is significant because it creates a potential
+              legal challenge to the entire text. Constitutional lawyers consulted by Le Monde
+              suggest the objection could delay implementation by six to eighteen months if any
+              member state chooses to pursue it through the European Court of Justice. A Commission
+              spokesperson rejected that reading, calling the legal service objection a routine part
+              of the legislative process.
+            </p>
+          </>
+        )}
       </article>
 
       {/* AFTER YOU READ */}
