@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { TOPIC_COLORS, type Topic } from "@/components/feed/TopicPill";
+import { SerifLogo } from "@/components/SerifLogo";
 
 type DigestCard = {
   id: string;
