@@ -1,6 +1,7 @@
 import { Outlet, useLocation } from "@tanstack/react-router";
 import { GlobalHeader } from "./GlobalHeader";
 import { BottomNav } from "./BottomNav";
+import { SplashScreen } from "./SplashScreen";
 
 export function AppShell() {
   const { pathname } = useLocation();
@@ -33,6 +34,7 @@ export function AppShell() {
         <Outlet />
       </main>
       {showBottomNav && <BottomNav />}
+      <SplashScreen />
     </div>
   );
 }
