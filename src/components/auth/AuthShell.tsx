@@ -20,17 +20,7 @@ export function AuthScreen({ children }: { children: React.ReactNode }) {
 export function AuthHeader() {
   return (
     <div style={{ padding: "48px 24px 0" }}>
-      <div
-        style={{
-          color: "#FFFFFF",
-          fontSize: 28,
-          fontWeight: 700,
-          letterSpacing: "-0.01em",
-          lineHeight: 1.1,
-        }}
-      >
-        lexinoori.
-      </div>
+      <SerifLogo height={32} />
       <div style={{ color: "#8E8E93", fontSize: 14, marginTop: 6 }}>
         Every angle. One story.
       </div>
