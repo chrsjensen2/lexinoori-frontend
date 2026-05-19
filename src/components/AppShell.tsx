@@ -12,10 +12,11 @@ export function AppShell() {
   const isJournalist = pathname.startsWith("/journalist/");
   const isProfile = pathname === "/profile";
   const isAuth = pathname.startsWith("/auth");
+  const isSearch = pathname === "/search";
 
   const showGlobalHeader =
-    !isToday && !isAtlas && !isStories && !isArticle && !isTimeline && !isJournalist && !isProfile && !isAuth;
-  const showBottomNav = !isArticle && !isTimeline && !isAuth && !isStories;
+    !isToday && !isAtlas && !isStories && !isArticle && !isTimeline && !isJournalist && !isProfile && !isAuth && !isSearch;
+  const showBottomNav = !isArticle && !isTimeline && !isAuth && !isStories && !isSearch;
 
   return (
     <div className="min-h-screen bg-background text-foreground">
