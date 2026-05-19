@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { Bookmark, User as UserIcon, ChevronRight } from "lucide-react";
+import { SerifLogo } from "@/components/SerifLogo";
 
 export const Route = createFileRoute("/profile")({
   head: () => ({ meta: [{ title: "Settings — lexinoori." }] }),
