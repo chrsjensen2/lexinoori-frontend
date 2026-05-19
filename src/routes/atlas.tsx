@@ -317,7 +317,6 @@ function AtlasPage() {
 }
 
 function CollapsedPeek({ story }: { story: Story }) {
-  const words = story.headline.split(" ").slice(0, 5).join(" ");
   return (
     <div
       style={{
@@ -348,27 +347,39 @@ function CollapsedPeek({ story }: { story: Story }) {
         </span>
         <span
           style={{
-            color: "#FFFFFF",
+            color: "#8E8E93",
+            fontSize: 11,
+            letterSpacing: "0.08em",
             fontWeight: 700,
-            fontSize: 16,
-            letterSpacing: "-0.01em",
+            textTransform: "uppercase",
             whiteSpace: "nowrap",
             overflow: "hidden",
             textOverflow: "ellipsis",
-            flex: 1,
           }}
         >
-          {words}…
+          {story.meta}
         </span>
       </div>
-      {/* Bottom fade */}
+      <h3
+        style={{
+          color: "#FFFFFF",
+          fontWeight: 700,
+          fontSize: 18,
+          lineHeight: 1.3,
+          letterSpacing: "-0.01em",
+          marginTop: 8,
+        }}
+      >
+        {story.headline}
+      </h3>
+      {/* Bottom fade through second line */}
       <div
         style={{
           position: "absolute",
           left: 0,
           right: 0,
           bottom: 0,
-          height: 24,
+          height: 20,
           background: "linear-gradient(to bottom, rgba(28,28,30,0), #1C1C1E)",
           pointerEvents: "none",
         }}
