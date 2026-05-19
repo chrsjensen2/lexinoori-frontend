@@ -184,6 +184,7 @@ function AtlasPage() {
       ref={containerRef}
       style={{
         height: "calc(100dvh - 64px - env(safe-area-inset-bottom))",
+        marginBottom: "calc(-1 * (env(safe-area-inset-bottom) + 16px))",
         display: "flex",
         flexDirection: "column",
         overflow: "hidden",
