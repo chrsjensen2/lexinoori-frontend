@@ -381,10 +381,15 @@ function ArticleView() {
       <div className="flex" style={{ gap: 8, margin: "12px 16px 0" }}>
         {READ_LENGTHS.map((rl) => {
           const active = rl === readLength;
+          const disabled = rl === "Deep Dive" && deepDiveDisabled;
           return (
             <button
               key={rl}
-              onClick={() => setReadLength(rl)}
+              onClick={() => {
+                if (!disabled) setReadLength(rl);
+              }}
+              disabled={disabled}
+              title={disabled ? "Not enough source material" : undefined}
               className="flex-1"
               style={{
                 padding: "10px 12px",
@@ -392,9 +397,11 @@ function ArticleView() {
                 fontSize: 13,
                 fontWeight: 700,
                 backgroundColor: active ? "#FFFFFF" : "#1C1C1E",
-                color: active ? "#111111" : "rgba(255,255,255,0.5)",
+                color: disabled ? "rgba(255,255,255,0.2)" : active ? "#111111" : "rgba(255,255,255,0.5)",
                 border: active ? "1px solid #FFFFFF" : "1px solid #2C2C2E",
                 whiteSpace: "nowrap",
+                cursor: disabled ? "not-allowed" : "pointer",
+                opacity: disabled ? 0.5 : 1,
               }}
             >
               {rl}
