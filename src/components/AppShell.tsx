@@ -2,6 +2,7 @@ import { Outlet, useLocation } from "@tanstack/react-router";
 import { GlobalHeader } from "./GlobalHeader";
 import { BottomNav } from "./BottomNav";
 import { SplashScreen } from "./SplashScreen";
+import { SignInPrompt } from "./SignInPrompt";
 
 export function AppShell() {
   const { pathname } = useLocation();
@@ -36,6 +37,7 @@ export function AppShell() {
       </main>
       {showBottomNav && <BottomNav />}
       <SplashScreen />
+      <SignInPrompt />
     </div>
   );
 }
