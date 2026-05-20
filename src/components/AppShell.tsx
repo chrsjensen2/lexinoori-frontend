@@ -17,8 +17,11 @@ export function AppShell() {
   const isSearch = pathname === "/search";
   const isDigest = pathname === "/digest";
 
+  const isSaved = pathname === "/saved";
+  const isFollowing = pathname === "/following";
+
   const showGlobalHeader =
-    !isToday && !isAtlas && !isStories && !isArticle && !isTimeline && !isJournalist && !isProfile && !isAuth && !isSearch && !isDigest;
+    !isToday && !isAtlas && !isStories && !isArticle && !isTimeline && !isJournalist && !isProfile && !isAuth && !isSearch && !isDigest && !isSaved && !isFollowing;
   const showBottomNav = !isArticle && !isTimeline && !isAuth && !isStories && !isSearch;
 
   return (
