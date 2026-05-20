@@ -505,9 +505,9 @@ function ArticleView() {
         >
           SOURCES · 9 OUTLETS
         </div>
-        <SourceRow initial="R" name="Reuters" bias="#00C864" diversity="9.2" />
-        <SourceRow initial="A" name="AP" bias="#00C864" diversity="8.8" />
-        <SourceRow initial="B" name="BBC" bias="#00C864" diversity="8.4" />
+        <SourceRow initial="R" name="Reuters" journalist="Jane Morrison" bias="#00C864" diversity="9.2" />
+        <SourceRow initial="A" name="AP" journalist="David Chen" bias="#00C864" diversity="8.8" />
+        <SourceRow initial="B" name="BBC" journalist="Sarah Williams" bias="#00C864" diversity="8.4" />
         <SourceRow initial="D" name="DR" bias="#FFD000" diversity="7.1" />
         <SourceRow initial="T" name="TV2" bias="#FFD000" diversity="6.4" wireCopy last />
 
@@ -701,6 +701,7 @@ function LoadedRow({
 function SourceRow({
   initial,
   name,
+  journalist,
   bias,
   diversity,
   wireCopy = false,
@@ -708,23 +709,22 @@ function SourceRow({
 }: {
   initial: string;
   name: string;
+  journalist?: string;
   bias: string;
   diversity: string;
   wireCopy?: boolean;
   last?: boolean;
 }) {
-  return (
-    <Link
-      to="/journalist/$id"
-      params={{ id: "1" }}
-      className="flex items-center"
-      style={{
-        height: 44,
-        gap: 12,
-        borderBottom: last ? "none" : "1px solid #2C2C2E",
-        textDecoration: "none",
-      }}
-    >
+  const tappable = Boolean(journalist);
+  const rowStyle = {
+    height: 44,
+    gap: 12,
+    borderBottom: last ? "none" : "1px solid #2C2C2E",
+    textDecoration: "none",
+  } as const;
+
+  const inner = (
+    <>
       <span
         className="flex items-center justify-center"
         style={{
@@ -739,7 +739,9 @@ function SourceRow({
       >
         {initial}
       </span>
-      <span style={{ color: "#FFFFFF", fontSize: 14, flex: 1 }}>{name}</span>
+      <span style={{ color: "#FFFFFF", fontSize: 14, flex: 1 }}>
+        {journalist ? `${name} · ${journalist}` : name}
+      </span>
       {wireCopy && (
         <span
           style={{
@@ -767,14 +769,27 @@ function SourceRow({
       <span
         style={{
           color: "#8E8E93",
-          fontSize: 11,
+          fontSize: 12,
           fontWeight: 700,
           letterSpacing: "0.08em",
         }}
       >
         DIV {diversity}
       </span>
-      <ChevronRight size={12} style={{ color: "#8E8E93" }} />
-    </Link>
+      {tappable && <ChevronRight size={12} style={{ color: "#8E8E93" }} />}
+    </>
+  );
+
+  if (tappable) {
+    return (
+      <Link to="/journalist/$id" params={{ id: "1" }} className="flex items-center" style={rowStyle}>
+        {inner}
+      </Link>
+    );
+  }
+  return (
+    <div className="flex items-center" style={rowStyle}>
+      {inner}
+    </div>
   );
 }
