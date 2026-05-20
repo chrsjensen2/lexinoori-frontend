@@ -214,8 +214,8 @@ function TodayPage() {
                 letterSpacing: "-0.02em",
               }}
             >
-              Today{!breaking && "."}
-              {breaking && (
+              Today{!breakingArticle && "."}
+              {breakingArticle && (
                 <span
                   aria-label="Breaking news live"
                   style={{
@@ -230,6 +230,7 @@ function TodayPage() {
                   }}
                 />
               )}
+
             </h1>
             <div style={{ display: "flex", alignItems: "center", gap: 12, paddingTop: 12 }}>
               <span
