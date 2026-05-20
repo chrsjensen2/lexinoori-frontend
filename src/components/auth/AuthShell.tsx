@@ -175,10 +175,11 @@ export function OrDivider() {
   );
 }
 
-export function GoogleButton() {
+export function GoogleButton({ onClick }: { onClick?: () => void }) {
   return (
     <button
       type="button"
+      onClick={onClick}
       style={{
         width: "100%",
         height: 56,

@@ -11,6 +11,7 @@ import {
   GoogleButton,
 } from "@/components/auth/AuthShell";
 import { supabase } from "@/integrations/supabase/client";
+import { lovable } from "@/integrations/lovable";
 
 export const Route = createFileRoute("/auth/signup")({
   head: () => ({ meta: [{ title: "Create account — lexinoori." }] }),
@@ -68,7 +69,7 @@ function SignupPage() {
           />
         </div>
         {error && (
-          <div style={{ color: "#FF5A5A", fontSize: 13, marginTop: 12 }}>{error}</div>
+          <div style={{ color: "#FF3B30", fontSize: 13, marginTop: 12 }}>{error}</div>
         )}
         <div style={{ marginTop: 20 }}>
           <PrimaryButton type="submit" disabled={loading}>
@@ -76,7 +77,20 @@ function SignupPage() {
           </PrimaryButton>
         </div>
         <OrDivider />
-        <GoogleButton />
+        <GoogleButton
+          onClick={async () => {
+            setError(null);
+            const result = await lovable.auth.signInWithOAuth("google", {
+              redirect_uri: window.location.origin,
+            });
+            if (result.error) {
+              setError(result.error.message);
+              return;
+            }
+            if (result.redirected) return;
+            navigate({ to: "/" });
+          }}
+        />
       </form>
       <div
         style={{

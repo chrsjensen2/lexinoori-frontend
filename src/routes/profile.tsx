@@ -315,6 +315,30 @@ function SettingsPage() {
       <div style={{ background: "#1C1C1E" }}>
         <AccountRow to="/saved" Icon={Bookmark} label="Saved articles" />
         <AccountRow to="/following" Icon={UserIcon} label="Following" />
+        <button
+          onClick={async () => {
+            await supabase.auth.signOut();
+          }}
+          style={{
+            width: "100%",
+            height: 44,
+            padding: "0 16px",
+            borderTop: "1px solid #2C2C2E",
+            background: "transparent",
+            border: "none",
+            borderTopWidth: 1,
+            borderTopStyle: "solid",
+            borderTopColor: "#2C2C2E",
+            color: "#FF3B30",
+            fontSize: 15,
+            textAlign: "left",
+            cursor: "pointer",
+            display: "flex",
+            alignItems: "center",
+          }}
+        >
+          Sign out
+        </button>
       </div>
 
       {/* Reading level card */}
