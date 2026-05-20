@@ -52,7 +52,7 @@ function ArticleView() {
     (async () => {
       const { data, error } = await (supabase as any)
         .from("articles")
-        .select("id, headline, body_standard, topic, read_time_minutes, source_count, bias_score, diversity_score, whats_missing")
+        .select("id, headline, body_standard, body_bullets, body_brief, body_deep_dive, topic, read_time_minutes, source_count, bias_score, diversity_score, whats_missing")
         .eq("id", id)
         .maybeSingle();
       console.log("Article fetch:", { data, error });
