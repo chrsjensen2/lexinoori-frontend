@@ -584,19 +584,17 @@ function ArticleView() {
                     marginBottom: 16,
                   }}
                 >
-                  ARTICLE DEPTH
+                  TEXT SIZE
                 </div>
-                <div className="flex" style={{ gap: 8, flexWrap: "wrap" }}>
-                  {READ_LENGTHS.map((rl) => {
-                    const active = rl === readLength;
+                <div className="flex" style={{ gap: 8 }}>
+                  {(Object.keys(FONT_SIZES) as FontSizeKey[]).map((key) => {
+                    const active = key === fontSize;
                     return (
                       <button
-                        key={rl}
-                        onClick={() => {
-                          setReadLength(rl);
-                          setSheet(null);
-                        }}
+                        key={key}
+                        onClick={() => setFontSize(key)}
                         style={{
+                          flex: 1,
                           padding: "10px 12px",
                           borderRadius: 20,
                           fontSize: 13,
@@ -604,56 +602,13 @@ function ArticleView() {
                           backgroundColor: active ? "#FFFFFF" : "#1C1C1E",
                           color: active ? "#111111" : "rgba(255,255,255,0.5)",
                           border: active ? "1px solid #FFFFFF" : "1px solid #2C2C2E",
-                          whiteSpace: "nowrap",
-                          flex: 1,
-                          minWidth: 0,
                         }}
                       >
-                        {rl}
+                        {key}
                       </button>
                     );
                   })}
                 </div>
-              </>
-            )}
-
-            {sheet === "more" && (
-              <>
-                <SheetRow
-                  icon={<Bookmark size={20} fill={savedTop ? "#8E8E93" : "none"} />}
-                  label="Save article"
-                  onClick={() => setSavedTop((s) => !s)}
-                />
-                <SheetRow
-                  icon={<Share2 size={20} />}
-                  label="Share"
-                  onClick={() => setSharedTop((s) => !s)}
-                />
-                <SheetRow
-                  icon={<Clock size={20} />}
-                  label="View story timeline"
-                  last
-                  onClick={() => {
-                    setSheet(null);
-                    navigate({ to: "/timeline/$id", params: { id: "1" } });
-                  }}
-                />
-                <button
-                  onClick={() => setSheet(null)}
-                  style={{
-                    marginTop: 16,
-                    width: "100%",
-                    height: 48,
-                    border: "1px solid #2C2C2E",
-                    borderRadius: 24,
-                    background: "transparent",
-                    color: "#FFFFFF",
-                    fontSize: 15,
-                    fontWeight: 400,
-                  }}
-                >
-                  Cancel
-                </button>
               </>
             )}
           </div>
