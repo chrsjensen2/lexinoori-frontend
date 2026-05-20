@@ -304,7 +304,7 @@ function ArticleView() {
                 position: "absolute",
                 top: 5,
                 left: 0,
-                width: "38%",
+                width: `${biasPct}%`,
                 height: 4,
                 backgroundColor: "#1A7A5E",
                 borderRadius: 999,
@@ -314,13 +314,14 @@ function ArticleView() {
               style={{
                 position: "absolute",
                 top: 0,
-                left: "calc(38% - 7px)",
+                left: `calc(${biasPct}% - 7px)`,
                 width: 14,
                 height: 14,
                 borderRadius: 999,
                 backgroundColor: "#1A7A5E",
               }}
             />
+
           </div>
         </div>
 
