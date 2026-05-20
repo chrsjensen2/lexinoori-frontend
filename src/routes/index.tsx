@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { Search, Bookmark } from "lucide-react";
 import { TopicTabs } from "@/components/feed/TopicTabs";
 import { BreakingNewsCard } from "@/components/feed/BreakingNewsCard";
+import { TopicPill, WhatsNewPill, type Topic } from "@/components/feed/TopicPill";
 import { supabase } from "@/integrations/supabase/client";
 import { useSavedArticles } from "@/hooks/useSavedArticles";
 
@@ -19,10 +20,12 @@ export const Route = createFileRoute("/")({
 type SourceArticle = {
   id: string;
   headline: string;
-  body: string | null;
-  url: string;
-  source_name: string | null;
-  scraped_at: string;
+  body_standard: string | null;
+  topic: string | null;
+  read_time_minutes: number | null;
+  source_count: number | null;
+  created_at: string;
+  is_breaking: boolean | null;
 };
 
 function formatDateTime(d: Date) {
@@ -43,16 +46,22 @@ function timeAgo(iso: string) {
   return `${days}D AGO`;
 }
 
+function toTopic(t: string | null): Topic | undefined {
+  const valid: Topic[] = ["politics", "climate", "economics", "sport", "technology", "health", "culture", "local", "breaking"];
+  const normalized = t?.toLowerCase() ?? "";
+  return valid.includes(normalized as Topic) ? (normalized as Topic) : undefined;
+}
+
 function SourceArticleCard({ article }: { article: SourceArticle }) {
   const { isSaved, toggle } = useSavedArticles();
   const saved = isSaved(article.id);
-  const outletInitial = (article.source_name || article.headline || "?").trim().charAt(0).toUpperCase();
+  const validTopic = toTopic(article.topic);
+  const outletInitial = (article.headline || "?").trim().charAt(0).toUpperCase();
 
   return (
-    <a
-      href={article.url}
-      target="_blank"
-      rel="noopener noreferrer"
+    <Link
+      to="/article/$id"
+      params={{ id: article.id }}
       className="block"
       style={{
         backgroundColor: "#1C1C1E",
@@ -65,7 +74,11 @@ function SourceArticleCard({ article }: { article: SourceArticle }) {
       }}
     >
       <div className="flex items-center justify-between gap-2">
-        <span style={{ color: "#8E8E93", fontSize: 12 }}>{timeAgo(article.scraped_at)}</span>
+        <div className="flex items-center gap-2">
+          {validTopic && <TopicPill topic={validTopic} />}
+          {article.is_breaking && <WhatsNewPill />}
+        </div>
+        <span style={{ color: "#8E8E93", fontSize: 12 }}>{timeAgo(article.created_at)}</span>
       </div>
 
       <h3
@@ -84,7 +97,7 @@ function SourceArticleCard({ article }: { article: SourceArticle }) {
         {article.headline}
       </h3>
 
-      {article.body && (
+      {article.body_standard && (
         <p
           style={{
             color: "#8E8E93",
@@ -97,7 +110,7 @@ function SourceArticleCard({ article }: { article: SourceArticle }) {
             overflow: "hidden",
           }}
         >
-          {article.body}
+          {article.body_standard}
         </p>
       )}
 
@@ -116,9 +129,12 @@ function SourceArticleCard({ article }: { article: SourceArticle }) {
         >
           {outletInitial}
         </span>
-        {article.source_name && (
-          <span style={{ color: "#8E8E93", fontSize: 13 }}>{article.source_name}</span>
-        )}
+        <span style={{ color: "#8E8E93", fontSize: 13 }}>
+          {article.source_count ? `Merged · ${article.source_count} sources` : "Merged"}
+        </span>
+        <span style={{ color: "#8E8E93", fontSize: 13, marginLeft: "auto" }}>
+          {article.read_time_minutes ?? 5} min
+        </span>
         <button
           aria-label={saved ? "Unsave" : "Save"}
           onClick={(e) => {
@@ -127,7 +143,6 @@ function SourceArticleCard({ article }: { article: SourceArticle }) {
             toggle(article.id);
           }}
           style={{
-            marginLeft: "auto",
             color: saved ? "#1A7A5E" : "#8E8E93",
             background: "transparent",
             display: "inline-flex",
@@ -136,7 +151,7 @@ function SourceArticleCard({ article }: { article: SourceArticle }) {
           <Bookmark size={24} fill={saved ? "#1A7A5E" : "none"} />
         </button>
       </div>
-    </a>
+    </Link>
   );
 }
 
@@ -155,9 +170,9 @@ function TodayPage() {
     let cancelled = false;
     (async () => {
       const { data, error } = await (supabase as any)
-        .from("source_articles")
-        .select("id, headline, body, url, source_name, scraped_at")
-        .order("scraped_at", { ascending: false })
+        .from("articles")
+        .select("id, headline, body_standard, topic, read_time_minutes, source_count, created_at, is_breaking")
+        .order("created_at", { ascending: false })
         .limit(50);
       if (cancelled) return;
       if (!error && data) setArticles(data as SourceArticle[]);
