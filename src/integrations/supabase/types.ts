@@ -135,6 +135,27 @@ export type Database = {
           },
         ]
       }
+      saved_articles: {
+        Row: {
+          article_id: string
+          created_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          article_id: string
+          created_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          article_id?: string
+          created_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       sources: {
         Row: {
           bias_baseline: number | null
