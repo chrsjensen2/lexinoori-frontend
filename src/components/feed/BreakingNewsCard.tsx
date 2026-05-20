@@ -16,14 +16,20 @@ export function BreakingNewsCard({ headline, sources, timeAgo, articleId }: Brea
   const saved = isSaved(articleId ?? BREAKING_ID);
 
   return (
-    <article
+    <Link
+      to="/article/$id"
+      params={{ id: articleId ?? "1" }}
+      className="block"
       style={{
         backgroundColor: "#FF0000",
         borderRadius: 12,
         margin: "0 16px",
         overflow: "hidden",
+        color: "inherit",
+        textDecoration: "none",
       }}
     >
+
       <div
         className="flex items-start justify-between"
         style={{ padding: "16px 16px 0" }}
