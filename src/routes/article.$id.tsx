@@ -1,17 +1,13 @@
 import { createFileRoute, useRouter, Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ArrowLeft, Bookmark, Share2, ChevronRight } from "lucide-react";
 import { TopicPill, TOPIC_COLORS, type Topic } from "@/components/feed/TopicPill";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/article/$id")({
   head: () => ({ meta: [{ title: "Article — lexinoori." }] }),
   component: ArticleView,
 });
-
-const TOPIC: Topic = "politics";
-const TOPIC_LABEL = "POLITICS";
-const HEADLINE =
-  "EU digital sovereignty bill fast-tracks past national vetoes after marathon trilogue.";
 
 const READ_LENGTHS = ["Bullets", "Brief", "Standard", "Deep Dive"] as const;
 type ReadLength = (typeof READ_LENGTHS)[number];
@@ -19,14 +15,62 @@ type ReadLength = (typeof READ_LENGTHS)[number];
 const FONT_SIZES = { Small: 14, Medium: 16, Large: 19 } as const;
 type FontSizeKey = keyof typeof FONT_SIZES;
 
+type ArticleRow = {
+  id: string;
+  headline: string;
+  body_standard: string | null;
+  topic: string | null;
+  read_time_minutes: number | null;
+  source_count: number | null;
+  bias_score: number | null;
+  diversity_score: number | null;
+  whats_missing: string | null;
+};
+
+function toTopic(t: string | null | undefined): Topic {
+  const valid: Topic[] = ["politics", "climate", "economics", "sport", "technology", "health", "culture", "local", "breaking"];
+  const n = (t ?? "").toLowerCase();
+  return (valid.includes(n as Topic) ? (n as Topic) : "politics");
+}
+
 function ArticleView() {
   const router = useRouter();
-  const topicColor = TOPIC_COLORS[TOPIC];
+  const { id } = Route.useParams();
+  const [article, setArticle] = useState<ArticleRow | null>(null);
+  const [loading, setLoading] = useState(true);
   const [readLength, setReadLength] = useState<ReadLength>("Standard");
   const [sheet, setSheet] = useState<null | "aa">(null);
   const [savedTop, setSavedTop] = useState(false);
   const [sharedTop, setSharedTop] = useState(false);
   const [fontSize, setFontSize] = useState<FontSizeKey>("Medium");
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const { data, error } = await (supabase as any)
+        .from("articles")
+        .select("id, headline, body_standard, topic, read_time_minutes, source_count, bias_score, diversity_score, whats_missing")
+        .eq("id", id)
+        .maybeSingle();
+      console.log("Article fetch:", { data, error });
+      if (cancelled) return;
+      if (!error && data) setArticle(data as ArticleRow);
+      setLoading(false);
+    })();
+    return () => { cancelled = true; };
+  }, [id]);
+
+  const TOPIC = toTopic(article?.topic);
+  const topicColor = TOPIC_COLORS[TOPIC];
+  const HEADLINE = article?.headline ?? (loading ? "Loading…" : "Article not found");
+  const sourceCount = article?.source_count ?? 0;
+  const readMinutes = article?.read_time_minutes ?? 0;
+  const biasScore = Number(article?.bias_score ?? 0);
+  const diversityScore = Number(article?.diversity_score ?? 0);
+  const biasPct = Math.max(0, Math.min(100, ((biasScore + 1) / 2) * 100));
+  const diversityPct = Math.max(0, Math.min(100, (diversityScore / 10) * 100));
+  const body = article?.body_standard ?? "";
+
 
   return (
     <div style={{ paddingBottom: 32 }}>
@@ -147,7 +191,7 @@ function ArticleView() {
           >
             R
           </span>
-          <span style={{ color: "#FFFFFF", fontSize: 14 }}>Merged · 9 sources</span>
+          <span style={{ color: "#FFFFFF", fontSize: 14 }}>Merged · {sourceCount} sources</span>
         </div>
         <div className="flex items-center" style={{ gap: 12 }}>
           <button
@@ -219,7 +263,7 @@ function ArticleView() {
               SOURCES
             </div>
             <div style={{ color: "#FFFFFF", fontSize: 22, fontWeight: 700, marginTop: 4 }}>
-              9 outlets
+              {sourceCount} outlets
             </div>
           </div>
           <div className="flex-1">
@@ -227,8 +271,9 @@ function ArticleView() {
               READ LENGTH
             </div>
             <div style={{ color: "#FFFFFF", fontSize: 22, fontWeight: 700, marginTop: 4 }}>
-              6 min
+              {readMinutes} min
             </div>
+
           </div>
         </div>
 
@@ -259,7 +304,7 @@ function ArticleView() {
                 position: "absolute",
                 top: 5,
                 left: 0,
-                width: "38%",
+                width: `${biasPct}%`,
                 height: 4,
                 backgroundColor: "#1A7A5E",
                 borderRadius: 999,
@@ -269,13 +314,14 @@ function ArticleView() {
               style={{
                 position: "absolute",
                 top: 0,
-                left: "calc(38% - 7px)",
+                left: `calc(${biasPct}% - 7px)`,
                 width: 14,
                 height: 14,
                 borderRadius: 999,
                 backgroundColor: "#1A7A5E",
               }}
             />
+
           </div>
         </div>
 
@@ -302,7 +348,7 @@ function ArticleView() {
             </span>
           </div>
           <div style={{ color: "#FFFFFF", fontSize: 22, fontWeight: 700, marginBottom: 8 }}>
-            7.4 / 10
+            {diversityScore.toFixed(1)} / 10
           </div>
           <div style={{ position: "relative", height: 4, backgroundColor: "#2C2C2E", borderRadius: 999 }}>
             <div
@@ -311,11 +357,12 @@ function ArticleView() {
                 left: 0,
                 top: 0,
                 bottom: 0,
-                width: "74%",
+                width: `${diversityPct}%`,
                 backgroundColor: "#00C864",
                 borderRadius: 999,
               }}
             />
+
           </div>
         </div>
       </section>
@@ -356,85 +403,14 @@ function ArticleView() {
           lineHeight: 1.65,
         }}
       >
-        {readLength === "Bullets" && (
-          <ul style={{ paddingLeft: 20, listStyle: "disc" }}>
-            {[
-              "EU negotiators reached a provisional agreement ending months of delay",
-              "Cloud providers serving EU public sector must keep operational control within member states",
-              "Council legal service formally objected to the 72-hour consultation window",
-              "Two member states say the process violated procedural treaty obligations",
-              "Industry groups have asked for a longer transition window",
-              "Implementing acts will follow within twelve months",
-            ].map((item) => (
-              <li key={item} style={{ marginBottom: 12 }}>
-                {item}
-              </li>
-            ))}
-          </ul>
-        )}
-
-        {readLength === "Brief" && (
-          <p style={{ marginBottom: 20 }}>
-            Brussels negotiators reached a provisional agreement on the EU digital sovereignty
-            package, ending months of procedural delay. The text requires cloud providers serving
-            EU public sector clients to keep operational control within member states. The
-            Council's own legal service formally objected to the 72-hour consultation window, with
-            two member states claiming the process violated treaty obligations. Industry groups
-            have called for a longer transition window. Implementing acts will follow within twelve
-            months.
+        {body ? (
+          <p style={{ marginBottom: 20, whiteSpace: "pre-wrap" }}>{body}</p>
+        ) : (
+          <p style={{ marginBottom: 20, color: "#8E8E93" }}>
+            {loading ? "Loading article…" : "No content available."}
           </p>
         )}
 
-        {(readLength === "Standard" || readLength === "Deep Dive") && (
-          <>
-            <p style={{ marginBottom: 20 }}>
-              Brussels negotiators reached a provisional agreement late on Tuesday, ending months of
-              procedural delay over the bloc's flagship digital sovereignty package.{" "}
-              <InlineTag kind="fact">
-                The text now requires cloud providers serving EU public sector clients to keep
-                operational control within member states.
-              </InlineTag>{" "}
-              Implementing acts will follow within twelve months.
-            </p>
-            <p style={{ marginBottom: 20 }}>
-              Negotiators framed the deal as a turning point for European technological autonomy.{" "}
-              <InlineTag kind="opinion">
-                Without it, the continent risks ceding the next decade of infrastructure decisions to
-                firms outside its legal reach.
-              </InlineTag>{" "}
-              Industry groups have asked for a longer transition window.
-            </p>
-            <p style={{ marginBottom: 20 }}>
-              Some delegations argued the Council legal service had not been given enough time to weigh
-              in.{" "}
-              <InlineTag kind="contested">
-                Two member states say the 72-hour consultation window violated procedural treaty
-                obligations.
-              </InlineTag>{" "}
-              A Commission spokesperson rejected that reading.
-            </p>
-          </>
-        )}
-
-        {readLength === "Deep Dive" && (
-          <>
-            <p style={{ marginBottom: 20 }}>
-              The sovereignty package has been in negotiation for nearly three years, delayed
-              repeatedly by disagreements between member states over the scope of the operational
-              control requirement. France and Germany pushed for the strongest possible language,
-              while smaller member states with less developed domestic cloud infrastructure argued
-              for longer transition periods.
-            </p>
-            <p style={{ marginBottom: 20 }}>
-              The Council legal service objection is significant because it creates a potential
-              legal challenge to the entire text. Constitutional lawyers consulted by Le Monde
-              suggest the objection could delay implementation by six to eighteen months if any
-              member state chooses to pursue it through the European Court of Justice. A Commission
-              spokesperson rejected that reading, calling the legal service objection a routine part
-              of the legislative process.
-            </p>
-          </>
-        )}
       </article>
 
       {/* AFTER YOU READ */}
@@ -489,7 +465,7 @@ function ArticleView() {
             lineHeight: 1.5,
           }}
         >
-          No sources cover the economic impact on smaller EU member states or SMEs.
+          {article?.whats_missing ?? "No gaps identified."}
         </div>
 
         {/* Sources */}
@@ -503,8 +479,9 @@ function ArticleView() {
             marginBottom: 4,
           }}
         >
-          SOURCES · 9 OUTLETS
+          SOURCES · {sourceCount} OUTLETS
         </div>
+
         <SourceRow initial="R" name="Reuters" journalist="Jane Morrison" bias="#00C864" diversity="9.2" />
         <SourceRow initial="A" name="AP" journalist="David Chen" bias="#00C864" diversity="8.8" />
         <SourceRow initial="B" name="BBC" journalist="Sarah Williams" bias="#00C864" diversity="8.4" />

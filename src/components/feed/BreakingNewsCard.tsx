@@ -6,22 +6,30 @@ interface BreakingNewsCardProps {
   headline: string;
   sources: number;
   timeAgo: string;
+  articleId?: string;
 }
 
 const BREAKING_ID = "breaking";
 
-export function BreakingNewsCard({ headline, sources, timeAgo }: BreakingNewsCardProps) {
+export function BreakingNewsCard({ headline, sources, timeAgo, articleId }: BreakingNewsCardProps) {
   const { isSaved, toggle } = useSavedArticles();
-  const saved = isSaved(BREAKING_ID);
+  const saved = isSaved(articleId ?? BREAKING_ID);
+
   return (
-    <article
+    <Link
+      to="/article/$id"
+      params={{ id: articleId ?? "1" }}
+      className="block"
       style={{
         backgroundColor: "#FF0000",
         borderRadius: 12,
         margin: "0 16px",
         overflow: "hidden",
+        color: "inherit",
+        textDecoration: "none",
       }}
     >
+
       <div
         className="flex items-start justify-between"
         style={{ padding: "16px 16px 0" }}
@@ -90,7 +98,11 @@ export function BreakingNewsCard({ headline, sources, timeAgo }: BreakingNewsCar
         <div className="mt-4 flex items-center justify-end gap-2">
           <button
             aria-label={saved ? "Unsave" : "Save"}
-            onClick={() => toggle(BREAKING_ID)}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              toggle(articleId ?? BREAKING_ID);
+            }}
             className="flex items-center justify-center"
             style={{
               width: 36,
@@ -100,10 +112,8 @@ export function BreakingNewsCard({ headline, sources, timeAgo }: BreakingNewsCar
           >
             <Bookmark size={20} fill={saved ? "#FFFFFF" : "none"} />
           </button>
-          <Link
-            to="/article/$id"
-            params={{ id: "1" }}
-            aria-label="Open"
+          <span
+            aria-hidden="true"
             className="flex items-center justify-center"
             style={{
               width: 36,
@@ -114,9 +124,11 @@ export function BreakingNewsCard({ headline, sources, timeAgo }: BreakingNewsCar
             }}
           >
             <ArrowUpRight size={20} />
-          </Link>
+          </span>
         </div>
+
       </div>
-    </article>
+    </Link>
+
   );
 }

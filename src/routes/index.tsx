@@ -156,10 +156,11 @@ function SourceArticleCard({ article }: { article: SourceArticle }) {
 }
 
 function TodayPage() {
-  const breaking = true;
   const [dateLabel, setDateLabel] = useState("");
   const [activeTab, setActiveTab] = useState("Today");
+
   const [articles, setArticles] = useState<SourceArticle[]>([]);
+  const [breakingArticle, setBreakingArticle] = useState<SourceArticle | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -169,20 +170,31 @@ function TodayPage() {
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      const { data, error } = await (supabase as any)
-        .from("articles")
-        .select("id, headline, body_standard, topic, read_time_minutes, source_count, created_at, is_breaking")
-        .order("created_at", { ascending: false })
-        .limit(50);
+      const [{ data, error }, breakingRes] = await Promise.all([
+        (supabase as any)
+          .from("articles")
+          .select("id, headline, body_standard, topic, read_time_minutes, source_count, created_at, is_breaking")
+          .order("created_at", { ascending: false })
+          .limit(50),
+        (supabase as any)
+          .from("articles")
+          .select("id, headline, body_standard, topic, read_time_minutes, source_count, created_at, is_breaking")
+          .eq("is_breaking", true)
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle(),
+      ]);
       console.log("Articles query:", { data, error });
       if (cancelled) return;
       if (!error && data) setArticles(data as SourceArticle[]);
+      if (!breakingRes.error && breakingRes.data) setBreakingArticle(breakingRes.data as SourceArticle);
       setLoading(false);
     })();
     return () => {
       cancelled = true;
     };
   }, []);
+
 
   return (
     <div>
@@ -202,8 +214,8 @@ function TodayPage() {
                 letterSpacing: "-0.02em",
               }}
             >
-              Today{!breaking && "."}
-              {breaking && (
+              Today{!breakingArticle && "."}
+              {breakingArticle && (
                 <span
                   aria-label="Breaking news live"
                   style={{
@@ -218,6 +230,7 @@ function TodayPage() {
                   }}
                 />
               )}
+
             </h1>
             <div style={{ display: "flex", alignItems: "center", gap: 12, paddingTop: 12 }}>
               <span
@@ -251,13 +264,17 @@ function TodayPage() {
         <div style={{ height: 1, backgroundColor: "#2C2C2E" }} />
       </header>
 
-      <div style={{ marginTop: 16 }}>
-        <BreakingNewsCard
-          headline="Cease-fire collapses in Sahel as mediators withdraw overnight."
-          sources={47}
-          timeAgo="7M AGO"
-        />
-      </div>
+      {breakingArticle && (
+        <div style={{ marginTop: 16 }}>
+          <BreakingNewsCard
+            headline={breakingArticle.headline}
+            sources={breakingArticle.source_count ?? 0}
+            timeAgo={timeAgo(breakingArticle.created_at)}
+            articleId={breakingArticle.id}
+          />
+        </div>
+      )}
+
 
       <div
         className="flex items-center justify-between"
