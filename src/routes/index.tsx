@@ -264,13 +264,17 @@ function TodayPage() {
         <div style={{ height: 1, backgroundColor: "#2C2C2E" }} />
       </header>
 
-      <div style={{ marginTop: 16 }}>
-        <BreakingNewsCard
-          headline="Cease-fire collapses in Sahel as mediators withdraw overnight."
-          sources={47}
-          timeAgo="7M AGO"
-        />
-      </div>
+      {breakingArticle && (
+        <div style={{ marginTop: 16 }}>
+          <BreakingNewsCard
+            headline={breakingArticle.headline}
+            sources={breakingArticle.source_count ?? 0}
+            timeAgo={timeAgo(breakingArticle.created_at)}
+            articleId={breakingArticle.id}
+          />
+        </div>
+      )}
+
 
       <div
         className="flex items-center justify-between"
