@@ -11,6 +11,7 @@ import {
   GoogleButton,
 } from "@/components/auth/AuthShell";
 import { supabase } from "@/integrations/supabase/client";
+import { lovable } from "@/integrations/lovable";
 
 export const Route = createFileRoute("/auth/signup")({
   head: () => ({ meta: [{ title: "Create account — lexinoori." }] }),
