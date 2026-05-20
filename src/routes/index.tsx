@@ -174,6 +174,7 @@ function TodayPage() {
         .select("id, headline, body_standard, topic, read_time_minutes, source_count, created_at, is_breaking")
         .order("created_at", { ascending: false })
         .limit(50);
+      console.log("Articles query:", { data, error });
       if (cancelled) return;
       if (!error && data) setArticles(data as SourceArticle[]);
       setLoading(false);
