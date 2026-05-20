@@ -1,10 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Search } from "lucide-react";
+import { Search, Bookmark } from "lucide-react";
 import { TopicTabs } from "@/components/feed/TopicTabs";
 import { BreakingNewsCard } from "@/components/feed/BreakingNewsCard";
-import { ArticleCard } from "@/components/feed/ArticleCard";
-import type { Topic } from "@/components/feed/TopicPill";
+import { supabase } from "@/integrations/supabase/client";
+import { useSavedArticles } from "@/hooks/useSavedArticles";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -16,67 +16,13 @@ export const Route = createFileRoute("/")({
   component: TodayPage,
 });
 
-type Article = {
+type SourceArticle = {
   id: string;
-  topic: Topic;
-  timeAgo: string;
   headline: string;
-  outletInitial: string;
-  sources: number;
-  readMinutes: number;
-  bias: "low" | "medium" | "high";
-  biasLabel: string;
-  whatsNew?: boolean;
-  thumbnail?: boolean;
-};
-
-const TODAY_ARTICLES: Article[] = [
-  { id: "1", topic: "politics", timeAgo: "3H AGO", headline: "EU finance ministers split over emergency defence spending package ahead of summit.", outletInitial: "R", sources: 9, readMinutes: 6, bias: "low", biasLabel: "Centre-left · 7.4 diversity", thumbnail: true },
-  { id: "2", topic: "climate", timeAgo: "5H AGO", headline: "Atlantic hurricane season opens with two named storms in single week, NOAA warns.", outletInitial: "N", sources: 14, readMinutes: 4, bias: "low", biasLabel: "Centre · 8.1 diversity" },
-  { id: "3", topic: "economics", timeAgo: "6H AGO", headline: "Yen tumbles to 38-year low as Bank of Japan signals reluctance to intervene.", outletInitial: "F", sources: 22, readMinutes: 5, bias: "medium", biasLabel: "Centre-right · 5.9 diversity" },
-  { id: "4", topic: "technology", timeAgo: "2H AGO", headline: "Meta releases open-weights vision model, undercutting closed competitors on benchmarks.", outletInitial: "V", sources: 11, readMinutes: 7, bias: "low", biasLabel: "Centre · 6.8 diversity", whatsNew: true },
-];
-
-const POLITICS_ARTICLES: Article[] = [
-  { id: "p1", topic: "politics", timeAgo: "3H AGO", headline: "EU finance ministers split over emergency defence spending package ahead of summit.", outletInitial: "R", sources: 9, readMinutes: 6, bias: "low", biasLabel: "Centre-left · 7.4 diversity" },
-  { id: "p2", topic: "politics", timeAgo: "5H AGO", headline: "French parliament votes to extend state of emergency by 90 days.", outletInitial: "L", sources: 12, readMinutes: 5, bias: "low", biasLabel: "Centre · 7.8 diversity" },
-  { id: "p3", topic: "politics", timeAgo: "8H AGO", headline: "NATO secretary general calls emergency summit following Baltic incident.", outletInitial: "A", sources: 18, readMinutes: 4, bias: "low", biasLabel: "Centre · 8.2 diversity" },
-];
-
-const CLIMATE_ARTICLES: Article[] = [
-  { id: "c1", topic: "climate", timeAgo: "5H AGO", headline: "Atlantic hurricane season opens with two named storms in single week, NOAA warns.", outletInitial: "N", sources: 14, readMinutes: 4, bias: "low", biasLabel: "Centre · 8.1 diversity" },
-  { id: "c2", topic: "climate", timeAgo: "9H AGO", headline: "Arctic permafrost thaw accelerating faster than models predicted, study finds.", outletInitial: "G", sources: 8, readMinutes: 6, bias: "low", biasLabel: "Centre-left · 7.6 diversity" },
-  { id: "c3", topic: "climate", timeAgo: "12H AGO", headline: "EU carbon border tax faces legal challenge from six member states.", outletInitial: "P", sources: 11, readMinutes: 5, bias: "medium", biasLabel: "Centre · 6.9 diversity" },
-];
-
-const TECH_ARTICLES: Article[] = [
-  { id: "t1", topic: "technology", timeAgo: "2H AGO", headline: "Meta releases open-weights vision model, undercutting closed competitors on benchmarks.", outletInitial: "V", sources: 11, readMinutes: 7, bias: "low", biasLabel: "Centre · 6.8 diversity" },
-  { id: "t2", topic: "technology", timeAgo: "4H AGO", headline: "Apple delays AI feature rollout in Europe citing regulatory uncertainty.", outletInitial: "B", sources: 16, readMinutes: 5, bias: "low", biasLabel: "Centre · 7.4 diversity" },
-  { id: "t3", topic: "technology", timeAgo: "7H AGO", headline: "OpenAI announces GPT-5 with extended context window and reasoning improvements.", outletInitial: "T", sources: 22, readMinutes: 6, bias: "low", biasLabel: "Centre · 7.1 diversity" },
-];
-
-const ECONOMY_ARTICLES: Article[] = [
-  { id: "e1", topic: "economics", timeAgo: "6H AGO", headline: "Yen tumbles to 38-year low as Bank of Japan signals reluctance to intervene.", outletInitial: "F", sources: 22, readMinutes: 5, bias: "medium", biasLabel: "Centre-right · 5.9 diversity" },
-  { id: "e2", topic: "economics", timeAgo: "10H AGO", headline: "German industrial output contracts for third consecutive quarter.", outletInitial: "H", sources: 9, readMinutes: 4, bias: "low", biasLabel: "Centre · 7.2 diversity" },
-  { id: "e3", topic: "economics", timeAgo: "1D AGO", headline: "IMF revises global growth forecast downward citing trade fragmentation.", outletInitial: "I", sources: 19, readMinutes: 6, bias: "low", biasLabel: "Centre · 8.0 diversity" },
-];
-
-const SPORT_ARTICLES: Article[] = [
-  { id: "s1", topic: "sport", timeAgo: "1H AGO", headline: "Champions League final ends in penalty shootout as Real Madrid claim record title.", outletInitial: "M", sources: 28, readMinutes: 5, bias: "low", biasLabel: "Centre · 8.4 diversity" },
-  { id: "s2", topic: "sport", timeAgo: "5H AGO", headline: "Tour de France route unveiled with three summit finishes in final week.", outletInitial: "L", sources: 12, readMinutes: 4, bias: "low", biasLabel: "Centre · 7.6 diversity" },
-  { id: "s3", topic: "sport", timeAgo: "9H AGO", headline: "ICC announces expanded World Cup format from 2027 with 16 teams.", outletInitial: "C", sources: 14, readMinutes: 4, bias: "low", biasLabel: "Centre · 7.3 diversity" },
-];
-
-const ARTICLES_BY_TAB: Record<string, Article[]> = {
-  Today: TODAY_ARTICLES,
-  Politics: POLITICS_ARTICLES,
-  Climate: CLIMATE_ARTICLES,
-  Tech: TECH_ARTICLES,
-  Economy: ECONOMY_ARTICLES,
-  Sport: SPORT_ARTICLES,
-  Health: [],
-  Culture: [],
-  Local: [],
+  body: string | null;
+  url: string;
+  source_name: string | null;
+  scraped_at: string;
 };
 
 function formatDateTime(d: Date) {
@@ -87,16 +33,143 @@ function formatDateTime(d: Date) {
   return `${days[d.getDay()]} · ${d.getDate()} ${months[d.getMonth()]} · ${hh}:${mm}`;
 }
 
+function timeAgo(iso: string) {
+  const diff = Date.now() - new Date(iso).getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 60) return `${Math.max(mins, 1)}M AGO`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs}H AGO`;
+  const days = Math.floor(hrs / 24);
+  return `${days}D AGO`;
+}
+
+function SourceArticleCard({ article }: { article: SourceArticle }) {
+  const { isSaved, toggle } = useSavedArticles();
+  const saved = isSaved(article.id);
+  const outletInitial = (article.source_name || article.headline || "?").trim().charAt(0).toUpperCase();
+
+  return (
+    <a
+      href={article.url}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="block"
+      style={{
+        backgroundColor: "#1C1C1E",
+        border: "1px solid #2C2C2E",
+        borderRadius: 12,
+        margin: "0 16px",
+        padding: 16,
+        color: "inherit",
+        textDecoration: "none",
+      }}
+    >
+      <div className="flex items-center justify-between gap-2">
+        <span style={{ color: "#8E8E93", fontSize: 12 }}>{timeAgo(article.scraped_at)}</span>
+      </div>
+
+      <h3
+        style={{
+          color: "#FFFFFF",
+          fontWeight: 700,
+          fontSize: 18,
+          lineHeight: 1.3,
+          marginTop: 8,
+          display: "-webkit-box",
+          WebkitLineClamp: 3,
+          WebkitBoxOrient: "vertical",
+          overflow: "hidden",
+        }}
+      >
+        {article.headline}
+      </h3>
+
+      {article.body && (
+        <p
+          style={{
+            color: "#8E8E93",
+            fontSize: 14,
+            lineHeight: 1.4,
+            marginTop: 8,
+            display: "-webkit-box",
+            WebkitLineClamp: 3,
+            WebkitBoxOrient: "vertical",
+            overflow: "hidden",
+          }}
+        >
+          {article.body}
+        </p>
+      )}
+
+      <div className="flex items-center gap-2" style={{ marginTop: 12 }}>
+        <span
+          className="flex items-center justify-center"
+          style={{
+            width: 20,
+            height: 20,
+            borderRadius: 999,
+            backgroundColor: "#2C2C2E",
+            color: "#8E8E93",
+            fontSize: 11,
+            fontWeight: 700,
+          }}
+        >
+          {outletInitial}
+        </span>
+        {article.source_name && (
+          <span style={{ color: "#8E8E93", fontSize: 13 }}>{article.source_name}</span>
+        )}
+        <button
+          aria-label={saved ? "Unsave" : "Save"}
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            toggle(article.id);
+          }}
+          style={{
+            marginLeft: "auto",
+            color: saved ? "#1A7A5E" : "#8E8E93",
+            background: "transparent",
+            display: "inline-flex",
+          }}
+        >
+          <Bookmark size={24} fill={saved ? "#1A7A5E" : "none"} />
+        </button>
+      </div>
+    </a>
+  );
+}
+
 function TodayPage() {
   const breaking = true;
   const [dateLabel, setDateLabel] = useState("");
-  useEffect(() => { setDateLabel(formatDateTime(new Date())); }, []);
   const [activeTab, setActiveTab] = useState("Today");
-  const hideTopic = activeTab !== "Today";
+  const [articles, setArticles] = useState<SourceArticle[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    setDateLabel(formatDateTime(new Date()));
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const { data, error } = await (supabase as any)
+        .from("source_articles")
+        .select("id, headline, body, url, source_name, scraped_at")
+        .order("scraped_at", { ascending: false })
+        .limit(50);
+      if (cancelled) return;
+      if (!error && data) setArticles(data as SourceArticle[]);
+      setLoading(false);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   return (
     <div>
-      {/* Header */}
       <header
         className="sticky top-0 z-30 bg-background"
         style={{ paddingTop: "env(safe-area-inset-top)" }}
@@ -152,7 +225,7 @@ function TodayPage() {
           </div>
 
           <p style={{ color: "#8E8E93", fontSize: 13, marginTop: 8 }}>
-            18 stories merged from 213 outlets across 27 countries.
+            {loading ? "Loading latest stories…" : `${articles.length} stories merged from across the web.`}
           </p>
         </div>
 
@@ -162,7 +235,6 @@ function TodayPage() {
         <div style={{ height: 1, backgroundColor: "#2C2C2E" }} />
       </header>
 
-      {/* Breaking news */}
       <div style={{ marginTop: 16 }}>
         <BreakingNewsCard
           headline="Cease-fire collapses in Sahel as mediators withdraw overnight."
@@ -171,13 +243,12 @@ function TodayPage() {
         />
       </div>
 
-      {/* For you */}
       <div
         className="flex items-center justify-between"
         style={{ padding: "0 24px", marginTop: 20, marginBottom: 12 }}
       >
         <span style={{ color: "#8E8E93", fontSize: 11, letterSpacing: "0.08em", fontWeight: 700 }}>
-          FOR YOU · 14 STORIES
+          FOR YOU · {articles.length} STORIES
         </span>
         <button
           style={{
@@ -192,9 +263,14 @@ function TodayPage() {
       </div>
 
       <div className="flex flex-col" style={{ gap: 12 }}>
-        {ARTICLES_BY_TAB[activeTab].map((a) => (
-          <ArticleCard key={a.id} {...a} hideTopic={hideTopic} />
+        {articles.map((a) => (
+          <SourceArticleCard key={a.id} article={a} />
         ))}
+        {!loading && articles.length === 0 && (
+          <p style={{ color: "#8E8E93", fontSize: 13, padding: "0 24px" }}>
+            No articles yet. Check back soon.
+          </p>
+        )}
       </div>
 
       <div style={{ height: 24 }} />
