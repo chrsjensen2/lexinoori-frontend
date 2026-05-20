@@ -505,9 +505,9 @@ function ArticleView() {
         >
           SOURCES · 9 OUTLETS
         </div>
-        <SourceRow initial="R" name="Reuters" bias="#00C864" diversity="9.2" />
-        <SourceRow initial="A" name="AP" bias="#00C864" diversity="8.8" />
-        <SourceRow initial="B" name="BBC" bias="#00C864" diversity="8.4" />
+        <SourceRow initial="R" name="Reuters" journalist="Jane Morrison" bias="#00C864" diversity="9.2" />
+        <SourceRow initial="A" name="AP" journalist="David Chen" bias="#00C864" diversity="8.8" />
+        <SourceRow initial="B" name="BBC" journalist="Sarah Williams" bias="#00C864" diversity="8.4" />
         <SourceRow initial="D" name="DR" bias="#FFD000" diversity="7.1" />
         <SourceRow initial="T" name="TV2" bias="#FFD000" diversity="6.4" wireCopy last />
 
