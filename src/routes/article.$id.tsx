@@ -465,7 +465,7 @@ function ArticleView() {
             lineHeight: 1.5,
           }}
         >
-          No sources cover the economic impact on smaller EU member states or SMEs.
+          {article?.whats_missing ?? "No gaps identified."}
         </div>
 
         {/* Sources */}
@@ -479,8 +479,9 @@ function ArticleView() {
             marginBottom: 4,
           }}
         >
-          SOURCES · 9 OUTLETS
+          SOURCES · {sourceCount} OUTLETS
         </div>
+
         <SourceRow initial="R" name="Reuters" journalist="Jane Morrison" bias="#00C864" diversity="9.2" />
         <SourceRow initial="A" name="AP" journalist="David Chen" bias="#00C864" diversity="8.8" />
         <SourceRow initial="B" name="BBC" journalist="Sarah Williams" bias="#00C864" diversity="8.4" />
