@@ -56,20 +56,15 @@ function SavedPage() {
   const router = useRouter();
   const [filter, setFilter] = useState<Topic | "all">("all");
   const [articles, setArticles] = useState<SavedArticle[]>([]);
-  const [loading, setLoading] = useState(true);
   const { toggle, userId } = useSavedArticles();
 
   useEffect(() => {
     let cancelled = false;
     async function load() {
-      setLoading(true);
       const { data: sess } = await supabase.auth.getSession();
       const uid = sess.session?.user?.id;
       if (!uid) {
-        if (!cancelled) {
-          setArticles([]);
-          setLoading(false);
-        }
+        if (!cancelled) setArticles([]);
         return;
       }
       const { data } = await supabase
@@ -91,7 +86,6 @@ function SavedPage() {
         };
       });
       setArticles(mapped);
-      setLoading(false);
     }
     load();
     return () => {
