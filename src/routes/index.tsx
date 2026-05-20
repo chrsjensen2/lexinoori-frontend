@@ -160,6 +160,7 @@ function TodayPage() {
   const [dateLabel, setDateLabel] = useState("");
   const [activeTab, setActiveTab] = useState("Today");
   const [articles, setArticles] = useState<SourceArticle[]>([]);
+  const [breakingArticle, setBreakingArticle] = useState<SourceArticle | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -169,20 +170,31 @@ function TodayPage() {
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      const { data, error } = await (supabase as any)
-        .from("articles")
-        .select("id, headline, body_standard, topic, read_time_minutes, source_count, created_at, is_breaking")
-        .order("created_at", { ascending: false })
-        .limit(50);
+      const [{ data, error }, breakingRes] = await Promise.all([
+        (supabase as any)
+          .from("articles")
+          .select("id, headline, body_standard, topic, read_time_minutes, source_count, created_at, is_breaking")
+          .order("created_at", { ascending: false })
+          .limit(50),
+        (supabase as any)
+          .from("articles")
+          .select("id, headline, body_standard, topic, read_time_minutes, source_count, created_at, is_breaking")
+          .eq("is_breaking", true)
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle(),
+      ]);
       console.log("Articles query:", { data, error });
       if (cancelled) return;
       if (!error && data) setArticles(data as SourceArticle[]);
+      if (!breakingRes.error && breakingRes.data) setBreakingArticle(breakingRes.data as SourceArticle);
       setLoading(false);
     })();
     return () => {
       cancelled = true;
     };
   }, []);
+
 
   return (
     <div>
