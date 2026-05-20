@@ -280,6 +280,10 @@ function SectionHeader({ children, top = 20 }: { children: React.ReactNode; top?
 function SettingsPage() {
   const [readingIdx, setReadingIdx] = useState(2);
   const [zoomIdx, setZoomIdx] = useState(2);
+  const [user, setUser] = useState<{ email: string | null; createdAt: string | null }>({
+    email: null,
+    createdAt: null,
+  });
   const [topics, setTopics] = useState<Record<string, boolean>>({
     breaking: true,
     politics: true,
@@ -291,7 +295,18 @@ function SettingsPage() {
     sport: false,
   });
 
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => {
+      if (data.user) {
+        setUser({ email: data.user.email ?? null, createdAt: data.user.created_at ?? null });
+      }
+    });
+  }, []);
+
   const current = READING_STOPS[readingIdx];
+  const memberSince = user.createdAt
+    ? `Member since ${new Date(user.createdAt).toLocaleDateString(undefined, { month: "long", year: "numeric" })}`
+    : "";
 
   return (
     <div style={{ paddingTop: "env(safe-area-inset-top)" }}>
@@ -308,6 +323,12 @@ function SettingsPage() {
         >
           Profile.
         </h1>
+        {user.email && (
+          <div style={{ color: "#FFFFFF", fontSize: 15, marginTop: 12 }}>{user.email}</div>
+        )}
+        {memberSince && (
+          <div style={{ color: "#8E8E93", fontSize: 13, marginTop: 4 }}>{memberSince}</div>
+        )}
       </div>
 
       {/* Account */}
