@@ -98,7 +98,11 @@ export function BreakingNewsCard({ headline, sources, timeAgo, articleId }: Brea
         <div className="mt-4 flex items-center justify-end gap-2">
           <button
             aria-label={saved ? "Unsave" : "Save"}
-            onClick={() => toggle(articleId ?? BREAKING_ID)}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              toggle(articleId ?? BREAKING_ID);
+            }}
             className="flex items-center justify-center"
             style={{
               width: 36,
@@ -108,10 +112,8 @@ export function BreakingNewsCard({ headline, sources, timeAgo, articleId }: Brea
           >
             <Bookmark size={20} fill={saved ? "#FFFFFF" : "none"} />
           </button>
-          <Link
-            to="/article/$id"
-            params={{ id: articleId ?? "1" }}
-            aria-label="Open"
+          <span
+            aria-hidden="true"
             className="flex items-center justify-center"
             style={{
               width: 36,
@@ -122,10 +124,11 @@ export function BreakingNewsCard({ headline, sources, timeAgo, articleId }: Brea
             }}
           >
             <ArrowUpRight size={20} />
-          </Link>
+          </span>
         </div>
 
       </div>
-    </article>
+    </Link>
+
   );
 }
