@@ -92,7 +92,7 @@ export function BreakingNewsCard({ headline, sources, timeAgo, articleId }: Brea
         <div className="mt-4 flex items-center justify-end gap-2">
           <button
             aria-label={saved ? "Unsave" : "Save"}
-            onClick={() => toggle(BREAKING_ID)}
+            onClick={() => toggle(articleId ?? BREAKING_ID)}
             className="flex items-center justify-center"
             style={{
               width: 36,
@@ -104,7 +104,7 @@ export function BreakingNewsCard({ headline, sources, timeAgo, articleId }: Brea
           </button>
           <Link
             to="/article/$id"
-            params={{ id: "1" }}
+            params={{ id: articleId ?? "1" }}
             aria-label="Open"
             className="flex items-center justify-center"
             style={{
@@ -118,6 +118,7 @@ export function BreakingNewsCard({ headline, sources, timeAgo, articleId }: Brea
             <ArrowUpRight size={20} />
           </Link>
         </div>
+
       </div>
     </article>
   );
