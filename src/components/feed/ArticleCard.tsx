@@ -1,7 +1,7 @@
 import { Link } from "@tanstack/react-router";
-import { useState } from "react";
 import { Bookmark } from "lucide-react";
 import { TopicPill, WhatsNewPill, TOPIC_COLORS, type Topic } from "./TopicPill";
+import { useSavedArticles } from "@/hooks/useSavedArticles";
 
 type Bias = "low" | "medium" | "high";
 
@@ -41,7 +41,8 @@ export function ArticleCard({
   hideTopic = false,
 }: ArticleCardProps) {
   const topicColor = TOPIC_COLORS[topic];
-  const [saved, setSaved] = useState(false);
+  const { isSaved, toggle } = useSavedArticles();
+  const saved = isSaved(id);
 
   return (
     <Link
@@ -123,7 +124,7 @@ export function ArticleCard({
           onClick={(e) => {
             e.preventDefault();
             e.stopPropagation();
-            setSaved((s) => !s);
+            toggle(id);
           }}
           style={{
             marginLeft: "auto",

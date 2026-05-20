@@ -1,6 +1,6 @@
 import { Bookmark, ArrowUpRight } from "lucide-react";
-import { useState } from "react";
 import { Link } from "@tanstack/react-router";
+import { useSavedArticles } from "@/hooks/useSavedArticles";
 
 interface BreakingNewsCardProps {
   headline: string;
@@ -8,8 +8,11 @@ interface BreakingNewsCardProps {
   timeAgo: string;
 }
 
+const BREAKING_ID = "breaking";
+
 export function BreakingNewsCard({ headline, sources, timeAgo }: BreakingNewsCardProps) {
-  const [saved, setSaved] = useState(false);
+  const { isSaved, toggle } = useSavedArticles();
+  const saved = isSaved(BREAKING_ID);
   return (
     <article
       style={{
@@ -87,7 +90,7 @@ export function BreakingNewsCard({ headline, sources, timeAgo }: BreakingNewsCar
         <div className="mt-4 flex items-center justify-end gap-2">
           <button
             aria-label={saved ? "Unsave" : "Save"}
-            onClick={() => setSaved((s) => !s)}
+            onClick={() => toggle(BREAKING_ID)}
             className="flex items-center justify-center"
             style={{
               width: 36,
