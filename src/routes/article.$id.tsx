@@ -263,7 +263,7 @@ function ArticleView() {
               SOURCES
             </div>
             <div style={{ color: "#FFFFFF", fontSize: 22, fontWeight: 700, marginTop: 4 }}>
-              9 outlets
+              {sourceCount} outlets
             </div>
           </div>
           <div className="flex-1">
@@ -271,8 +271,9 @@ function ArticleView() {
               READ LENGTH
             </div>
             <div style={{ color: "#FFFFFF", fontSize: 22, fontWeight: 700, marginTop: 4 }}>
-              6 min
+              {readMinutes} min
             </div>
+
           </div>
         </div>
 
