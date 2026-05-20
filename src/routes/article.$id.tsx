@@ -19,6 +19,9 @@ type ArticleRow = {
   id: string;
   headline: string;
   body_standard: string | null;
+  body_bullets: string | null;
+  body_brief: string | null;
+  body_deep_dive: string | null;
   topic: string | null;
   read_time_minutes: number | null;
   source_count: number | null;
