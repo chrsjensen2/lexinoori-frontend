@@ -701,6 +701,7 @@ function LoadedRow({
 function SourceRow({
   initial,
   name,
+  journalist,
   bias,
   diversity,
   wireCopy = false,
@@ -708,23 +709,22 @@ function SourceRow({
 }: {
   initial: string;
   name: string;
+  journalist?: string;
   bias: string;
   diversity: string;
   wireCopy?: boolean;
   last?: boolean;
 }) {
-  return (
-    <Link
-      to="/journalist/$id"
-      params={{ id: "1" }}
-      className="flex items-center"
-      style={{
-        height: 44,
-        gap: 12,
-        borderBottom: last ? "none" : "1px solid #2C2C2E",
-        textDecoration: "none",
-      }}
-    >
+  const tappable = Boolean(journalist);
+  const rowStyle = {
+    height: 44,
+    gap: 12,
+    borderBottom: last ? "none" : "1px solid #2C2C2E",
+    textDecoration: "none",
+  } as const;
+
+  const inner = (
+    <>
       <span
         className="flex items-center justify-center"
         style={{
@@ -739,7 +739,9 @@ function SourceRow({
       >
         {initial}
       </span>
-      <span style={{ color: "#FFFFFF", fontSize: 14, flex: 1 }}>{name}</span>
+      <span style={{ color: "#FFFFFF", fontSize: 14, flex: 1 }}>
+        {journalist ? `${name} · ${journalist}` : name}
+      </span>
       {wireCopy && (
         <span
           style={{
@@ -767,14 +769,27 @@ function SourceRow({
       <span
         style={{
           color: "#8E8E93",
-          fontSize: 11,
+          fontSize: 12,
           fontWeight: 700,
           letterSpacing: "0.08em",
         }}
       >
         DIV {diversity}
       </span>
-      <ChevronRight size={12} style={{ color: "#8E8E93" }} />
-    </Link>
+      {tappable && <ChevronRight size={12} style={{ color: "#8E8E93" }} />}
+    </>
+  );
+
+  if (tappable) {
+    return (
+      <Link to="/journalist/$id" params={{ id: "1" }} className="flex items-center" style={rowStyle}>
+        {inner}
+      </Link>
+    );
+  }
+  return (
+    <div className="flex items-center" style={rowStyle}>
+      {inner}
+    </div>
   );
 }
