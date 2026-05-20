@@ -69,7 +69,7 @@ function SignupPage() {
           />
         </div>
         {error && (
-          <div style={{ color: "#FF5A5A", fontSize: 13, marginTop: 12 }}>{error}</div>
+          <div style={{ color: "#FF3B30", fontSize: 13, marginTop: 12 }}>{error}</div>
         )}
         <div style={{ marginTop: 20 }}>
           <PrimaryButton type="submit" disabled={loading}>
