@@ -19,6 +19,9 @@ type ArticleRow = {
   id: string;
   headline: string;
   body_standard: string | null;
+  body_bullets: string | null;
+  body_brief: string | null;
+  body_deep_dive: string | null;
   topic: string | null;
   read_time_minutes: number | null;
   source_count: number | null;
@@ -49,7 +52,7 @@ function ArticleView() {
     (async () => {
       const { data, error } = await (supabase as any)
         .from("articles")
-        .select("id, headline, body_standard, topic, read_time_minutes, source_count, bias_score, diversity_score, whats_missing")
+        .select("id, headline, body_standard, body_bullets, body_brief, body_deep_dive, topic, read_time_minutes, source_count, bias_score, diversity_score, whats_missing")
         .eq("id", id)
         .maybeSingle();
       console.log("Article fetch:", { data, error });
@@ -69,7 +72,14 @@ function ArticleView() {
   const diversityScore = Number(article?.diversity_score ?? 0);
   const biasPct = Math.max(0, Math.min(100, ((biasScore + 1) / 2) * 100));
   const diversityPct = Math.max(0, Math.min(100, (diversityScore / 10) * 100));
-  const body = article?.body_standard ?? "";
+  const body = readLength === "Bullets"
+    ? (article?.body_bullets ?? "")
+    : readLength === "Brief"
+    ? (article?.body_brief ?? "")
+    : readLength === "Deep Dive"
+    ? (article?.body_deep_dive ?? "")
+    : (article?.body_standard ?? "");
+  const deepDiveDisabled = !article?.body_deep_dive;
 
 
   return (
@@ -371,10 +381,15 @@ function ArticleView() {
       <div className="flex" style={{ gap: 8, margin: "12px 16px 0" }}>
         {READ_LENGTHS.map((rl) => {
           const active = rl === readLength;
+          const disabled = rl === "Deep Dive" && deepDiveDisabled;
           return (
             <button
               key={rl}
-              onClick={() => setReadLength(rl)}
+              onClick={() => {
+                if (!disabled) setReadLength(rl);
+              }}
+              disabled={disabled}
+              title={disabled ? "Not enough source material" : undefined}
               className="flex-1"
               style={{
                 padding: "10px 12px",
@@ -382,9 +397,11 @@ function ArticleView() {
                 fontSize: 13,
                 fontWeight: 700,
                 backgroundColor: active ? "#FFFFFF" : "#1C1C1E",
-                color: active ? "#111111" : "rgba(255,255,255,0.5)",
+                color: disabled ? "rgba(255,255,255,0.2)" : active ? "#111111" : "rgba(255,255,255,0.5)",
                 border: active ? "1px solid #FFFFFF" : "1px solid #2C2C2E",
                 whiteSpace: "nowrap",
+                cursor: disabled ? "not-allowed" : "pointer",
+                opacity: disabled ? 0.5 : 1,
               }}
             >
               {rl}
