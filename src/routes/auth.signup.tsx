@@ -77,7 +77,20 @@ function SignupPage() {
           </PrimaryButton>
         </div>
         <OrDivider />
-        <GoogleButton />
+        <GoogleButton
+          onClick={async () => {
+            setError(null);
+            const result = await lovable.auth.signInWithOAuth("google", {
+              redirect_uri: window.location.origin,
+            });
+            if (result.error) {
+              setError(result.error.message);
+              return;
+            }
+            if (result.redirected) return;
+            navigate({ to: "/" });
+          }}
+        />
       </form>
       <div
         style={{
