@@ -72,7 +72,14 @@ function ArticleView() {
   const diversityScore = Number(article?.diversity_score ?? 0);
   const biasPct = Math.max(0, Math.min(100, ((biasScore + 1) / 2) * 100));
   const diversityPct = Math.max(0, Math.min(100, (diversityScore / 10) * 100));
-  const body = article?.body_standard ?? "";
+  const body = readLength === "Bullets"
+    ? (article?.body_bullets ?? "")
+    : readLength === "Brief"
+    ? (article?.body_brief ?? "")
+    : readLength === "Deep Dive"
+    ? (article?.body_deep_dive ?? "")
+    : (article?.body_standard ?? "");
+  const deepDiveDisabled = !article?.body_deep_dive;
 
 
   return (
