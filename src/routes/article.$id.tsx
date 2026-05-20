@@ -1,6 +1,6 @@
-import { createFileRoute, useRouter, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useRouter, Link } from "@tanstack/react-router";
 import { useState } from "react";
-import { ArrowLeft, Bookmark, Share2, MoreHorizontal, ChevronRight, Clock } from "lucide-react";
+import { ArrowLeft, Bookmark, Share2, ChevronRight } from "lucide-react";
 import { TopicPill, TOPIC_COLORS, type Topic } from "@/components/feed/TopicPill";
 
 export const Route = createFileRoute("/article/$id")({
@@ -16,14 +16,17 @@ const HEADLINE =
 const READ_LENGTHS = ["Bullets", "Brief", "Standard", "Deep Dive"] as const;
 type ReadLength = (typeof READ_LENGTHS)[number];
 
+const FONT_SIZES = { Small: 14, Medium: 16, Large: 19 } as const;
+type FontSizeKey = keyof typeof FONT_SIZES;
+
 function ArticleView() {
   const router = useRouter();
-  const navigate = useNavigate();
   const topicColor = TOPIC_COLORS[TOPIC];
   const [readLength, setReadLength] = useState<ReadLength>("Standard");
-  const [sheet, setSheet] = useState<null | "aa" | "more">(null);
+  const [sheet, setSheet] = useState<null | "aa">(null);
   const [savedTop, setSavedTop] = useState(false);
   const [sharedTop, setSharedTop] = useState(false);
+  const [fontSize, setFontSize] = useState<FontSizeKey>("Medium");
 
   return (
     <div style={{ paddingBottom: 32 }}>
