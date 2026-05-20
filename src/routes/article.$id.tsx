@@ -1,17 +1,13 @@
 import { createFileRoute, useRouter, Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ArrowLeft, Bookmark, Share2, ChevronRight } from "lucide-react";
 import { TopicPill, TOPIC_COLORS, type Topic } from "@/components/feed/TopicPill";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/article/$id")({
   head: () => ({ meta: [{ title: "Article — lexinoori." }] }),
   component: ArticleView,
 });
-
-const TOPIC: Topic = "politics";
-const TOPIC_LABEL = "POLITICS";
-const HEADLINE =
-  "EU digital sovereignty bill fast-tracks past national vetoes after marathon trilogue.";
 
 const READ_LENGTHS = ["Bullets", "Brief", "Standard", "Deep Dive"] as const;
 type ReadLength = (typeof READ_LENGTHS)[number];
@@ -19,14 +15,62 @@ type ReadLength = (typeof READ_LENGTHS)[number];
 const FONT_SIZES = { Small: 14, Medium: 16, Large: 19 } as const;
 type FontSizeKey = keyof typeof FONT_SIZES;
 
+type ArticleRow = {
+  id: string;
+  headline: string;
+  body_standard: string | null;
+  topic: string | null;
+  read_time_minutes: number | null;
+  source_count: number | null;
+  bias_score: number | null;
+  diversity_score: number | null;
+  whats_missing: string | null;
+};
+
+function toTopic(t: string | null | undefined): Topic {
+  const valid: Topic[] = ["politics", "climate", "economics", "sport", "technology", "health", "culture", "local", "breaking"];
+  const n = (t ?? "").toLowerCase();
+  return (valid.includes(n as Topic) ? (n as Topic) : "politics");
+}
+
 function ArticleView() {
   const router = useRouter();
-  const topicColor = TOPIC_COLORS[TOPIC];
+  const { id } = Route.useParams();
+  const [article, setArticle] = useState<ArticleRow | null>(null);
+  const [loading, setLoading] = useState(true);
   const [readLength, setReadLength] = useState<ReadLength>("Standard");
   const [sheet, setSheet] = useState<null | "aa">(null);
   const [savedTop, setSavedTop] = useState(false);
   const [sharedTop, setSharedTop] = useState(false);
   const [fontSize, setFontSize] = useState<FontSizeKey>("Medium");
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const { data, error } = await (supabase as any)
+        .from("articles")
+        .select("id, headline, body_standard, topic, read_time_minutes, source_count, bias_score, diversity_score, whats_missing")
+        .eq("id", id)
+        .maybeSingle();
+      console.log("Article fetch:", { data, error });
+      if (cancelled) return;
+      if (!error && data) setArticle(data as ArticleRow);
+      setLoading(false);
+    })();
+    return () => { cancelled = true; };
+  }, [id]);
+
+  const TOPIC = toTopic(article?.topic);
+  const topicColor = TOPIC_COLORS[TOPIC];
+  const HEADLINE = article?.headline ?? (loading ? "Loading…" : "Article not found");
+  const sourceCount = article?.source_count ?? 0;
+  const readMinutes = article?.read_time_minutes ?? 0;
+  const biasScore = Number(article?.bias_score ?? 0);
+  const diversityScore = Number(article?.diversity_score ?? 0);
+  const biasPct = Math.max(0, Math.min(100, ((biasScore + 1) / 2) * 100));
+  const diversityPct = Math.max(0, Math.min(100, (diversityScore / 10) * 100));
+  const body = article?.body_standard ?? "";
+
 
   return (
     <div style={{ paddingBottom: 32 }}>
