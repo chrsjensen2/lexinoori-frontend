@@ -96,21 +96,8 @@ function ArticleView() {
             >
               Aa
             </button>
-            <button
-              aria-label="More"
-              onClick={() => setSheet("more")}
-              className="flex items-center justify-center"
-              style={{
-                width: 40,
-                height: 40,
-                borderRadius: 8,
-                backgroundColor: "rgba(17,17,17,0.5)",
-                color: "#FFFFFF",
-              }}
-            >
-              <MoreHorizontal size={20} />
-            </button>
           </div>
+
         </div>
 
         {/* Bottom overlay content */}
