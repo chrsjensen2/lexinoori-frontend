@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Search } from "lucide-react";
 import { TopicTabs } from "@/components/feed/TopicTabs";
 import { BreakingNewsCard } from "@/components/feed/BreakingNewsCard";
@@ -89,7 +89,8 @@ function formatDateTime(d: Date) {
 
 function TodayPage() {
   const breaking = true;
-  const dateLabel = formatDateTime(new Date());
+  const [dateLabel, setDateLabel] = useState("");
+  useEffect(() => { setDateLabel(formatDateTime(new Date())); }, []);
   const [activeTab, setActiveTab] = useState("Today");
   const hideTopic = activeTab !== "Today";
 
