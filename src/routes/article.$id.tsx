@@ -352,7 +352,7 @@ function ArticleView() {
           padding: "0 16px",
           marginTop: 20,
           color: "#FFFFFF",
-          fontSize: 16,
+          fontSize: FONT_SIZES[fontSize],
           lineHeight: 1.65,
         }}
       >
