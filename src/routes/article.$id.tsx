@@ -618,37 +618,7 @@ function ArticleView() {
   );
 }
 
-function SheetRow({
-  icon,
-  label,
-  onClick,
-  last,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  onClick?: () => void;
-  last?: boolean;
-}) {
-  return (
-    <button
-      onClick={onClick}
-      className="flex items-center w-full"
-      style={{
-        height: 48,
-        gap: 12,
-        borderBottom: last ? "none" : "1px solid #2C2C2E",
-        background: "transparent",
-        color: "#FFFFFF",
-        fontSize: 16,
-        fontWeight: 400,
-        textAlign: "left",
-      }}
-    >
-      <span style={{ color: "#8E8E93", display: "inline-flex" }}>{icon}</span>
-      <span>{label}</span>
-    </button>
-  );
-}
+
 
 function InlineTag({
   kind,
