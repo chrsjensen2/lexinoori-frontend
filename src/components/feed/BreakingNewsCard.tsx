@@ -6,13 +6,15 @@ interface BreakingNewsCardProps {
   headline: string;
   sources: number;
   timeAgo: string;
+  articleId?: string;
 }
 
 const BREAKING_ID = "breaking";
 
-export function BreakingNewsCard({ headline, sources, timeAgo }: BreakingNewsCardProps) {
+export function BreakingNewsCard({ headline, sources, timeAgo, articleId }: BreakingNewsCardProps) {
   const { isSaved, toggle } = useSavedArticles();
-  const saved = isSaved(BREAKING_ID);
+  const saved = isSaved(articleId ?? BREAKING_ID);
+
   return (
     <article
       style={{
