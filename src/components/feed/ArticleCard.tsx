@@ -41,6 +41,7 @@ export function ArticleCard({
   hideTopic = false,
 }: ArticleCardProps) {
   const topicColor = TOPIC_COLORS[topic];
+  const [saved, setSaved] = useState(false);
 
   return (
     <Link
