@@ -1,4 +1,6 @@
 import { Link } from "@tanstack/react-router";
+import { useState } from "react";
+import { Bookmark } from "lucide-react";
 import { TopicPill, WhatsNewPill, TOPIC_COLORS, type Topic } from "./TopicPill";
 
 type Bias = "low" | "medium" | "high";
@@ -39,6 +41,7 @@ export function ArticleCard({
   hideTopic = false,
 }: ArticleCardProps) {
   const topicColor = TOPIC_COLORS[topic];
+  const [saved, setSaved] = useState(false);
 
   return (
     <Link
@@ -115,6 +118,22 @@ export function ArticleCard({
           }}
         />
         <span style={{ color: "#8E8E93", fontSize: 12 }}>{biasLabel}</span>
+        <button
+          aria-label={saved ? "Unsave" : "Save"}
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setSaved((s) => !s);
+          }}
+          style={{
+            marginLeft: "auto",
+            color: saved ? "#1A7A5E" : "#8E8E93",
+            background: "transparent",
+            display: "inline-flex",
+          }}
+        >
+          <Bookmark size={24} fill={saved ? "#1A7A5E" : "none"} />
+        </button>
       </div>
 
       {/* Thumbnail */}

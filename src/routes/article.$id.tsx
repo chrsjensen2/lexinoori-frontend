@@ -1,6 +1,6 @@
-import { createFileRoute, useRouter, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useRouter, Link } from "@tanstack/react-router";
 import { useState } from "react";
-import { ArrowLeft, Bookmark, Share2, MoreHorizontal, ChevronRight, Clock } from "lucide-react";
+import { ArrowLeft, Bookmark, Share2, ChevronRight } from "lucide-react";
 import { TopicPill, TOPIC_COLORS, type Topic } from "@/components/feed/TopicPill";
 
 export const Route = createFileRoute("/article/$id")({
@@ -16,14 +16,17 @@ const HEADLINE =
 const READ_LENGTHS = ["Bullets", "Brief", "Standard", "Deep Dive"] as const;
 type ReadLength = (typeof READ_LENGTHS)[number];
 
+const FONT_SIZES = { Small: 14, Medium: 16, Large: 19 } as const;
+type FontSizeKey = keyof typeof FONT_SIZES;
+
 function ArticleView() {
   const router = useRouter();
-  const navigate = useNavigate();
   const topicColor = TOPIC_COLORS[TOPIC];
   const [readLength, setReadLength] = useState<ReadLength>("Standard");
-  const [sheet, setSheet] = useState<null | "aa" | "more">(null);
+  const [sheet, setSheet] = useState<null | "aa">(null);
   const [savedTop, setSavedTop] = useState(false);
   const [sharedTop, setSharedTop] = useState(false);
+  const [fontSize, setFontSize] = useState<FontSizeKey>("Medium");
 
   return (
     <div style={{ paddingBottom: 32 }}>
@@ -93,21 +96,8 @@ function ArticleView() {
             >
               Aa
             </button>
-            <button
-              aria-label="More"
-              onClick={() => setSheet("more")}
-              className="flex items-center justify-center"
-              style={{
-                width: 40,
-                height: 40,
-                borderRadius: 8,
-                backgroundColor: "rgba(17,17,17,0.5)",
-                color: "#FFFFFF",
-              }}
-            >
-              <MoreHorizontal size={20} />
-            </button>
           </div>
+
         </div>
 
         {/* Bottom overlay content */}
@@ -362,7 +352,7 @@ function ArticleView() {
           padding: "0 16px",
           marginTop: 20,
           color: "#FFFFFF",
-          fontSize: 16,
+          fontSize: FONT_SIZES[fontSize],
           lineHeight: 1.65,
         }}
       >
@@ -594,19 +584,17 @@ function ArticleView() {
                     marginBottom: 16,
                   }}
                 >
-                  ARTICLE DEPTH
+                  TEXT SIZE
                 </div>
-                <div className="flex" style={{ gap: 8, flexWrap: "wrap" }}>
-                  {READ_LENGTHS.map((rl) => {
-                    const active = rl === readLength;
+                <div className="flex" style={{ gap: 8 }}>
+                  {(Object.keys(FONT_SIZES) as FontSizeKey[]).map((key) => {
+                    const active = key === fontSize;
                     return (
                       <button
-                        key={rl}
-                        onClick={() => {
-                          setReadLength(rl);
-                          setSheet(null);
-                        }}
+                        key={key}
+                        onClick={() => setFontSize(key)}
                         style={{
+                          flex: 1,
                           padding: "10px 12px",
                           borderRadius: 20,
                           fontSize: 13,
@@ -614,56 +602,13 @@ function ArticleView() {
                           backgroundColor: active ? "#FFFFFF" : "#1C1C1E",
                           color: active ? "#111111" : "rgba(255,255,255,0.5)",
                           border: active ? "1px solid #FFFFFF" : "1px solid #2C2C2E",
-                          whiteSpace: "nowrap",
-                          flex: 1,
-                          minWidth: 0,
                         }}
                       >
-                        {rl}
+                        {key}
                       </button>
                     );
                   })}
                 </div>
-              </>
-            )}
-
-            {sheet === "more" && (
-              <>
-                <SheetRow
-                  icon={<Bookmark size={20} fill={savedTop ? "#8E8E93" : "none"} />}
-                  label="Save article"
-                  onClick={() => setSavedTop((s) => !s)}
-                />
-                <SheetRow
-                  icon={<Share2 size={20} />}
-                  label="Share"
-                  onClick={() => setSharedTop((s) => !s)}
-                />
-                <SheetRow
-                  icon={<Clock size={20} />}
-                  label="View story timeline"
-                  last
-                  onClick={() => {
-                    setSheet(null);
-                    navigate({ to: "/timeline/$id", params: { id: "1" } });
-                  }}
-                />
-                <button
-                  onClick={() => setSheet(null)}
-                  style={{
-                    marginTop: 16,
-                    width: "100%",
-                    height: 48,
-                    border: "1px solid #2C2C2E",
-                    borderRadius: 24,
-                    background: "transparent",
-                    color: "#FFFFFF",
-                    fontSize: 15,
-                    fontWeight: 400,
-                  }}
-                >
-                  Cancel
-                </button>
               </>
             )}
           </div>
@@ -673,37 +618,7 @@ function ArticleView() {
   );
 }
 
-function SheetRow({
-  icon,
-  label,
-  onClick,
-  last,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  onClick?: () => void;
-  last?: boolean;
-}) {
-  return (
-    <button
-      onClick={onClick}
-      className="flex items-center w-full"
-      style={{
-        height: 48,
-        gap: 12,
-        borderBottom: last ? "none" : "1px solid #2C2C2E",
-        background: "transparent",
-        color: "#FFFFFF",
-        fontSize: 16,
-        fontWeight: 400,
-        textAlign: "left",
-      }}
-    >
-      <span style={{ color: "#8E8E93", display: "inline-flex" }}>{icon}</span>
-      <span>{label}</span>
-    </button>
-  );
-}
+
 
 function InlineTag({
   kind,
