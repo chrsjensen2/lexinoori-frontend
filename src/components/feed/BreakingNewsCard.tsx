@@ -1,4 +1,6 @@
 import { Bookmark, ArrowUpRight } from "lucide-react";
+import { useState } from "react";
+import { Link } from "@tanstack/react-router";
 
 interface BreakingNewsCardProps {
   headline: string;
@@ -7,6 +9,7 @@ interface BreakingNewsCardProps {
 }
 
 export function BreakingNewsCard({ headline, sources, timeAgo }: BreakingNewsCardProps) {
+  const [saved, setSaved] = useState(false);
   return (
     <article
       style={{
@@ -83,17 +86,20 @@ export function BreakingNewsCard({ headline, sources, timeAgo }: BreakingNewsCar
 
         <div className="mt-4 flex items-center justify-end gap-2">
           <button
-            aria-label="Save"
+            aria-label={saved ? "Unsave" : "Save"}
+            onClick={() => setSaved((s) => !s)}
             className="flex items-center justify-center"
             style={{
               width: 36,
               height: 36,
-              color: "rgba(255,255,255,0.5)",
+              color: saved ? "#FFFFFF" : "rgba(255,255,255,0.5)",
             }}
           >
-            <Bookmark size={20} />
+            <Bookmark size={20} fill={saved ? "#FFFFFF" : "none"} />
           </button>
-          <button
+          <Link
+            to="/article/$id"
+            params={{ id: "1" }}
             aria-label="Open"
             className="flex items-center justify-center"
             style={{
@@ -105,7 +111,7 @@ export function BreakingNewsCard({ headline, sources, timeAgo }: BreakingNewsCar
             }}
           >
             <ArrowUpRight size={20} />
-          </button>
+          </Link>
         </div>
       </div>
     </article>

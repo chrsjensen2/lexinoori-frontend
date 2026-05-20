@@ -1,6 +1,6 @@
-import { createFileRoute, useRouter, Link } from "@tanstack/react-router";
+import { createFileRoute, useRouter, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { ArrowLeft, Bookmark, Share2, MoreHorizontal, ChevronRight } from "lucide-react";
+import { ArrowLeft, Bookmark, Share2, MoreHorizontal, ChevronRight, Clock } from "lucide-react";
 import { TopicPill, TOPIC_COLORS, type Topic } from "@/components/feed/TopicPill";
 
 export const Route = createFileRoute("/article/$id")({
@@ -18,8 +18,12 @@ type ReadLength = (typeof READ_LENGTHS)[number];
 
 function ArticleView() {
   const router = useRouter();
+  const navigate = useNavigate();
   const topicColor = TOPIC_COLORS[TOPIC];
   const [readLength, setReadLength] = useState<ReadLength>("Standard");
+  const [sheet, setSheet] = useState<null | "aa" | "more">(null);
+  const [savedTop, setSavedTop] = useState(false);
+  const [sharedTop, setSharedTop] = useState(false);
 
   return (
     <div style={{ paddingBottom: 32 }}>
@@ -75,6 +79,7 @@ function ArticleView() {
           <div className="flex items-center gap-2">
             <button
               aria-label="Reading options"
+              onClick={() => setSheet("aa")}
               className="flex items-center justify-center"
               style={{
                 height: 40,
@@ -90,6 +95,7 @@ function ArticleView() {
             </button>
             <button
               aria-label="More"
+              onClick={() => setSheet("more")}
               className="flex items-center justify-center"
               style={{
                 width: 40,
@@ -154,10 +160,18 @@ function ArticleView() {
           <span style={{ color: "#FFFFFF", fontSize: 14 }}>Merged · 9 sources</span>
         </div>
         <div className="flex items-center" style={{ gap: 12 }}>
-          <button aria-label="Save" style={{ color: "#8E8E93" }}>
-            <Bookmark size={24} />
+          <button
+            aria-label={savedTop ? "Unsave" : "Save"}
+            onClick={() => setSavedTop((s) => !s)}
+            style={{ color: savedTop ? "#FFFFFF" : "#8E8E93" }}
+          >
+            <Bookmark size={24} fill={savedTop ? "#FFFFFF" : "none"} />
           </button>
-          <button aria-label="Share" style={{ color: "#8E8E93" }}>
+          <button
+            aria-label="Share"
+            onClick={() => setSharedTop((s) => !s)}
+            style={{ color: sharedTop ? "#1A7A5E" : "#8E8E93" }}
+          >
             <Share2 size={24} />
           </button>
         </div>
@@ -352,32 +366,85 @@ function ArticleView() {
           lineHeight: 1.65,
         }}
       >
-        <p style={{ marginBottom: 20 }}>
-          Brussels negotiators reached a provisional agreement late on Tuesday, ending months of
-          procedural delay over the bloc's flagship digital sovereignty package.{" "}
-          <InlineTag kind="fact">
-            The text now requires cloud providers serving EU public sector clients to keep
-            operational control within member states.
-          </InlineTag>{" "}
-          Implementing acts will follow within twelve months.
-        </p>
-        <p style={{ marginBottom: 20 }}>
-          Negotiators framed the deal as a turning point for European technological autonomy.{" "}
-          <InlineTag kind="opinion">
-            Without it, the continent risks ceding the next decade of infrastructure decisions to
-            firms outside its legal reach.
-          </InlineTag>{" "}
-          Industry groups have asked for a longer transition window.
-        </p>
-        <p style={{ marginBottom: 20 }}>
-          Some delegations argued the Council legal service had not been given enough time to weigh
-          in.{" "}
-          <InlineTag kind="contested">
-            Two member states say the 72-hour consultation window violated procedural treaty
-            obligations.
-          </InlineTag>{" "}
-          A Commission spokesperson rejected that reading.
-        </p>
+        {readLength === "Bullets" && (
+          <ul style={{ paddingLeft: 20, listStyle: "disc" }}>
+            {[
+              "EU negotiators reached a provisional agreement ending months of delay",
+              "Cloud providers serving EU public sector must keep operational control within member states",
+              "Council legal service formally objected to the 72-hour consultation window",
+              "Two member states say the process violated procedural treaty obligations",
+              "Industry groups have asked for a longer transition window",
+              "Implementing acts will follow within twelve months",
+            ].map((item) => (
+              <li key={item} style={{ marginBottom: 12 }}>
+                {item}
+              </li>
+            ))}
+          </ul>
+        )}
+
+        {readLength === "Brief" && (
+          <p style={{ marginBottom: 20 }}>
+            Brussels negotiators reached a provisional agreement on the EU digital sovereignty
+            package, ending months of procedural delay. The text requires cloud providers serving
+            EU public sector clients to keep operational control within member states. The
+            Council's own legal service formally objected to the 72-hour consultation window, with
+            two member states claiming the process violated treaty obligations. Industry groups
+            have called for a longer transition window. Implementing acts will follow within twelve
+            months.
+          </p>
+        )}
+
+        {(readLength === "Standard" || readLength === "Deep Dive") && (
+          <>
+            <p style={{ marginBottom: 20 }}>
+              Brussels negotiators reached a provisional agreement late on Tuesday, ending months of
+              procedural delay over the bloc's flagship digital sovereignty package.{" "}
+              <InlineTag kind="fact">
+                The text now requires cloud providers serving EU public sector clients to keep
+                operational control within member states.
+              </InlineTag>{" "}
+              Implementing acts will follow within twelve months.
+            </p>
+            <p style={{ marginBottom: 20 }}>
+              Negotiators framed the deal as a turning point for European technological autonomy.{" "}
+              <InlineTag kind="opinion">
+                Without it, the continent risks ceding the next decade of infrastructure decisions to
+                firms outside its legal reach.
+              </InlineTag>{" "}
+              Industry groups have asked for a longer transition window.
+            </p>
+            <p style={{ marginBottom: 20 }}>
+              Some delegations argued the Council legal service had not been given enough time to weigh
+              in.{" "}
+              <InlineTag kind="contested">
+                Two member states say the 72-hour consultation window violated procedural treaty
+                obligations.
+              </InlineTag>{" "}
+              A Commission spokesperson rejected that reading.
+            </p>
+          </>
+        )}
+
+        {readLength === "Deep Dive" && (
+          <>
+            <p style={{ marginBottom: 20 }}>
+              The sovereignty package has been in negotiation for nearly three years, delayed
+              repeatedly by disagreements between member states over the scope of the operational
+              control requirement. France and Germany pushed for the strongest possible language,
+              while smaller member states with less developed domestic cloud infrastructure argued
+              for longer transition periods.
+            </p>
+            <p style={{ marginBottom: 20 }}>
+              The Council legal service objection is significant because it creates a potential
+              legal challenge to the entire text. Constitutional lawyers consulted by Le Monde
+              suggest the objection could delay implementation by six to eighteen months if any
+              member state chooses to pursue it through the European Court of Justice. A Commission
+              spokesperson rejected that reading, calling the legal service objection a routine part
+              of the legislative process.
+            </p>
+          </>
+        )}
       </article>
 
       {/* AFTER YOU READ */}
@@ -490,7 +557,151 @@ function ArticleView() {
       >
         Share
       </button>
+
+      {/* Bottom sheets */}
+      {sheet !== null && (
+        <div
+          onClick={() => setSheet(null)}
+          style={{
+            position: "fixed",
+            inset: 0,
+            backgroundColor: "rgba(0,0,0,0.5)",
+            zIndex: 50,
+            display: "flex",
+            alignItems: "flex-end",
+            justifyContent: "center",
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              width: "100%",
+              backgroundColor: "#1C1C1E",
+              borderTopLeftRadius: 20,
+              borderTopRightRadius: 20,
+              padding: 24,
+              paddingBottom: "calc(24px + env(safe-area-inset-bottom))",
+            }}
+          >
+            {sheet === "aa" && (
+              <>
+                <div
+                  style={{
+                    color: "#8E8E93",
+                    fontSize: 11,
+                    fontWeight: 700,
+                    letterSpacing: "0.08em",
+                    marginBottom: 16,
+                  }}
+                >
+                  ARTICLE DEPTH
+                </div>
+                <div className="flex" style={{ gap: 8, flexWrap: "wrap" }}>
+                  {READ_LENGTHS.map((rl) => {
+                    const active = rl === readLength;
+                    return (
+                      <button
+                        key={rl}
+                        onClick={() => {
+                          setReadLength(rl);
+                          setSheet(null);
+                        }}
+                        style={{
+                          padding: "10px 12px",
+                          borderRadius: 20,
+                          fontSize: 13,
+                          fontWeight: 700,
+                          backgroundColor: active ? "#FFFFFF" : "#1C1C1E",
+                          color: active ? "#111111" : "rgba(255,255,255,0.5)",
+                          border: active ? "1px solid #FFFFFF" : "1px solid #2C2C2E",
+                          whiteSpace: "nowrap",
+                          flex: 1,
+                          minWidth: 0,
+                        }}
+                      >
+                        {rl}
+                      </button>
+                    );
+                  })}
+                </div>
+              </>
+            )}
+
+            {sheet === "more" && (
+              <>
+                <SheetRow
+                  icon={<Bookmark size={20} fill={savedTop ? "#8E8E93" : "none"} />}
+                  label="Save article"
+                  onClick={() => setSavedTop((s) => !s)}
+                />
+                <SheetRow
+                  icon={<Share2 size={20} />}
+                  label="Share"
+                  onClick={() => setSharedTop((s) => !s)}
+                />
+                <SheetRow
+                  icon={<Clock size={20} />}
+                  label="View story timeline"
+                  last
+                  onClick={() => {
+                    setSheet(null);
+                    navigate({ to: "/timeline/$id", params: { id: "1" } });
+                  }}
+                />
+                <button
+                  onClick={() => setSheet(null)}
+                  style={{
+                    marginTop: 16,
+                    width: "100%",
+                    height: 48,
+                    border: "1px solid #2C2C2E",
+                    borderRadius: 24,
+                    background: "transparent",
+                    color: "#FFFFFF",
+                    fontSize: 15,
+                    fontWeight: 400,
+                  }}
+                >
+                  Cancel
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </div>
+  );
+}
+
+function SheetRow({
+  icon,
+  label,
+  onClick,
+  last,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  onClick?: () => void;
+  last?: boolean;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className="flex items-center w-full"
+      style={{
+        height: 48,
+        gap: 12,
+        borderBottom: last ? "none" : "1px solid #2C2C2E",
+        background: "transparent",
+        color: "#FFFFFF",
+        fontSize: 16,
+        fontWeight: 400,
+        textAlign: "left",
+      }}
+    >
+      <span style={{ color: "#8E8E93", display: "inline-flex" }}>{icon}</span>
+      <span>{label}</span>
+    </button>
   );
 }
 
