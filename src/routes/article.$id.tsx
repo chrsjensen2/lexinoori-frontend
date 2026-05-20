@@ -348,7 +348,7 @@ function ArticleView() {
             </span>
           </div>
           <div style={{ color: "#FFFFFF", fontSize: 22, fontWeight: 700, marginBottom: 8 }}>
-            7.4 / 10
+            {diversityScore.toFixed(1)} / 10
           </div>
           <div style={{ position: "relative", height: 4, backgroundColor: "#2C2C2E", borderRadius: 999 }}>
             <div
@@ -357,11 +357,12 @@ function ArticleView() {
                 left: 0,
                 top: 0,
                 bottom: 0,
-                width: "74%",
+                width: `${diversityPct}%`,
                 backgroundColor: "#00C864",
                 borderRadius: 999,
               }}
             />
+
           </div>
         </div>
       </section>
