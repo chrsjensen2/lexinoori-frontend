@@ -156,9 +156,9 @@ function SourceArticleCard({ article }: { article: SourceArticle }) {
 }
 
 function TodayPage() {
-  const breaking = true;
   const [dateLabel, setDateLabel] = useState("");
   const [activeTab, setActiveTab] = useState("Today");
+
   const [articles, setArticles] = useState<SourceArticle[]>([]);
   const [breakingArticle, setBreakingArticle] = useState<SourceArticle | null>(null);
   const [loading, setLoading] = useState(true);
