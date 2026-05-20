@@ -87,8 +87,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "twitter:site", content: "@Lovable" },
       { name: "twitter:title", content: "Lexinoori - Every angle. One story." },
       { name: "twitter:description", content: "Lexinoori - Every angle. One story." },
-      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/48fe2495-277f-4a69-953b-40988a5ea12b/id-preview-db2a3138--2919db39-93b4-449f-8944-6b84bef10e2f.lovable.app-1778784937695.png" },
-      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/48fe2495-277f-4a69-953b-40988a5ea12b/id-preview-db2a3138--2919db39-93b4-449f-8944-6b84bef10e2f.lovable.app-1778784937695.png" },
+      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/KH4LcKgGvKREGkrJZNBsGsazlOi2/social-images/social-1779240001064-SoMe_cover_-image.webp" },
+      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/KH4LcKgGvKREGkrJZNBsGsazlOi2/social-images/social-1779240001064-SoMe_cover_-image.webp" },
     ],
     links: [
       {
