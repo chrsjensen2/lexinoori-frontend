@@ -14,9 +14,10 @@ export function AppShell() {
   const isProfile = pathname === "/profile";
   const isAuth = pathname.startsWith("/auth");
   const isSearch = pathname === "/search";
+  const isDigest = pathname === "/digest";
 
   const showGlobalHeader =
-    !isToday && !isAtlas && !isStories && !isArticle && !isTimeline && !isJournalist && !isProfile && !isAuth && !isSearch;
+    !isToday && !isAtlas && !isStories && !isArticle && !isTimeline && !isJournalist && !isProfile && !isAuth && !isSearch && !isDigest;
   const showBottomNav = !isArticle && !isTimeline && !isAuth && !isStories && !isSearch;
 
   return (
