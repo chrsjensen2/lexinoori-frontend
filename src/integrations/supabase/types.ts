@@ -156,6 +156,36 @@ export type Database = {
         }
         Relationships: []
       }
+      source_articles: {
+        Row: {
+          body: string | null
+          created_at: string
+          headline: string
+          id: string
+          scraped_at: string
+          source_name: string | null
+          url: string
+        }
+        Insert: {
+          body?: string | null
+          created_at?: string
+          headline: string
+          id?: string
+          scraped_at?: string
+          source_name?: string | null
+          url: string
+        }
+        Update: {
+          body?: string | null
+          created_at?: string
+          headline?: string
+          id?: string
+          scraped_at?: string
+          source_name?: string | null
+          url?: string
+        }
+        Relationships: []
+      }
       sources: {
         Row: {
           bias_baseline: number | null
