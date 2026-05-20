@@ -14,7 +14,232 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      articles: {
+        Row: {
+          bias_score: number | null
+          body_brief: string | null
+          body_bullets: string | null
+          body_deep_dive: string | null
+          body_standard: string | null
+          cluster_id: string | null
+          created_at: string | null
+          diversity_score: number | null
+          headline: string
+          id: string
+          image_url: string | null
+          is_breaking: boolean | null
+          loaded_language: Json | null
+          pool_lean: number | null
+          read_time_minutes: number | null
+          source_count: number | null
+          topic: string
+          updated_at: string | null
+          whats_missing: string | null
+        }
+        Insert: {
+          bias_score?: number | null
+          body_brief?: string | null
+          body_bullets?: string | null
+          body_deep_dive?: string | null
+          body_standard?: string | null
+          cluster_id?: string | null
+          created_at?: string | null
+          diversity_score?: number | null
+          headline: string
+          id?: string
+          image_url?: string | null
+          is_breaking?: boolean | null
+          loaded_language?: Json | null
+          pool_lean?: number | null
+          read_time_minutes?: number | null
+          source_count?: number | null
+          topic: string
+          updated_at?: string | null
+          whats_missing?: string | null
+        }
+        Update: {
+          bias_score?: number | null
+          body_brief?: string | null
+          body_bullets?: string | null
+          body_deep_dive?: string | null
+          body_standard?: string | null
+          cluster_id?: string | null
+          created_at?: string | null
+          diversity_score?: number | null
+          headline?: string
+          id?: string
+          image_url?: string | null
+          is_breaking?: boolean | null
+          loaded_language?: Json | null
+          pool_lean?: number | null
+          read_time_minutes?: number | null
+          source_count?: number | null
+          topic?: string
+          updated_at?: string | null
+          whats_missing?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "articles_cluster_id_fkey"
+            columns: ["cluster_id"]
+            isOneToOne: false
+            referencedRelation: "story_clusters"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      journalists: {
+        Row: {
+          article_count: number | null
+          bias_score: number | null
+          confidence_level: string | null
+          created_at: string | null
+          id: string
+          loaded_language_score: number | null
+          name: string
+          source_diversity_score: number | null
+          source_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          article_count?: number | null
+          bias_score?: number | null
+          confidence_level?: string | null
+          created_at?: string | null
+          id?: string
+          loaded_language_score?: number | null
+          name: string
+          source_diversity_score?: number | null
+          source_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          article_count?: number | null
+          bias_score?: number | null
+          confidence_level?: string | null
+          created_at?: string | null
+          id?: string
+          loaded_language_score?: number | null
+          name?: string
+          source_diversity_score?: number | null
+          source_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "journalists_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "sources"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      saved_articles: {
+        Row: {
+          article_id: string
+          created_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          article_id: string
+          created_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          article_id?: string
+          created_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      sources: {
+        Row: {
+          bias_baseline: number | null
+          country: string | null
+          created_at: string | null
+          diversity_score: number | null
+          domain: string
+          id: string
+          is_active: boolean | null
+          language: string | null
+          name: string
+          tier: number | null
+        }
+        Insert: {
+          bias_baseline?: number | null
+          country?: string | null
+          created_at?: string | null
+          diversity_score?: number | null
+          domain: string
+          id?: string
+          is_active?: boolean | null
+          language?: string | null
+          name: string
+          tier?: number | null
+        }
+        Update: {
+          bias_baseline?: number | null
+          country?: string | null
+          created_at?: string | null
+          diversity_score?: number | null
+          domain?: string
+          id?: string
+          is_active?: boolean | null
+          language?: string | null
+          name?: string
+          tier?: number | null
+        }
+        Relationships: []
+      }
+      story_clusters: {
+        Row: {
+          closed_at: string | null
+          created_at: string | null
+          diversity_score: number | null
+          headline: string
+          id: string
+          lifespan_hours: number | null
+          pool_lean: number | null
+          source_count: number | null
+          status: string | null
+          topic: string
+          update_count: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          closed_at?: string | null
+          created_at?: string | null
+          diversity_score?: number | null
+          headline: string
+          id?: string
+          lifespan_hours?: number | null
+          pool_lean?: number | null
+          source_count?: number | null
+          status?: string | null
+          topic: string
+          update_count?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          closed_at?: string | null
+          created_at?: string | null
+          diversity_score?: number | null
+          headline?: string
+          id?: string
+          lifespan_hours?: number | null
+          pool_lean?: number | null
+          source_count?: number | null
+          status?: string | null
+          topic?: string
+          update_count?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

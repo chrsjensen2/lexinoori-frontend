@@ -1,7 +1,10 @@
 import { createFileRoute, useRouter, Link } from "@tanstack/react-router";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { ArrowLeft, Search, Trash2, Bookmark } from "lucide-react";
 import { TOPIC_COLORS, type Topic } from "@/components/feed/TopicPill";
+import { useSavedArticles } from "@/hooks/useSavedArticles";
+import { supabase } from "@/integrations/supabase/client";
+import { getArticle } from "@/lib/articleCatalog";
 
 type SavedArticle = {
   id: string;
@@ -12,46 +15,6 @@ type SavedArticle = {
   bias: string;
   biasColor: string;
 };
-
-const SAVED: SavedArticle[] = [
-  {
-    id: "s1",
-    topic: "politics",
-    headline:
-      "EU finance ministers split over emergency defence spending package ahead of summit.",
-    savedDate: "May 14",
-    sources: 12,
-    bias: "Centre-left",
-    biasColor: "#00C864",
-  },
-  {
-    id: "s2",
-    topic: "climate",
-    headline: "Arctic permafrost thaw accelerating faster than models predicted.",
-    savedDate: "May 13",
-    sources: 8,
-    bias: "Centre",
-    biasColor: "#00C864",
-  },
-  {
-    id: "s3",
-    topic: "technology",
-    headline: "Meta releases open-weights vision model undercutting closed competitors.",
-    savedDate: "May 12",
-    sources: 6,
-    bias: "Centre",
-    biasColor: "#00C864",
-  },
-  {
-    id: "s4",
-    topic: "economics",
-    headline: "Yen tumbles to 38-year low as Bank of Japan signals reluctance to intervene.",
-    savedDate: "May 11",
-    sources: 14,
-    bias: "Centre-right",
-    biasColor: "#FFD000",
-  },
-];
 
 const FILTERS: { label: string; topic: Topic | "all" }[] = [
   { label: "All", topic: "all" },
@@ -84,17 +47,60 @@ export const Route = createFileRoute("/saved")({
   component: SavedPage,
 });
 
+function formatSavedDate(iso: string) {
+  const d = new Date(iso);
+  return d.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+}
+
 function SavedPage() {
   const router = useRouter();
   const [filter, setFilter] = useState<Topic | "all">("all");
-  const [articles, setArticles] = useState(SAVED);
+  const [articles, setArticles] = useState<SavedArticle[]>([]);
+  const { toggle, userId } = useSavedArticles();
+
+  useEffect(() => {
+    let cancelled = false;
+    async function load() {
+      const { data: sess } = await supabase.auth.getSession();
+      const uid = sess.session?.user?.id;
+      if (!uid) {
+        if (!cancelled) setArticles([]);
+        return;
+      }
+      const { data } = await supabase
+        .from("saved_articles")
+        .select("article_id, created_at")
+        .eq("user_id", uid)
+        .order("created_at", { ascending: false });
+      if (cancelled) return;
+      const mapped = (data ?? []).map((r: { article_id: string; created_at: string }) => {
+        const a = getArticle(r.article_id);
+        return {
+          id: a.id,
+          topic: a.topic,
+          headline: a.headline,
+          savedDate: formatSavedDate(r.created_at),
+          sources: a.sources,
+          bias: a.bias,
+          biasColor: a.biasColor,
+        };
+      });
+      setArticles(mapped);
+    }
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, [userId]);
 
   const filtered =
     filter === "all" ? articles : articles.filter((a) => a.topic === filter);
 
-  const handleRemove = (id: string) => {
+  const handleRemove = async (id: string) => {
     setArticles((prev) => prev.filter((a) => a.id !== id));
+    await toggle(id);
   };
+
 
   return (
     <div style={{ fontFamily: "Heebo, system-ui, sans-serif", paddingTop: 16 }}>
