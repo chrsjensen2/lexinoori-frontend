@@ -1,5 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
 import { TOPIC_COLORS, type Topic } from "@/components/feed/TopicPill";
+import { supabase } from "@/integrations/supabase/client";
+import { getUserLanguage, pickLang, TRANSLATED_COLS } from "@/lib/articleLanguage";
 
 
 type DigestCard = {
@@ -8,8 +11,6 @@ type DigestCard = {
   headline: string;
   sources: number;
   readMinutes: number;
-  bias: string;
-  biasColor: string;
   diversity: number;
 };
 
@@ -26,120 +27,12 @@ const TOPIC_LABELS: Record<Topic, string> = {
 };
 const DARK_TEXT: Topic[] = ["economics", "technology", "health"];
 
-const GROUPS: {
-  brief: string;
-  date: string;
-  opacity?: number;
-  cards: DigestCard[];
-}[] = [
-  {
-    brief: "MORNING BRIEF",
-    date: "TUE · 19 MAY",
-    cards: [
-      {
-        id: "d1",
-        topic: "politics",
-        headline:
-          "EU finance ministers split over emergency defence spending package.",
-        sources: 9,
-        readMinutes: 6,
-        bias: "Centre-left",
-        biasColor: "#00C864",
-        diversity: 7.4,
-      },
-      {
-        id: "d2",
-        topic: "climate",
-        headline:
-          "Arctic permafrost thaw accelerating faster than models predicted.",
-        sources: 14,
-        readMinutes: 4,
-        bias: "Centre",
-        biasColor: "#00C864",
-        diversity: 8.1,
-      },
-      {
-        id: "d3",
-        topic: "technology",
-        headline:
-          "Meta releases open-weights vision model undercutting closed competitors.",
-        sources: 18,
-        readMinutes: 5,
-        bias: "Centre",
-        biasColor: "#00C864",
-        diversity: 9.2,
-      },
-    ],
-  },
-  {
-    brief: "EVENING BRIEF",
-    date: "MON · 18 MAY",
-    opacity: 0.75,
-    cards: [
-      {
-        id: "d4",
-        topic: "economics",
-        headline:
-          "Yen tumbles to 38-year low as Bank of Japan signals reluctance to intervene.",
-        sources: 22,
-        readMinutes: 5,
-        bias: "Centre-right",
-        biasColor: "#FFD000",
-        diversity: 5.9,
-      },
-      {
-        id: "d5",
-        topic: "politics",
-        headline:
-          "NATO secretary general calls emergency summit following Baltic incident.",
-        sources: 31,
-        readMinutes: 7,
-        bias: "Centre",
-        biasColor: "#00C864",
-        diversity: 7.8,
-      },
-      {
-        id: "d6",
-        topic: "health",
-        headline:
-          "WHO declares end to mpox emergency as cases fall across three continents.",
-        sources: 11,
-        readMinutes: 4,
-        bias: "Centre",
-        biasColor: "#00C864",
-        diversity: 8.6,
-      },
-    ],
-  },
-  {
-    brief: "MORNING BRIEF",
-    date: "MON · 18 MAY",
-    opacity: 0.75,
-    cards: [
-      {
-        id: "d7",
-        topic: "sport",
-        headline:
-          "Champions League final ends in penalty shootout as Real Madrid claim record title.",
-        sources: 28,
-        readMinutes: 4,
-        bias: "Centre",
-        biasColor: "#00C864",
-        diversity: 9.4,
-      },
-      {
-        id: "d8",
-        topic: "economics",
-        headline: "German industrial output contracts for third consecutive quarter.",
-        sources: 16,
-        readMinutes: 5,
-        bias: "Centre-right",
-        biasColor: "#FFD000",
-        diversity: 6.2,
-      },
-    ],
-  },
-];
+function todayLabel() {
+  const d = new Date();
+  const days = ["SUN","MON","TUE","WED","THU","FRI","SAT"];
+  const months = ["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"];
+  return `${days[d.getDay()]} · ${d.getDate()} ${months[d.getMonth()]}`;
+}
 
 export const Route = createFileRoute("/digest")({
   head: () => ({ meta: [{ title: "Digest — lexinoori." }] }),
@@ -147,9 +40,43 @@ export const Route = createFileRoute("/digest")({
 });
 
 function DigestPage() {
+  const [cards, setCards] = useState<DigestCard[]>([]);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const language = await getUserLanguage();
+      const selectCols =
+        "id, topic, read_time_minutes, source_count, diversity_score, created_at, " + TRANSLATED_COLS;
+      const { data } = await (supabase as any)
+        .from("articles")
+        .select(selectCols)
+        .order("created_at", { ascending: false })
+        .limit(5);
+      if (cancelled) return;
+      const valid: Topic[] = ["politics","climate","economics","sport","technology","health","culture","local","breaking"];
+      setCards(
+        ((data as any[]) || []).map((r) => {
+          const t = (r.topic || "").toLowerCase();
+          const topic = (valid.includes(t as Topic) ? t : "politics") as Topic;
+          return {
+            id: r.id,
+            topic,
+            headline: pickLang<string>(r, "headline", language) ?? "",
+            sources: r.source_count ?? 0,
+            readMinutes: r.read_time_minutes ?? 5,
+            diversity: Number(r.diversity_score ?? 0),
+          };
+        })
+      );
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
+  const groups = [{ brief: "TODAY'S BRIEF", date: todayLabel(), cards }];
+
   return (
     <div style={{ fontFamily: "Heebo, system-ui, sans-serif", padding: "16px 16px 24px" }}>
-      {/* Header */}
       <h1 style={{ color: "#FFFFFF", fontWeight: 700, fontSize: 32, lineHeight: 1.1 }}>
         Digest.
       </h1>
@@ -157,7 +84,6 @@ function DigestPage() {
         Your personalised daily brief.
       </p>
 
-      {/* Settings row */}
       <div
         style={{
           marginTop: 16,
@@ -193,10 +119,9 @@ function DigestPage() {
         </button>
       </div>
 
-      {/* Groups */}
       <div style={{ paddingTop: 16 }}>
-        {GROUPS.map((group, gi) => (
-          <div key={gi} style={{ marginTop: gi === 0 ? 4 : 24, opacity: group.opacity ?? 1 }}>
+        {groups.map((group, gi) => (
+          <div key={gi} style={{ marginTop: gi === 0 ? 4 : 24 }}>
             <div
               style={{
                 display: "flex",
@@ -233,6 +158,9 @@ function DigestPage() {
               {group.cards.map((c) => (
                 <DigestArticleCard key={c.id} card={c} />
               ))}
+              {group.cards.length === 0 && (
+                <p style={{ color: "#8E8E93", fontSize: 13 }}>No articles yet.</p>
+              )}
             </div>
           </div>
         ))}
@@ -240,6 +168,7 @@ function DigestPage() {
     </div>
   );
 }
+
 
 function DigestArticleCard({ card }: { card: DigestCard }) {
   const topicColor = TOPIC_COLORS[card.topic];
@@ -293,12 +222,12 @@ function DigestArticleCard({ card }: { card: DigestCard }) {
             width: 8,
             height: 8,
             borderRadius: 999,
-            backgroundColor: card.biasColor,
+            backgroundColor: "#1A7A5E",
             display: "inline-block",
           }}
         />
         <span style={{ color: "#8E8E93", fontSize: 12 }}>
-          {card.bias} · {card.diversity.toFixed(1)} diversity
+          {card.diversity.toFixed(1)} diversity
         </span>
       </div>
     </Link>

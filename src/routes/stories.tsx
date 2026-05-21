@@ -2,6 +2,9 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { X } from "lucide-react";
 import { SerifLogo } from "@/components/SerifLogo";
+import { supabase } from "@/integrations/supabase/client";
+import { getUserLanguage, pickLang, TRANSLATED_COLS } from "@/lib/articleLanguage";
+import { TOPIC_COLORS, type Topic } from "@/components/feed/TopicPill";
 
 export const Route = createFileRoute("/stories")({
   head: () => ({
@@ -17,6 +20,7 @@ export const Route = createFileRoute("/stories")({
 });
 
 type Story = {
+  id: string;
   topic: string;
   topicColor: string;
   gradientFrom: string;
@@ -28,73 +32,62 @@ type Story = {
   variant?: "default" | "breaking";
 };
 
-const STORIES: Story[] = [
-  {
-    topic: "POLITICS",
-    topicColor: "#4D6EFF",
-    gradientFrom: "#4D6EFF",
-    timestamp: "3 MIN AGO",
-    headline:
-      "EU finance ministers split over emergency defence spending package.",
-    sources: "Merged · 9 sources",
-    bias: "Centre-left · 7.4 diversity",
-    biasDotColor: "#1A7A5E",
-  },
-  {
-    topic: "CLIMATE",
-    topicColor: "#00C864",
-    gradientFrom: "#00C864",
-    timestamp: "5 MIN AGO",
-    headline:
-      "Arctic permafrost thaw accelerating faster than models predicted, study finds.",
-    sources: "Merged · 14 sources",
-    bias: "Centre · 8.1 diversity",
-    biasDotColor: "#1A7A5E",
-  },
-  {
-    topic: "ECONOMICS",
-    topicColor: "#FFD000",
-    gradientFrom: "#FFD000",
-    timestamp: "6 MIN AGO",
-    headline:
-      "Yen tumbles to 38-year low as Bank of Japan signals reluctance to intervene.",
-    sources: "Merged · 22 sources",
-    bias: "Centre-right · 5.9 diversity",
-    biasDotColor: "#FFD000",
-  },
-  {
-    topic: "BREAKING",
-    topicColor: "#FF0000",
-    gradientFrom: "#FF0000",
-    timestamp: "JUST NOW",
-    headline: "Cease-fire collapses in Sahel as mediators withdraw overnight.",
-    sources: "Merged · 6 sources",
-    bias: "Centre · 6.8 diversity",
-    biasDotColor: "#1A7A5E",
-    variant: "breaking",
-  },
-  {
-    topic: "TECHNOLOGY",
-    topicColor: "#00E5CC",
-    gradientFrom: "#00E5CC",
-    timestamp: "2 MIN AGO",
-    headline:
-      "Meta releases open-weights vision model, undercutting closed competitors on benchmarks.",
-    sources: "Merged · 18 sources",
-    bias: "Centre · 9.2 diversity",
-    biasDotColor: "#1A7A5E",
-  },
-];
+function timeAgo(iso: string) {
+  const diff = Date.now() - new Date(iso).getTime();
+  const m = Math.floor(diff / 60000);
+  if (m < 1) return "JUST NOW";
+  if (m < 60) return `${m} MIN AGO`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${h}H AGO`;
+  return `${Math.floor(h / 24)}D AGO`;
+}
 
 const STORY_DURATION_MS = 6000;
-const END_INDEX = STORIES.length; // sentinel for end-state card
+
 
 function StoriesPage() {
   const navigate = useNavigate();
+  const [stories, setStories] = useState<Story[]>([]);
   const [index, setIndex] = useState(0);
   const [paused, setPaused] = useState(false);
   const startRef = useRef<{ x: number; y: number; t: number } | null>(null);
   const movedRef = useRef(false);
+  const END_INDEX = stories.length;
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const language = await getUserLanguage();
+      const selectCols =
+        "id, topic, source_count, created_at, is_breaking, diversity_score, " + TRANSLATED_COLS;
+      const { data } = await (supabase as any)
+        .from("articles")
+        .select(selectCols)
+        .order("created_at", { ascending: false })
+        .limit(10);
+      if (cancelled) return;
+      const mapped: Story[] = ((data as any[]) || []).map((r) => {
+        const topicKey = (r.topic || "").toLowerCase() as Topic;
+        const color = (TOPIC_COLORS as any)[topicKey] || "#1A7A5E";
+        const isBreaking = !!r.is_breaking;
+        return {
+          id: r.id,
+          topic: (r.topic || "").toUpperCase(),
+          topicColor: color,
+          gradientFrom: isBreaking ? "#FF0000" : color,
+          timestamp: timeAgo(r.created_at),
+          headline: pickLang<string>(r, "headline", language) ?? "",
+          sources: r.source_count ? `Merged · ${r.source_count} sources` : "Merged",
+          bias: r.diversity_score ? `${Number(r.diversity_score).toFixed(1)} diversity` : "",
+          biasDotColor: "#1A7A5E",
+          variant: isBreaking ? "breaking" : "default",
+        };
+      });
+      setStories(mapped);
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
 
   const goNext = useCallback(() => {
     setIndex((i) => Math.min(i + 1, END_INDEX));
@@ -228,7 +221,14 @@ function StoriesPage() {
     );
   }
 
-  const story = STORIES[index];
+  const story = stories[index];
+  if (!story) {
+    return (
+      <div style={{ position: "fixed", inset: 0, backgroundColor: "#111111", zIndex: 50, display: "flex", alignItems: "center", justifyContent: "center", color: "#8E8E93", fontSize: 14 }}>
+        Loading…
+      </div>
+    );
+  }
   const isBreaking = story.variant === "breaking";
 
   return (
@@ -293,7 +293,7 @@ function StoriesPage() {
           zIndex: 2,
         }}
       >
-        {STORIES.map((_, i) => (
+        {stories.map((_s: Story, i: number) => (
           <div
             key={i}
             style={{
@@ -465,7 +465,7 @@ function StoriesPage() {
             onPointerUp={(e) => e.stopPropagation()}
             onClick={(e) => {
               e.stopPropagation();
-              navigate({ to: "/article/$id", params: { id: "1" } });
+              navigate({ to: "/article/$id", params: { id: story.id } });
             }}
             style={{
               backgroundColor: "#FFFFFF",
