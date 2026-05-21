@@ -170,6 +170,18 @@ function TodayPage() {
   useEffect(() => {
     let cancelled = false;
 
+    const TAB_TO_TOPIC: Record<string, string | null> = {
+      Today: null,
+      Politics: "politics",
+      Climate: "climate",
+      Tech: "technology",
+      Economy: "economics",
+      Sport: "sport",
+      Culture: "culture",
+      Health: "health",
+      Local: "local",
+    };
+
     const fetchArticles = async () => {
       setLoading(true);
 
@@ -179,11 +191,10 @@ function TodayPage() {
         const { data: profile } = await (supabase as any)
           .from("profiles")
           .select("primary_language")
-          .eq("id", userData.user.id)
+          .eq("user_id", userData.user.id)
           .maybeSingle();
         if (profile?.primary_language) language = profile.primary_language;
       }
-      console.log("Feed language:", language);
 
       const suffix = language === "en" ? "" : `_${language}`;
       const pick = <T,>(row: any, base: string): T =>
@@ -194,12 +205,17 @@ function TodayPage() {
         "headline, body_standard, " +
         "headline_da, body_standard_da, headline_de, body_standard_de, headline_es, body_standard_es";
 
+      const topicFilter = TAB_TO_TOPIC[activeTab] ?? null;
+
+      let query = (supabase as any)
+        .from("articles")
+        .select(selectCols)
+        .order("created_at", { ascending: false })
+        .limit(50);
+      if (topicFilter) query = query.eq("topic", topicFilter);
+
       const [{ data, error }, breakingRes] = await Promise.all([
-        (supabase as any)
-          .from("articles")
-          .select(selectCols)
-          .order("created_at", { ascending: false })
-          .limit(50),
+        query,
         (supabase as any)
           .from("articles")
           .select(selectCols)
@@ -209,7 +225,6 @@ function TodayPage() {
           .maybeSingle(),
       ]);
 
-      console.log("Articles query:", { data, error });
       if (cancelled) return;
       const mapRow = (row: any): SourceArticle => ({
         id: row.id,
@@ -245,7 +260,8 @@ function TodayPage() {
       window.removeEventListener("lex:language-changed", onFocus);
     };
 
-  }, []);
+  }, [activeTab]);
+
 
 
   return (
