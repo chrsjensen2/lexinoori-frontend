@@ -770,6 +770,7 @@ function SourceRow({
   diversity,
   wireCopy = false,
   last = false,
+  url = null,
 }: {
   initial: string;
   name: string;
@@ -778,6 +779,7 @@ function SourceRow({
   diversity: string;
   wireCopy?: boolean;
   last?: boolean;
+  url?: string | null;
 }) {
   const tappable = Boolean(journalist);
   const rowStyle = {
@@ -840,6 +842,19 @@ function SourceRow({
       >
         DIV {diversity}
       </span>
+      {url && (
+        <a
+          href={url}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={(e) => e.stopPropagation()}
+          aria-label="View original article"
+          className="flex items-center justify-center"
+          style={{ color: "#8E8E93", padding: "0 4px" }}
+        >
+          <ExternalLink size={14} />
+        </a>
+      )}
       {tappable && <ChevronRight size={12} style={{ color: "#8E8E93" }} />}
     </>
   );
