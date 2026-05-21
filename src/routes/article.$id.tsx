@@ -546,9 +546,6 @@ function ArticleView() {
           border: "1px solid #2C2C2E",
         }}
       >
-        <div style={{ color: "#8E8E93", fontSize: 11, fontWeight: 700, letterSpacing: "0.08em" }}>
-          AFTER YOU READ
-        </div>
 
         {/* Loaded language - aggregated from source articles */}
         {(() => {
