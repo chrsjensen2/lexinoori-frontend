@@ -293,7 +293,7 @@ function StoriesPage() {
           zIndex: 2,
         }}
       >
-        {STORIES.map((_, i) => (
+        {stories.map((_s: Story, i: number) => (
           <div
             key={i}
             style={{
