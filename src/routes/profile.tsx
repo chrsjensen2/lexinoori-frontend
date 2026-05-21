@@ -383,13 +383,12 @@ function SettingsPage() {
         setUser({ email: data.user.email ?? null, createdAt: data.user.created_at ?? null });
         supabase
           .from("profiles")
-          .select("primary_language, secondary_language")
+          .select("primary_language")
           .eq("user_id", data.user.id)
           .single()
           .then(({ data: profile }) => {
             if (profile) {
               setPrimaryLanguage(profile.primary_language ?? "en");
-              setSecondaryLanguage(profile.secondary_language ?? "en");
             }
           });
       }
