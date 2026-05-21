@@ -121,13 +121,30 @@ function ArticleView() {
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      const { data } = await (supabase as any)
+      const { data: art } = await (supabase as any)
+        .from("articles")
+        .select("cluster_id")
+        .eq("id", id)
+        .maybeSingle();
+      const clusterId = art?.cluster_id;
+      if (!clusterId) {
+        if (!cancelled) setSources([]);
+        return;
+      }
+      const { data, error } = await (supabase as any)
         .from("source_articles")
-        .select("url")
-        .order("created_at", { ascending: false })
-        .limit(5);
+        .select("url, headline, sources:source_id(name)")
+        .eq("cluster_id", clusterId);
+      console.log("Sources fetch:", { data, error });
       if (cancelled) return;
-      setSourceUrls((data ?? []).map((r: any) => r?.url ?? null));
+      const rows = (data ?? [])
+        .map((r: any) => ({
+          url: r?.url ?? "",
+          headline: r?.headline ?? "",
+          name: r?.sources?.name ?? r?.source_name ?? "Unknown",
+        }))
+        .filter((r: any) => r.url);
+      setSources(rows);
     })();
     return () => { cancelled = true; };
   }, [id]);
