@@ -158,7 +158,22 @@ function ArticleView() {
   const biasScore = Number(article?.bias_score ?? 0);
   const diversityScore = Number(article?.diversity_score ?? 0);
   const biasPct = Math.max(0, Math.min(100, ((biasScore + 1) / 2) * 100));
-  const diversityPct = Math.max(0, Math.min(100, (diversityScore / 10) * 100));
+  const diversityPct = Math.max(0, Math.min(100, diversityScore * 100));
+  const diversityDisplay = Math.round(diversityScore * 10);
+  const poolLeanLabel =
+    biasScore <= -0.6 ? "LEFT"
+    : biasScore <= -0.2 ? "CENTRE-LEFT"
+    : biasScore <= 0.1 ? "CENTRE"
+    : biasScore <= 0.5 ? "CENTRE-RIGHT"
+    : "RIGHT";
+  const diversityLabel =
+    diversityDisplay <= 3 ? "WEAK"
+    : diversityDisplay <= 6 ? "MODERATE"
+    : "STRONG";
+  const diversityColor =
+    diversityDisplay <= 3 ? "#FF3B30"
+    : diversityDisplay <= 6 ? "#FF9500"
+    : "#00C864";
   const body = readLength === "Bullets"
     ? (article?.body_bullets ?? "")
     : readLength === "Brief"
