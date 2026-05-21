@@ -544,28 +544,8 @@ function SettingsPage() {
           <span style={{ color: "#FFFFFF", fontSize: 15 }}>Reading language</span>
           <span style={{ color: "#8E8E93", fontSize: 15 }}>{langLabel(primaryLanguage)} ›</span>
         </button>
-        <button
-          onClick={() => setLanguagePicker("secondary")}
-          style={{
-            width: "100%",
-            height: 56,
-            padding: "0 16px",
-            borderBottom: "1px solid #2C2C2E",
-            background: "transparent",
-            border: "none",
-            borderBottomWidth: 1,
-            borderBottomStyle: "solid",
-            borderBottomColor: "#2C2C2E",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            gap: 12,
-            cursor: "pointer",
-          }}
-        >
-          <span style={{ color: "#FFFFFF", fontSize: 15 }}>Secondary language</span>
-          <span style={{ color: "#8E8E93", fontSize: 15 }}>{langLabel(secondaryLanguage)} ›</span>
-        </button>
+
+
         <div
           style={{
             minHeight: 56,
