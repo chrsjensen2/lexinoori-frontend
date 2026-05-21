@@ -548,42 +548,6 @@ function ArticleView() {
       >
 
 
-        {/* Loaded language - aggregated from source articles */}
-        {(() => {
-          const aggregated: Array<{ phrase?: string; neutral?: string; reason?: string }> = [];
-          sources.forEach((s) => {
-            if (Array.isArray(s.loaded_language)) {
-              s.loaded_language.forEach((item: any) => {
-                if (item && (item.phrase || item.neutral)) aggregated.push(item);
-              });
-            }
-          });
-          if (aggregated.length === 0) return null;
-          return (
-            <>
-              <div
-                style={{
-                  color: "#8E8E93",
-                  fontSize: 11,
-                  fontWeight: 700,
-                  letterSpacing: "0.08em",
-                  marginTop: 12,
-                  marginBottom: 8,
-                }}
-              >
-                LOADED LANGUAGE
-              </div>
-              {aggregated.map((item, i) => (
-                <LoadedRow
-                  key={`${item.phrase ?? ""}-${i}`}
-                  original={item.phrase ?? ""}
-                  neutral={item.neutral ?? ""}
-                  last={i === aggregated.length - 1}
-                />
-              ))}
-            </>
-          );
-        })()}
 
         {/* What's missing */}
         <div
