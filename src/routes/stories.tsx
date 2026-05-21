@@ -221,7 +221,14 @@ function StoriesPage() {
     );
   }
 
-  const story = STORIES[index];
+  const story = stories[index];
+  if (!story) {
+    return (
+      <div style={{ position: "fixed", inset: 0, backgroundColor: "#111111", zIndex: 50, display: "flex", alignItems: "center", justifyContent: "center", color: "#8E8E93", fontSize: 14 }}>
+        Loading…
+      </div>
+    );
+  }
   const isBreaking = story.variant === "breaking";
 
   return (
