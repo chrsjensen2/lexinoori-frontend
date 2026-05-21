@@ -616,6 +616,7 @@ function ArticleView() {
               name={s.name}
               headline={s.headline}
               url={s.url}
+              loadedLanguage={s.loaded_language}
               last={i === sources.length - 1}
             />
           ))
