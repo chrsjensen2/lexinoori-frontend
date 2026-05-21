@@ -277,6 +277,85 @@ function SectionHeader({ children, top = 20 }: { children: React.ReactNode; top?
   );
 }
 
+const LANGUAGE_OPTIONS: { code: string; label: string }[] = [
+  { code: "en", label: "English" },
+  { code: "da", label: "Dansk" },
+  { code: "de", label: "Deutsch" },
+  { code: "es", label: "Español" },
+];
+
+function LanguagePicker({
+  title,
+  value,
+  options,
+  onSelect,
+  onClose,
+}: {
+  title: string;
+  value: string;
+  options: { code: string; label: string }[];
+  onSelect: (code: string) => void;
+  onClose: () => void;
+}) {
+  return (
+    <div
+      style={{
+        position: "fixed",
+        inset: 0,
+        zIndex: 100,
+        background: "rgba(0,0,0,0.6)",
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "flex-end",
+      }}
+      onClick={onClose}
+    >
+      <div
+        style={{
+          background: "#1C1C1E",
+          borderRadius: "16px 16px 0 0",
+          padding: "20px 0 32px",
+        }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div
+          style={{
+            color: "#FFFFFF",
+            fontSize: 18,
+            fontWeight: 700,
+            padding: "0 20px 16px",
+            borderBottom: "1px solid #2C2C2E",
+          }}
+        >
+          {title}
+        </div>
+        {options.map((opt) => (
+          <button
+            key={opt.code}
+            onClick={() => onSelect(opt.code)}
+            style={{
+              width: "100%",
+              padding: "16px 20px",
+              background: "transparent",
+              border: "none",
+              borderBottom: "1px solid #2C2C2E",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              cursor: "pointer",
+            }}
+          >
+            <span style={{ color: "#FFFFFF", fontSize: 16 }}>{opt.label}</span>
+            {value === opt.code && (
+              <span style={{ color: "#1A7A5E", fontSize: 16, fontWeight: 700 }}>✓</span>
+            )}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function SettingsPage() {
   const [readingIdx, setReadingIdx] = useState(2);
   const [zoomIdx, setZoomIdx] = useState(2);
@@ -284,6 +363,9 @@ function SettingsPage() {
     email: null,
     createdAt: null,
   });
+  const [primaryLanguage, setPrimaryLanguage] = useState("en");
+  const [secondaryLanguage, setSecondaryLanguage] = useState("en");
+  const [languagePicker, setLanguagePicker] = useState<"primary" | "secondary" | null>(null);
   const [topics, setTopics] = useState<Record<string, boolean>>({
     breaking: true,
     politics: true,
@@ -299,9 +381,31 @@ function SettingsPage() {
     supabase.auth.getUser().then(({ data }) => {
       if (data.user) {
         setUser({ email: data.user.email ?? null, createdAt: data.user.created_at ?? null });
+        supabase
+          .from("profiles")
+          .select("primary_language, secondary_language")
+          .eq("user_id", data.user.id)
+          .single()
+          .then(({ data: profile }) => {
+            if (profile) {
+              setPrimaryLanguage(profile.primary_language ?? "en");
+              setSecondaryLanguage(profile.secondary_language ?? "en");
+            }
+          });
       }
     });
   }, []);
+
+  const saveLanguage = async (field: "primary_language" | "secondary_language", code: string) => {
+    const { data: userData } = await supabase.auth.getUser();
+    if (!userData?.user) return;
+    await supabase.from("profiles").update({ [field]: code }).eq("user_id", userData.user.id);
+    if (field === "primary_language") setPrimaryLanguage(code);
+    else setSecondaryLanguage(code);
+    setLanguagePicker(null);
+  };
+
+  const langLabel = (code: string) => LANGUAGE_OPTIONS.find((l) => l.code === code)?.label ?? code;
 
   const current = READING_STOPS[readingIdx];
   const memberSince = user.createdAt
