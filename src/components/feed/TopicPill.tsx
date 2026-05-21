@@ -38,12 +38,12 @@ const DARK_TEXT_TOPICS: Topic[] = ["economics", "technology", "health"];
 
 export function TopicPill({ topic }: { topic: Topic }) {
   const bg = TOPIC_COLORS[topic];
-  const color = DARK_TEXT_TOPICS.includes(topic) ? "#111111" : "#FFFFFF";
   return (
     <span
       style={{
-        backgroundColor: bg,
-        color,
+        backgroundColor: `${bg}1F`,
+        border: `1px solid ${bg}`,
+        color: bg,
         fontWeight: 700,
         fontSize: 11,
         letterSpacing: "0.08em",
@@ -56,6 +56,7 @@ export function TopicPill({ topic }: { topic: Topic }) {
     </span>
   );
 }
+
 
 export function WhatsNewPill() {
   return (
