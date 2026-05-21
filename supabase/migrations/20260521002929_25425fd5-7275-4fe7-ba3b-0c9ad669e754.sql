@@ -1,0 +1,1 @@
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS secondary_language text NOT NULL DEFAULT 'en'::text;
