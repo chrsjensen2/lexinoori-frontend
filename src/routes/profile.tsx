@@ -389,7 +389,6 @@ function SettingsPage() {
           .then(({ data: profile }) => {
             if (profile) {
               setPrimaryLanguage(profile.primary_language ?? "en");
-              setSecondaryLanguage(profile.secondary_language ?? "en");
             }
           });
       }
