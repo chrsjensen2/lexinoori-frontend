@@ -215,7 +215,7 @@ function StoriesPage() {
             cursor: "pointer",
           }}
         >
-          Back to feed
+          Back to Today
         </button>
       </div>
     );
