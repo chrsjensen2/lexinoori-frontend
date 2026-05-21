@@ -1,6 +1,6 @@
 import { createFileRoute, useRouter, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { ArrowLeft, Bookmark, Share2, ExternalLink } from "lucide-react";
+import { ArrowLeft, Bookmark, Share2, ExternalLink, ChevronRight, ChevronDown } from "lucide-react";
 import { TopicPill, TOPIC_COLORS, type Topic } from "@/components/feed/TopicPill";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -46,7 +46,7 @@ function ArticleView() {
   const [savedTop, setSavedTop] = useState(false);
   const [sharedTop, setSharedTop] = useState(false);
   const [fontSize, setFontSize] = useState<FontSizeKey>("Medium");
-  const [sources, setSources] = useState<{ url: string; headline: string; name: string }[]>([]);
+  const [sources, setSources] = useState<{ url: string; headline: string; name: string; loaded_language: any }[]>([]);
 
   useEffect(() => {
     let cancelled = false;
@@ -133,7 +133,7 @@ function ArticleView() {
       }
       const { data, error } = await (supabase as any)
         .from("source_articles")
-        .select("url, headline, sources:source_id(name)")
+        .select("url, headline, loaded_language, sources:source_id(name)")
         .eq("cluster_id", clusterId);
       console.log("Sources fetch:", { data, error });
       if (cancelled) return;
@@ -144,6 +144,7 @@ function ArticleView() {
             url: r?.url ?? "",
             headline: r?.headline ?? "",
             name: joined?.name ?? r?.source_name ?? "Unknown",
+            loaded_language: r?.loaded_language ?? null,
           };
         })
         .filter((r: any) => r.url);
@@ -615,6 +616,7 @@ function ArticleView() {
               name={s.name}
               headline={s.headline}
               url={s.url}
+              loadedLanguage={s.loaded_language}
               last={i === sources.length - 1}
             />
           ))
@@ -811,48 +813,98 @@ function SourceRow({
   name,
   headline,
   url,
+  loadedLanguage,
   last = false,
 }: {
   name: string;
   headline: string;
   url: string;
+  loadedLanguage?: any;
   last?: boolean;
 }) {
+  const [expanded, setExpanded] = useState(false);
   const truncated = headline.length > 60 ? `${headline.slice(0, 60)}…` : headline;
+  const items: Array<{ phrase?: string; neutral?: string; reason?: string }> = Array.isArray(loadedLanguage)
+    ? loadedLanguage
+    : [];
   return (
-    <div
-      className="flex items-center"
-      style={{
-        gap: 12,
-        padding: "10px 0",
-        borderBottom: last ? "none" : "1px solid #2C2C2E",
-      }}
-    >
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ color: "#FFFFFF", fontSize: 14, fontWeight: 700 }}>{name}</div>
-        <div
-          style={{
-            color: "#8E8E93",
-            fontSize: 12,
-            marginTop: 2,
-            overflow: "hidden",
-            textOverflow: "ellipsis",
-            whiteSpace: "nowrap",
-          }}
-        >
-          {truncated}
-        </div>
-      </div>
-      <a
-        href={url}
-        target="_blank"
-        rel="noopener noreferrer"
-        aria-label="View original article"
-        className="flex items-center justify-center"
-        style={{ color: "#8E8E93", padding: "0 4px" }}
+    <div style={{ borderBottom: last ? "none" : "1px solid #2C2C2E" }}>
+      <div
+        role="button"
+        tabIndex={0}
+        onClick={() => setExpanded((v) => !v)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            setExpanded((v) => !v);
+          }
+        }}
+        className="flex items-center"
+        style={{ gap: 12, padding: "10px 0", cursor: "pointer" }}
       >
-        <ExternalLink size={16} />
-      </a>
+        <span
+          aria-hidden
+          className="flex items-center justify-center"
+          style={{ color: "#8E8E93", width: 16 }}
+        >
+          {expanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+        </span>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ color: "#FFFFFF", fontSize: 14, fontWeight: 700 }}>{name}</div>
+          <div
+            style={{
+              color: "#8E8E93",
+              fontSize: 12,
+              marginTop: 2,
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
+            }}
+          >
+            {truncated}
+          </div>
+        </div>
+        <a
+          href={url}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="View original article"
+          onClick={(e) => e.stopPropagation()}
+          className="flex items-center justify-center"
+          style={{ color: "#8E8E93", padding: "0 4px" }}
+        >
+          <ExternalLink size={16} />
+        </a>
+      </div>
+      {expanded && (
+        <div style={{ padding: "4px 0 12px 28px" }}>
+          {items.length === 0 ? (
+            <div style={{ color: "#8E8E93", fontSize: 13 }}>No loaded language detected</div>
+          ) : (
+            items.map((it, idx) => (
+              <div
+                key={idx}
+                className="flex items-center"
+                style={{ gap: 8, padding: "6px 0", fontSize: 13, flexWrap: "wrap" }}
+              >
+                <span
+                  style={{
+                    color: "#FFFFFF",
+                    textDecoration: "underline",
+                    textDecorationColor: "#FF4500",
+                    textDecorationThickness: 2,
+                    textUnderlineOffset: 3,
+                  }}
+                >
+                  {it.phrase}
+                </span>
+                <span style={{ color: "#8E8E93" }}>→</span>
+                <span style={{ color: "#1A7A5E" }}>{it.neutral}</span>
+              </div>
+            ))
+          )}
+        </div>
+      )}
     </div>
   );
 }
