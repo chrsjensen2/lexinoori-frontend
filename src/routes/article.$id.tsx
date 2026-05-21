@@ -623,7 +623,7 @@ function ArticleView() {
             marginBottom: 4,
           }}
         >
-          SOURCES · {sources.length} SOURCES
+          SOURCES · {sources.length} {sources.length === 1 ? "SOURCE" : "SOURCES"}
         </div>
 
         {sources.length === 0 ? (
