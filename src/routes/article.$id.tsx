@@ -583,14 +583,24 @@ function ArticleView() {
             marginBottom: 4,
           }}
         >
-          SOURCES
+          SOURCES · {sources.length} SOURCES
         </div>
 
-        <SourceRow initial="R" name="Reuters" journalist="Jane Morrison" bias="#00C864" diversity="9.2" url={sourceUrls[0] ?? null} />
-        <SourceRow initial="A" name="AP" journalist="David Chen" bias="#00C864" diversity="8.8" url={sourceUrls[1] ?? null} />
-        <SourceRow initial="B" name="BBC" journalist="Sarah Williams" bias="#00C864" diversity="8.4" url={sourceUrls[2] ?? null} />
-        <SourceRow initial="D" name="DR" bias="#FFD000" diversity="7.1" url={sourceUrls[3] ?? null} />
-        <SourceRow initial="T" name="TV2" bias="#FFD000" diversity="6.4" wireCopy last url={sourceUrls[4] ?? null} />
+        {sources.length === 0 ? (
+          <div style={{ color: "#8E8E93", fontSize: 14, padding: "12px 0" }}>
+            No sources available.
+          </div>
+        ) : (
+          sources.map((s, i) => (
+            <SourceRow
+              key={`${s.url}-${i}`}
+              name={s.name}
+              headline={s.headline}
+              url={s.url}
+              last={i === sources.length - 1}
+            />
+          ))
+        )}
 
         {/* Bottom action */}
         <Link
