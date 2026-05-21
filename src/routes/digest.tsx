@@ -73,7 +73,10 @@ function DigestPage() {
     return () => { cancelled = true; };
   }, []);
 
-  const groups = [{ brief: "TODAY'S BRIEF", date: todayLabel(), cards }];
+  const groups = [
+    { brief: "MORNING BRIEF", date: todayLabel(), cards: cards.slice(0, 3) },
+    { brief: "EVENING BRIEF", date: todayLabel(), cards: cards.slice(3, 5) },
+  ];
 
   return (
     <div style={{ fontFamily: "Heebo, system-ui, sans-serif", padding: "16px 16px 24px" }}>
