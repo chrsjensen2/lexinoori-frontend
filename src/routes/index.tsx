@@ -173,35 +173,21 @@ function TodayPage() {
     const fetchArticles = async () => {
       setLoading(true);
 
-      // Determine language: logged-in user's primary_language, else 'en'
-      let language = "en";
-      const { data: userData } = await supabase.auth.getUser();
-      if (userData?.user) {
-        const { data: profile } = await (supabase as any)
-          .from("profiles")
-          .select("primary_language")
-          .eq("id", userData.user.id)
-          .maybeSingle();
-        if (profile?.primary_language) language = profile.primary_language;
-      }
-
       const [{ data, error }, breakingRes] = await Promise.all([
         (supabase as any)
           .from("articles")
           .select("id, headline, body_standard, topic, read_time_minutes, source_count, created_at, is_breaking")
-          .eq("language", language)
           .order("created_at", { ascending: false })
           .limit(50),
         (supabase as any)
           .from("articles")
           .select("id, headline, body_standard, topic, read_time_minutes, source_count, created_at, is_breaking")
-          .eq("language", language)
           .eq("is_breaking", true)
           .order("created_at", { ascending: false })
           .limit(1)
           .maybeSingle(),
       ]);
-      console.log("Articles query:", { language, data, error });
+      console.log("Articles query:", { data, error });
       if (cancelled) return;
       if (!error && data) setArticles(data as SourceArticle[]);
       setBreakingArticle(!breakingRes.error && breakingRes.data ? (breakingRes.data as SourceArticle) : null);
