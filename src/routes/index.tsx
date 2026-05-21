@@ -183,19 +183,26 @@ function TodayPage() {
           .maybeSingle();
         if (profile?.primary_language) language = profile.primary_language;
       }
-      console.log("Feed language filter:", language);
+      console.log("Feed language:", language);
+
+      const suffix = language === "en" ? "" : `_${language}`;
+      const pick = <T,>(row: any, base: string): T =>
+        (row?.[`${base}${suffix}`] ?? row?.[base]) as T;
+
+      const selectCols =
+        "id, topic, read_time_minutes, source_count, created_at, is_breaking, " +
+        "headline, body_standard, " +
+        "headline_da, body_standard_da, headline_de, body_standard_de, headline_es, body_standard_es";
 
       const [{ data, error }, breakingRes] = await Promise.all([
         (supabase as any)
           .from("articles")
-          .select("id, headline, body_standard, topic, read_time_minutes, source_count, created_at, is_breaking")
-          .eq("language", language)
+          .select(selectCols)
           .order("created_at", { ascending: false })
           .limit(50),
         (supabase as any)
           .from("articles")
-          .select("id, headline, body_standard, topic, read_time_minutes, source_count, created_at, is_breaking")
-          .eq("language", language)
+          .select(selectCols)
           .eq("is_breaking", true)
           .order("created_at", { ascending: false })
           .limit(1)
@@ -204,8 +211,20 @@ function TodayPage() {
 
       console.log("Articles query:", { data, error });
       if (cancelled) return;
-      if (!error && data) setArticles(data as SourceArticle[]);
-      setBreakingArticle(!breakingRes.error && breakingRes.data ? (breakingRes.data as SourceArticle) : null);
+      const mapRow = (row: any): SourceArticle => ({
+        id: row.id,
+        topic: row.topic,
+        read_time_minutes: row.read_time_minutes,
+        source_count: row.source_count,
+        created_at: row.created_at,
+        is_breaking: row.is_breaking,
+        headline: pick<string>(row, "headline") ?? "",
+        body_standard: pick<string | null>(row, "body_standard") ?? null,
+      });
+      if (!error && data) setArticles((data as any[]).map(mapRow));
+      setBreakingArticle(
+        !breakingRes.error && breakingRes.data ? mapRow(breakingRes.data) : null
+      );
       setLoading(false);
     };
 
