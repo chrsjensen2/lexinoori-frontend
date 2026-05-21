@@ -47,10 +47,47 @@ const STORY_DURATION_MS = 6000;
 
 function StoriesPage() {
   const navigate = useNavigate();
+  const [stories, setStories] = useState<Story[]>([]);
   const [index, setIndex] = useState(0);
   const [paused, setPaused] = useState(false);
   const startRef = useRef<{ x: number; y: number; t: number } | null>(null);
   const movedRef = useRef(false);
+  const END_INDEX = stories.length;
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const language = await getUserLanguage();
+      const selectCols =
+        "id, topic, source_count, created_at, is_breaking, diversity_score, " + TRANSLATED_COLS;
+      const { data } = await (supabase as any)
+        .from("articles")
+        .select(selectCols)
+        .order("created_at", { ascending: false })
+        .limit(10);
+      if (cancelled) return;
+      const mapped: Story[] = ((data as any[]) || []).map((r) => {
+        const topicKey = (r.topic || "").toLowerCase() as Topic;
+        const color = (TOPIC_COLORS as any)[topicKey] || "#1A7A5E";
+        const isBreaking = !!r.is_breaking;
+        return {
+          id: r.id,
+          topic: (r.topic || "").toUpperCase(),
+          topicColor: color,
+          gradientFrom: isBreaking ? "#FF0000" : color,
+          timestamp: timeAgo(r.created_at),
+          headline: pickLang<string>(r, "headline", language) ?? "",
+          sources: r.source_count ? `Merged · ${r.source_count} sources` : "Merged",
+          bias: r.diversity_score ? `${Number(r.diversity_score).toFixed(1)} diversity` : "",
+          biasDotColor: "#1A7A5E",
+          variant: isBreaking ? "breaking" : "default",
+        };
+      });
+      setStories(mapped);
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
 
   const goNext = useCallback(() => {
     setIndex((i) => Math.min(i + 1, END_INDEX));
