@@ -216,12 +216,15 @@ function TodayPage() {
 
     const onFocus = () => fetchArticles();
     window.addEventListener("focus", onFocus);
+    window.addEventListener("lex:language-changed", onFocus);
 
     return () => {
       cancelled = true;
       sub.subscription.unsubscribe();
       window.removeEventListener("focus", onFocus);
+      window.removeEventListener("lex:language-changed", onFocus);
     };
+
   }, []);
 
 
