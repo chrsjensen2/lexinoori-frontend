@@ -808,8 +808,9 @@ function SourceRow({
   const [expanded, setExpanded] = useState(false);
   const truncated = headline.length > 60 ? `${headline.slice(0, 60)}…` : headline;
   const items: Array<{ phrase?: string; neutral?: string; reason?: string }> = Array.isArray(loadedLanguage)
-    ? loadedLanguage
+    ? loadedLanguage.filter((it: any) => it && (it.phrase || it.neutral))
     : [];
+  const count = items.length;
   return (
     <div style={{ borderBottom: last ? "none" : "1px solid #2C2C2E" }}>
       <div
@@ -823,7 +824,7 @@ function SourceRow({
           }
         }}
         className="flex items-center"
-        style={{ gap: 12, padding: "10px 0", cursor: "pointer" }}
+        style={{ gap: 12, padding: "12px 0", cursor: "pointer" }}
       >
         <span
           aria-hidden
@@ -832,20 +833,13 @@ function SourceRow({
         >
           {expanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
         </span>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ color: "#FFFFFF", fontSize: 14, fontWeight: 700 }}>{name}</div>
-          <div
-            style={{
-              color: "#8E8E93",
-              fontSize: 12,
-              marginTop: 2,
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-              whiteSpace: "nowrap",
-            }}
-          >
-            {truncated}
-          </div>
+        <div style={{ flex: 1, minWidth: 0, display: "flex", alignItems: "baseline", flexWrap: "wrap", gap: 6 }}>
+          <span style={{ color: "#FFFFFF", fontSize: 14, fontWeight: 700 }}>{name}</span>
+          {count > 0 && (
+            <span style={{ color: "#E8873A", fontSize: 12 }}>
+              · {count} loaded {count === 1 ? "phrase" : "phrases"}
+            </span>
+          )}
         </div>
         <a
           href={url}
@@ -859,6 +853,7 @@ function SourceRow({
           <ExternalLink size={16} />
         </a>
       </div>
+
       {expanded && (
         <div style={{ padding: "4px 0 12px 28px" }}>
           {items.length === 0 ? (
