@@ -399,13 +399,13 @@ function SettingsPage() {
   const saveLanguage = async (field: "primary_language" | "secondary_language", code: string) => {
     const { data: userData } = await supabase.auth.getUser();
     if (!userData?.user) return;
-    const payload: { user_id: string; primary_language?: string; secondary_language?: string } = {
-      user_id: userData.user.id,
+    const payload: { id: string; primary_language?: string; secondary_language?: string } = {
+      id: userData.user.id,
       [field]: code,
     };
     const { data, error } = await supabase
       .from("profiles")
-      .upsert(payload as never, { onConflict: "user_id" })
+      .upsert(payload as never, { onConflict: "id" })
       .select()
       .maybeSingle();
 
