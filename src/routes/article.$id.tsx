@@ -118,6 +118,21 @@ function ArticleView() {
     return () => { cancelled = true; };
   }, [id]);
 
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const { data } = await (supabase as any)
+        .from("source_articles")
+        .select("url")
+        .order("created_at", { ascending: false })
+        .limit(5);
+      if (cancelled) return;
+      setSourceUrls((data ?? []).map((r: any) => r?.url ?? null));
+    })();
+    return () => { cancelled = true; };
+  }, [id]);
+
+
   const TOPIC = toTopic(article?.topic);
   const topicColor = TOPIC_COLORS[TOPIC];
   const HEADLINE = article?.headline ?? (loading ? "Loading…" : "Article not found");
