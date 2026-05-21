@@ -28,6 +28,7 @@ export type Database = {
           id: string
           image_url: string | null
           is_breaking: boolean | null
+          language: string
           loaded_language: Json | null
           pool_lean: number | null
           read_time_minutes: number | null
@@ -49,6 +50,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           is_breaking?: boolean | null
+          language?: string
           loaded_language?: Json | null
           pool_lean?: number | null
           read_time_minutes?: number | null
@@ -70,6 +72,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           is_breaking?: boolean | null
+          language?: string
           loaded_language?: Json | null
           pool_lean?: number | null
           read_time_minutes?: number | null
@@ -134,6 +137,30 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          id: string
+          primary_language: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          primary_language?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          primary_language?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       saved_articles: {
         Row: {
