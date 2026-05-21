@@ -548,42 +548,6 @@ function ArticleView() {
       >
 
 
-        {/* Loaded language - aggregated from source articles */}
-        {(() => {
-          const aggregated: Array<{ phrase?: string; neutral?: string; reason?: string }> = [];
-          sources.forEach((s) => {
-            if (Array.isArray(s.loaded_language)) {
-              s.loaded_language.forEach((item: any) => {
-                if (item && (item.phrase || item.neutral)) aggregated.push(item);
-              });
-            }
-          });
-          if (aggregated.length === 0) return null;
-          return (
-            <>
-              <div
-                style={{
-                  color: "#8E8E93",
-                  fontSize: 11,
-                  fontWeight: 700,
-                  letterSpacing: "0.08em",
-                  marginTop: 12,
-                  marginBottom: 8,
-                }}
-              >
-                LOADED LANGUAGE
-              </div>
-              {aggregated.map((item, i) => (
-                <LoadedRow
-                  key={`${item.phrase ?? ""}-${i}`}
-                  original={item.phrase ?? ""}
-                  neutral={item.neutral ?? ""}
-                  last={i === aggregated.length - 1}
-                />
-              ))}
-            </>
-          );
-        })()}
 
         {/* What's missing */}
         <div
@@ -844,8 +808,9 @@ function SourceRow({
   const [expanded, setExpanded] = useState(false);
   const truncated = headline.length > 60 ? `${headline.slice(0, 60)}…` : headline;
   const items: Array<{ phrase?: string; neutral?: string; reason?: string }> = Array.isArray(loadedLanguage)
-    ? loadedLanguage
+    ? loadedLanguage.filter((it: any) => it && (it.phrase || it.neutral))
     : [];
+  const count = items.length;
   return (
     <div style={{ borderBottom: last ? "none" : "1px solid #2C2C2E" }}>
       <div
@@ -859,7 +824,7 @@ function SourceRow({
           }
         }}
         className="flex items-center"
-        style={{ gap: 12, padding: "10px 0", cursor: "pointer" }}
+        style={{ gap: 12, padding: "12px 0", cursor: "pointer" }}
       >
         <span
           aria-hidden
@@ -868,20 +833,13 @@ function SourceRow({
         >
           {expanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
         </span>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ color: "#FFFFFF", fontSize: 14, fontWeight: 700 }}>{name}</div>
-          <div
-            style={{
-              color: "#8E8E93",
-              fontSize: 12,
-              marginTop: 2,
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-              whiteSpace: "nowrap",
-            }}
-          >
-            {truncated}
-          </div>
+        <div style={{ flex: 1, minWidth: 0, display: "flex", alignItems: "baseline", flexWrap: "wrap", gap: 6 }}>
+          <span style={{ color: "#FFFFFF", fontSize: 14, fontWeight: 700 }}>{name}</span>
+          {count > 0 && (
+            <span style={{ color: "#E8873A", fontSize: 12 }}>
+              · {count} loaded {count === 1 ? "phrase" : "phrases"}
+            </span>
+          )}
         </div>
         <a
           href={url}
@@ -895,35 +853,60 @@ function SourceRow({
           <ExternalLink size={16} />
         </a>
       </div>
+
       {expanded && (
         <div style={{ padding: "4px 0 12px 28px" }}>
+          <div
+            style={{
+              color: "#FFFFFF",
+              fontSize: 13,
+              lineHeight: 1.4,
+              marginBottom: 10,
+            }}
+          >
+            {truncated}
+          </div>
           {items.length === 0 ? (
             <div style={{ color: "#8E8E93", fontSize: 13 }}>No loaded language detected</div>
           ) : (
-            items.map((it, idx) => (
+            <>
               <div
-                key={idx}
-                className="flex items-center"
-                style={{ gap: 8, padding: "6px 0", fontSize: 13, flexWrap: "wrap" }}
+                style={{
+                  color: "#8E8E93",
+                  fontSize: 11,
+                  fontWeight: 700,
+                  letterSpacing: "0.08em",
+                  marginBottom: 4,
+                }}
               >
-                <span
-                  style={{
-                    color: "#FFFFFF",
-                    textDecoration: "underline",
-                    textDecorationColor: "#FF4500",
-                    textDecorationThickness: 2,
-                    textUnderlineOffset: 3,
-                  }}
-                >
-                  {it.phrase}
-                </span>
-                <span style={{ color: "#8E8E93" }}>→</span>
-                <span style={{ color: "#1A7A5E" }}>{it.neutral}</span>
+                LOADED LANGUAGE
               </div>
-            ))
+              {items.map((it, idx) => (
+                <div
+                  key={idx}
+                  className="flex items-center"
+                  style={{ gap: 8, padding: "6px 0", fontSize: 13, flexWrap: "wrap" }}
+                >
+                  <span
+                    style={{
+                      color: "#FFFFFF",
+                      textDecoration: "underline",
+                      textDecorationColor: "#FF4500",
+                      textDecorationThickness: 2,
+                      textUnderlineOffset: 3,
+                    }}
+                  >
+                    {it.phrase}
+                  </span>
+                  <span style={{ color: "#8E8E93" }}>→</span>
+                  <span style={{ color: "#1A7A5E" }}>{it.neutral}</span>
+                </div>
+              ))}
+            </>
           )}
         </div>
       )}
+
     </div>
   );
 }
