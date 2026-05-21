@@ -222,12 +222,12 @@ function DigestArticleCard({ card }: { card: DigestCard }) {
             width: 8,
             height: 8,
             borderRadius: 999,
-            backgroundColor: card.biasColor,
+            backgroundColor: "#1A7A5E",
             display: "inline-block",
           }}
         />
         <span style={{ color: "#8E8E93", fontSize: 12 }}>
-          {card.bias} · {card.diversity.toFixed(1)} diversity
+          {card.diversity.toFixed(1)} diversity
         </span>
       </div>
     </Link>
