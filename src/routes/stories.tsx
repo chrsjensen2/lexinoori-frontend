@@ -91,7 +91,7 @@ function StoriesPage() {
 
   const goNext = useCallback(() => {
     setIndex((i) => Math.min(i + 1, END_INDEX));
-  }, []);
+  }, [END_INDEX]);
   const goPrev = useCallback(() => {
     setIndex((i) => Math.max(i - 1, 0));
   }, []);
