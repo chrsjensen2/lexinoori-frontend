@@ -399,7 +399,8 @@ function SettingsPage() {
   const saveLanguage = async (field: "primary_language" | "secondary_language", code: string) => {
     const { data: userData } = await supabase.auth.getUser();
     if (!userData?.user) return;
-    await supabase.from("profiles").update({ [field]: code }).eq("user_id", userData.user.id);
+    const update = field === "primary_language" ? { primary_language: code } : { secondary_language: code };
+    await supabase.from("profiles").update(update).eq("user_id", userData.user.id);
     if (field === "primary_language") setPrimaryLanguage(code);
     else setSecondaryLanguage(code);
     setLanguagePicker(null);
