@@ -465,7 +465,7 @@ function StoriesPage() {
             onPointerUp={(e) => e.stopPropagation()}
             onClick={(e) => {
               e.stopPropagation();
-              navigate({ to: "/article/$id", params: { id: "1" } });
+              navigate({ to: "/article/$id", params: { id: story.id } });
             }}
             style={{
               backgroundColor: "#FFFFFF",
