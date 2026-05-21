@@ -790,112 +790,51 @@ function LoadedRow({
 }
 
 function SourceRow({
-  initial,
   name,
-  journalist,
-  bias,
-  diversity,
-  wireCopy = false,
+  headline,
+  url,
   last = false,
-  url = null,
 }: {
-  initial: string;
   name: string;
-  journalist?: string;
-  bias: string;
-  diversity: string;
-  wireCopy?: boolean;
+  headline: string;
+  url: string;
   last?: boolean;
-  url?: string | null;
 }) {
-  const tappable = Boolean(journalist);
-  const rowStyle = {
-    height: 44,
-    gap: 12,
-    borderBottom: last ? "none" : "1px solid #2C2C2E",
-    textDecoration: "none",
-  } as const;
-
-  const inner = (
-    <>
-      <span
-        className="flex items-center justify-center"
-        style={{
-          width: 28,
-          height: 28,
-          borderRadius: 999,
-          backgroundColor: "#2C2C2E",
-          color: "#8E8E93",
-          fontSize: 13,
-          fontWeight: 700,
-        }}
-      >
-        {initial}
-      </span>
-      <span style={{ color: "#FFFFFF", fontSize: 14, flex: 1 }}>
-        {journalist ? `${name} · ${journalist}` : name}
-      </span>
-      {wireCopy && (
-        <span
+  const truncated = headline.length > 60 ? `${headline.slice(0, 60)}…` : headline;
+  return (
+    <div
+      className="flex items-center"
+      style={{
+        gap: 12,
+        padding: "10px 0",
+        borderBottom: last ? "none" : "1px solid #2C2C2E",
+      }}
+    >
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ color: "#FFFFFF", fontSize: 14, fontWeight: 700 }}>{name}</div>
+        <div
           style={{
-            backgroundColor: "#E8873A",
-            color: "#FFFFFF",
-            fontSize: 10,
-            fontWeight: 700,
-            letterSpacing: "0.08em",
-            padding: "3px 6px",
-            borderRadius: 6,
+            color: "#8E8E93",
+            fontSize: 12,
+            marginTop: 2,
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap",
           }}
         >
-          WIRE COPY
-        </span>
-      )}
-      <span
-        style={{
-          width: 8,
-          height: 8,
-          borderRadius: 999,
-          backgroundColor: bias,
-          display: "inline-block",
-        }}
-      />
-      <span
-        style={{
-          color: "#8E8E93",
-          fontSize: 12,
-          fontWeight: 700,
-          letterSpacing: "0.08em",
-        }}
+          {truncated}
+        </div>
+      </div>
+      <a
+        href={url}
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label="View original article"
+        className="flex items-center justify-center"
+        style={{ color: "#8E8E93", padding: "0 4px" }}
       >
-        DIV {diversity}
-      </span>
-      {url && (
-        <a
-          href={url}
-          target="_blank"
-          rel="noopener noreferrer"
-          onClick={(e) => e.stopPropagation()}
-          aria-label="View original article"
-          className="flex items-center justify-center"
-          style={{ color: "#8E8E93", padding: "0 4px" }}
-        >
-          <ExternalLink size={14} />
-        </a>
-      )}
-      {tappable && <ChevronRight size={12} style={{ color: "#8E8E93" }} />}
-    </>
-  );
-
-  if (tappable) {
-    return (
-      <Link to="/journalist/$id" params={{ id: "1" }} className="flex items-center" style={rowStyle}>
-        {inner}
-      </Link>
-    );
-  }
-  return (
-    <div className="flex items-center" style={rowStyle}>
-      {inner}
+        <ExternalLink size={16} />
+      </a>
     </div>
   );
 }
