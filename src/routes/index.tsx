@@ -180,7 +180,7 @@ function TodayPage() {
         const { data: profile } = await (supabase as any)
           .from("profiles")
           .select("primary_language")
-          .eq("user_id", userData.user.id)
+          .eq("id", userData.user.id)
           .maybeSingle();
         if (profile?.primary_language) language = profile.primary_language;
       }
