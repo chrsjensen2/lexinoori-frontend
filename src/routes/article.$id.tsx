@@ -158,7 +158,22 @@ function ArticleView() {
   const biasScore = Number(article?.bias_score ?? 0);
   const diversityScore = Number(article?.diversity_score ?? 0);
   const biasPct = Math.max(0, Math.min(100, ((biasScore + 1) / 2) * 100));
-  const diversityPct = Math.max(0, Math.min(100, (diversityScore / 10) * 100));
+  const diversityPct = Math.max(0, Math.min(100, diversityScore * 100));
+  const diversityDisplay = Math.round(diversityScore * 10);
+  const poolLeanLabel =
+    biasScore <= -0.6 ? "LEFT"
+    : biasScore <= -0.2 ? "CENTRE-LEFT"
+    : biasScore <= 0.1 ? "CENTRE"
+    : biasScore <= 0.5 ? "CENTRE-RIGHT"
+    : "RIGHT";
+  const diversityLabel =
+    diversityDisplay <= 3 ? "WEAK"
+    : diversityDisplay <= 6 ? "MODERATE"
+    : "STRONG";
+  const diversityColor =
+    diversityDisplay <= 3 ? "#FF3B30"
+    : diversityDisplay <= 6 ? "#FF9500"
+    : "#00C864";
   const body = readLength === "Bullets"
     ? (article?.body_bullets ?? "")
     : readLength === "Brief"
@@ -360,7 +375,7 @@ function ArticleView() {
               SOURCES
             </div>
             <div style={{ color: "#FFFFFF", fontSize: 22, fontWeight: 700, marginTop: 4 }}>
-              {sourceCount} outlets
+              {sourceCount} sources
             </div>
           </div>
           <div className="flex-1">
@@ -381,7 +396,7 @@ function ArticleView() {
               POOL LEAN
             </span>
             <span style={{ color: "#8E8E93", fontSize: 11, fontWeight: 700, letterSpacing: "0.08em" }}>
-              CENTRE-LEFT
+              {poolLeanLabel}
             </span>
           </div>
           <div style={{ position: "relative", width: "100%", height: 14 }}>
@@ -430,22 +445,22 @@ function ArticleView() {
             </span>
             <span
               className="inline-flex items-center gap-1"
-              style={{ color: "#00C864", fontSize: 11, fontWeight: 700, letterSpacing: "0.08em" }}
+              style={{ color: diversityColor, fontSize: 11, fontWeight: 700, letterSpacing: "0.08em" }}
             >
               <span
                 style={{
                   width: 8,
                   height: 8,
                   borderRadius: 999,
-                  backgroundColor: "#00C864",
+                  backgroundColor: diversityColor,
                   display: "inline-block",
                 }}
               />
-              STRONG
+              {diversityLabel}
             </span>
           </div>
           <div style={{ color: "#FFFFFF", fontSize: 22, fontWeight: 700, marginBottom: 8 }}>
-            {diversityScore.toFixed(1)} / 10
+            {diversityDisplay} / 10
           </div>
           <div style={{ position: "relative", height: 4, backgroundColor: "#2C2C2E", borderRadius: 999 }}>
             <div
@@ -455,7 +470,7 @@ function ArticleView() {
                 top: 0,
                 bottom: 0,
                 width: `${diversityPct}%`,
-                backgroundColor: "#00C864",
+                backgroundColor: diversityColor,
                 borderRadius: 999,
               }}
             />
