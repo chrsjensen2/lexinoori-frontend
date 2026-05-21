@@ -46,6 +46,7 @@ function ArticleView() {
   const [savedTop, setSavedTop] = useState(false);
   const [sharedTop, setSharedTop] = useState(false);
   const [fontSize, setFontSize] = useState<FontSizeKey>("Medium");
+  const [sourceUrls, setSourceUrls] = useState<(string | null)[]>([]);
 
   useEffect(() => {
     let cancelled = false;
