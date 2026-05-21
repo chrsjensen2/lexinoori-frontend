@@ -399,12 +399,28 @@ function SettingsPage() {
   const saveLanguage = async (field: "primary_language" | "secondary_language", code: string) => {
     const { data: userData } = await supabase.auth.getUser();
     if (!userData?.user) return;
-    const update = field === "primary_language" ? { primary_language: code } : { secondary_language: code };
-    await supabase.from("profiles").update(update).eq("user_id", userData.user.id);
-    if (field === "primary_language") setPrimaryLanguage(code);
-    else setSecondaryLanguage(code);
+    const payload: { user_id: string; primary_language?: string; secondary_language?: string } = {
+      user_id: userData.user.id,
+      [field]: code,
+    };
+    const { data, error } = await supabase
+      .from("profiles")
+      .upsert(payload as never, { onConflict: "user_id" })
+      .select()
+      .maybeSingle();
+
+    console.log("Language save:", { field, code, data, error });
+    if (!error) {
+      if (field === "primary_language") {
+        setPrimaryLanguage(code);
+        window.dispatchEvent(new CustomEvent("lex:language-changed", { detail: { code } }));
+      } else {
+        setSecondaryLanguage(code);
+      }
+    }
     setLanguagePicker(null);
   };
+
 
   const langLabel = (code: string) => LANGUAGE_OPTIONS.find((l) => l.code === code)?.label ?? code;
 
@@ -528,28 +544,8 @@ function SettingsPage() {
           <span style={{ color: "#FFFFFF", fontSize: 15 }}>Reading language</span>
           <span style={{ color: "#8E8E93", fontSize: 15 }}>{langLabel(primaryLanguage)} ›</span>
         </button>
-        <button
-          onClick={() => setLanguagePicker("secondary")}
-          style={{
-            width: "100%",
-            height: 56,
-            padding: "0 16px",
-            borderBottom: "1px solid #2C2C2E",
-            background: "transparent",
-            border: "none",
-            borderBottomWidth: 1,
-            borderBottomStyle: "solid",
-            borderBottomColor: "#2C2C2E",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            gap: 12,
-            cursor: "pointer",
-          }}
-        >
-          <span style={{ color: "#FFFFFF", fontSize: 15 }}>Secondary language</span>
-          <span style={{ color: "#8E8E93", fontSize: 15 }}>{langLabel(secondaryLanguage)} ›</span>
-        </button>
+
+
         <div
           style={{
             minHeight: 56,
