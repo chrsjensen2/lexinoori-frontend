@@ -214,9 +214,13 @@ function TodayPage() {
       fetchArticles();
     });
 
+    const onFocus = () => fetchArticles();
+    window.addEventListener("focus", onFocus);
+
     return () => {
       cancelled = true;
       sub.subscription.unsubscribe();
+      window.removeEventListener("focus", onFocus);
     };
   }, []);
 
