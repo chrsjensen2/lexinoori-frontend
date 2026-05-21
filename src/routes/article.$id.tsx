@@ -375,7 +375,7 @@ function ArticleView() {
               SOURCES
             </div>
             <div style={{ color: "#FFFFFF", fontSize: 22, fontWeight: 700, marginTop: 4 }}>
-              {sourceCount} outlets
+              {sourceCount} sources
             </div>
           </div>
           <div className="flex-1">
@@ -396,7 +396,7 @@ function ArticleView() {
               POOL LEAN
             </span>
             <span style={{ color: "#8E8E93", fontSize: 11, fontWeight: 700, letterSpacing: "0.08em" }}>
-              CENTRE-LEFT
+              {poolLeanLabel}
             </span>
           </div>
           <div style={{ position: "relative", width: "100%", height: 14 }}>
@@ -445,22 +445,22 @@ function ArticleView() {
             </span>
             <span
               className="inline-flex items-center gap-1"
-              style={{ color: "#00C864", fontSize: 11, fontWeight: 700, letterSpacing: "0.08em" }}
+              style={{ color: diversityColor, fontSize: 11, fontWeight: 700, letterSpacing: "0.08em" }}
             >
               <span
                 style={{
                   width: 8,
                   height: 8,
                   borderRadius: 999,
-                  backgroundColor: "#00C864",
+                  backgroundColor: diversityColor,
                   display: "inline-block",
                 }}
               />
-              STRONG
+              {diversityLabel}
             </span>
           </div>
           <div style={{ color: "#FFFFFF", fontSize: 22, fontWeight: 700, marginBottom: 8 }}>
-            {diversityScore.toFixed(1)} / 10
+            {diversityDisplay} / 10
           </div>
           <div style={{ position: "relative", height: 4, backgroundColor: "#2C2C2E", borderRadius: 999 }}>
             <div
@@ -470,7 +470,7 @@ function ArticleView() {
                 top: 0,
                 bottom: 0,
                 width: `${diversityPct}%`,
-                backgroundColor: "#00C864",
+                backgroundColor: diversityColor,
                 borderRadius: 999,
               }}
             />
