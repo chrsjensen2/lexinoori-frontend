@@ -540,12 +540,13 @@ function ArticleView() {
       <section
         style={{
           margin: "24px 16px 0",
-          padding: 16,
+          padding: "4px 16px 16px",
           borderRadius: 12,
           backgroundColor: "#1C1C1E",
           border: "1px solid #2C2C2E",
         }}
       >
+
 
         {/* Loaded language - aggregated from source articles */}
         {(() => {
