@@ -175,7 +175,6 @@ function DigestPage() {
 
 function DigestArticleCard({ card }: { card: DigestCard }) {
   const topicColor = TOPIC_COLORS[card.topic];
-  const labelColor = DARK_TEXT.includes(card.topic) ? "#111111" : "#FFFFFF";
   return (
     <Link
       to="/article/$id"
@@ -193,8 +192,9 @@ function DigestArticleCard({ card }: { card: DigestCard }) {
       <span
         style={{
           display: "inline-block",
-          backgroundColor: topicColor,
-          color: labelColor,
+          backgroundColor: `${topicColor}1F`,
+          border: `1px solid ${topicColor}`,
+          color: topicColor,
           fontWeight: 700,
           fontSize: 11,
           letterSpacing: "0.08em",
@@ -205,6 +205,7 @@ function DigestArticleCard({ card }: { card: DigestCard }) {
       >
         {TOPIC_LABELS[card.topic]}
       </span>
+
       <h3
         style={{
           color: "#FFFFFF",
