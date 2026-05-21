@@ -399,12 +399,27 @@ function SettingsPage() {
   const saveLanguage = async (field: "primary_language" | "secondary_language", code: string) => {
     const { data: userData } = await supabase.auth.getUser();
     if (!userData?.user) return;
-    const update = field === "primary_language" ? { primary_language: code } : { secondary_language: code };
-    await supabase.from("profiles").update(update).eq("user_id", userData.user.id);
-    if (field === "primary_language") setPrimaryLanguage(code);
-    else setSecondaryLanguage(code);
+    const payload =
+      field === "primary_language"
+        ? { user_id: userData.user.id, primary_language: code }
+        : { user_id: userData.user.id, secondary_language: code };
+    const { data, error } = await supabase
+      .from("profiles")
+      .upsert(payload, { onConflict: "user_id" })
+      .select()
+      .maybeSingle();
+    console.log("Language save:", { field, code, data, error });
+    if (!error) {
+      if (field === "primary_language") {
+        setPrimaryLanguage(code);
+        window.dispatchEvent(new CustomEvent("lex:language-changed", { detail: { code } }));
+      } else {
+        setSecondaryLanguage(code);
+      }
+    }
     setLanguagePicker(null);
   };
+
 
   const langLabel = (code: string) => LANGUAGE_OPTIONS.find((l) => l.code === code)?.label ?? code;
 
