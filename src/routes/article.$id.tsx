@@ -50,14 +50,68 @@ function ArticleView() {
   useEffect(() => {
     let cancelled = false;
     (async () => {
+      // Resolve user's primary language
+      let language = "en";
+      const { data: userData } = await supabase.auth.getUser();
+      if (userData?.user) {
+        const { data: profile } = await (supabase as any)
+          .from("profiles")
+          .select("primary_language")
+          .eq("id", userData.user.id)
+          .maybeSingle();
+        if (profile?.primary_language) language = profile.primary_language;
+      }
+      console.log("Article language:", language);
+      const suffix = language === "en" ? "" : `_${language}`;
+
+      const baseCols = [
+        "headline",
+        "body_standard",
+        "body_bullets",
+        "body_brief",
+        "body_deep_dive",
+        "whats_missing",
+      ];
+      const langCols =
+        suffix === ""
+          ? []
+          : baseCols.filter((c) => c !== "body_deep_dive").map((c) => `${c}${suffix}`);
+      const selectCols = [
+        "id",
+        "topic",
+        "read_time_minutes",
+        "source_count",
+        "bias_score",
+        "diversity_score",
+        ...baseCols,
+        ...langCols,
+      ].join(", ");
+
       const { data, error } = await (supabase as any)
         .from("articles")
-        .select("id, headline, body_standard, body_bullets, body_brief, body_deep_dive, topic, read_time_minutes, source_count, bias_score, diversity_score, whats_missing")
+        .select(selectCols)
         .eq("id", id)
         .maybeSingle();
       console.log("Article fetch:", { data, error });
       if (cancelled) return;
-      if (!error && data) setArticle(data as ArticleRow);
+      if (!error && data) {
+        const pick = (base: string) =>
+          (suffix && (data as any)[`${base}${suffix}`]) || (data as any)[base] || null;
+        setArticle({
+          id: (data as any).id,
+          topic: (data as any).topic,
+          read_time_minutes: (data as any).read_time_minutes,
+          source_count: (data as any).source_count,
+          bias_score: (data as any).bias_score,
+          diversity_score: (data as any).diversity_score,
+          headline: pick("headline") ?? "",
+          body_standard: pick("body_standard"),
+          body_bullets: pick("body_bullets"),
+          body_brief: pick("body_brief"),
+          body_deep_dive: (data as any).body_deep_dive ?? null,
+          whats_missing: pick("whats_missing"),
+        } as ArticleRow);
+      }
       setLoading(false);
     })();
     return () => { cancelled = true; };
