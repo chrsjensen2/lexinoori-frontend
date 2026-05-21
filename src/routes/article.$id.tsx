@@ -138,11 +138,14 @@ function ArticleView() {
       console.log("Sources fetch:", { data, error });
       if (cancelled) return;
       const rows = (data ?? [])
-        .map((r: any) => ({
-          url: r?.url ?? "",
-          headline: r?.headline ?? "",
-          name: r?.sources?.name ?? r?.source_name ?? "Unknown",
-        }))
+        .map((r: any) => {
+          const joined = Array.isArray(r?.sources) ? r.sources[0] : r?.sources;
+          return {
+            url: r?.url ?? "",
+            headline: r?.headline ?? "",
+            name: joined?.name ?? r?.source_name ?? "Unknown",
+          };
+        })
         .filter((r: any) => r.url);
       setSources(rows);
     })();
