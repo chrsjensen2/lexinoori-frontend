@@ -364,8 +364,9 @@ function StoriesPage() {
               gap: 6,
               backgroundColor: isBreaking
                 ? "rgba(255,255,255,0.20)"
-                : story.topicColor,
-              color: "#FFFFFF",
+                : `${story.topicColor}1F`,
+              border: isBreaking ? "none" : `1px solid ${story.topicColor}`,
+              color: isBreaking ? "#FFFFFF" : story.topicColor,
               fontWeight: 700,
               fontSize: 11,
               letterSpacing: "0.08em",
@@ -389,6 +390,7 @@ function StoriesPage() {
             )}
             {story.topic}
           </span>
+
         </div>
       </div>
 
