@@ -1,6 +1,6 @@
 import { createFileRoute, useRouter, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { ArrowLeft, Bookmark, Share2, ChevronRight } from "lucide-react";
+import { ArrowLeft, Bookmark, Share2, ChevronRight, ExternalLink } from "lucide-react";
 import { TopicPill, TOPIC_COLORS, type Topic } from "@/components/feed/TopicPill";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -46,6 +46,7 @@ function ArticleView() {
   const [savedTop, setSavedTop] = useState(false);
   const [sharedTop, setSharedTop] = useState(false);
   const [fontSize, setFontSize] = useState<FontSizeKey>("Medium");
+  const [sourceUrls, setSourceUrls] = useState<(string | null)[]>([]);
 
   useEffect(() => {
     let cancelled = false;
@@ -116,6 +117,21 @@ function ArticleView() {
     })();
     return () => { cancelled = true; };
   }, [id]);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const { data } = await (supabase as any)
+        .from("source_articles")
+        .select("url")
+        .order("created_at", { ascending: false })
+        .limit(5);
+      if (cancelled) return;
+      setSourceUrls((data ?? []).map((r: any) => r?.url ?? null));
+    })();
+    return () => { cancelled = true; };
+  }, [id]);
+
 
   const TOPIC = toTopic(article?.topic);
   const topicColor = TOPIC_COLORS[TOPIC];
@@ -550,14 +566,14 @@ function ArticleView() {
             marginBottom: 4,
           }}
         >
-          SOURCES · {sourceCount} OUTLETS
+          SOURCES
         </div>
 
-        <SourceRow initial="R" name="Reuters" journalist="Jane Morrison" bias="#00C864" diversity="9.2" />
-        <SourceRow initial="A" name="AP" journalist="David Chen" bias="#00C864" diversity="8.8" />
-        <SourceRow initial="B" name="BBC" journalist="Sarah Williams" bias="#00C864" diversity="8.4" />
-        <SourceRow initial="D" name="DR" bias="#FFD000" diversity="7.1" />
-        <SourceRow initial="T" name="TV2" bias="#FFD000" diversity="6.4" wireCopy last />
+        <SourceRow initial="R" name="Reuters" journalist="Jane Morrison" bias="#00C864" diversity="9.2" url={sourceUrls[0] ?? null} />
+        <SourceRow initial="A" name="AP" journalist="David Chen" bias="#00C864" diversity="8.8" url={sourceUrls[1] ?? null} />
+        <SourceRow initial="B" name="BBC" journalist="Sarah Williams" bias="#00C864" diversity="8.4" url={sourceUrls[2] ?? null} />
+        <SourceRow initial="D" name="DR" bias="#FFD000" diversity="7.1" url={sourceUrls[3] ?? null} />
+        <SourceRow initial="T" name="TV2" bias="#FFD000" diversity="6.4" wireCopy last url={sourceUrls[4] ?? null} />
 
         {/* Bottom action */}
         <Link
@@ -754,6 +770,7 @@ function SourceRow({
   diversity,
   wireCopy = false,
   last = false,
+  url = null,
 }: {
   initial: string;
   name: string;
@@ -762,6 +779,7 @@ function SourceRow({
   diversity: string;
   wireCopy?: boolean;
   last?: boolean;
+  url?: string | null;
 }) {
   const tappable = Boolean(journalist);
   const rowStyle = {
@@ -824,6 +842,19 @@ function SourceRow({
       >
         DIV {diversity}
       </span>
+      {url && (
+        <a
+          href={url}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={(e) => e.stopPropagation()}
+          aria-label="View original article"
+          className="flex items-center justify-center"
+          style={{ color: "#8E8E93", padding: "0 4px" }}
+        >
+          <ExternalLink size={14} />
+        </a>
+      )}
       {tappable && <ChevronRight size={12} style={{ color: "#8E8E93" }} />}
     </>
   );
