@@ -619,6 +619,21 @@ function SettingsPage() {
         ))}
       </div>
 
+      {languagePicker && (
+        <LanguagePicker
+          title={languagePicker === "primary" ? "Reading language" : "Secondary language"}
+          value={languagePicker === "primary" ? primaryLanguage : secondaryLanguage}
+          options={LANGUAGE_OPTIONS}
+          onSelect={(code) =>
+            saveLanguage(
+              languagePicker === "primary" ? "primary_language" : "secondary_language",
+              code
+            )
+          }
+          onClose={() => setLanguagePicker(null)}
+        />
+      )}
+
       <div style={{ height: 24 }} />
     </div>
   );
