@@ -384,11 +384,12 @@ function SettingsPage() {
         supabase
           .from("profiles")
           .select("primary_language")
-          .eq("user_id", data.user.id)
-          .single()
-          .then(({ data: profile }) => {
-            if (profile) {
-              setPrimaryLanguage(profile.primary_language ?? "en");
+          .eq("id", data.user.id)
+          .maybeSingle()
+          .then(({ data: profile, error }) => {
+            console.log("Profile language read:", { profile, error });
+            if (profile?.primary_language) {
+              setPrimaryLanguage(profile.primary_language);
             }
           });
       }
