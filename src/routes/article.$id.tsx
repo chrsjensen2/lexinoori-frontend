@@ -644,6 +644,7 @@ function ArticleView() {
 
       {/* Share button */}
       <button
+        onClick={() => shareArticle(HEADLINE, id)}
         style={{
           display: "block",
           margin: "20px 16px 0",
