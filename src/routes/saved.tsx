@@ -69,17 +69,16 @@ function SavedPage() {
       }
       const { data } = await supabase
         .from("saved_articles")
-        .select("article_id, created_at")
-        .eq("user_id", uid)
-        .order("created_at", { ascending: false });
+        .select("article_id")
+        .eq("user_id", uid);
       if (cancelled) return;
-      const mapped = (data ?? []).map((r: { article_id: string; created_at: string }) => {
+      const mapped = (data ?? []).map((r: { article_id: string }) => {
         const a = getArticle(r.article_id);
         return {
           id: a.id,
           topic: a.topic,
           headline: a.headline,
-          savedDate: formatSavedDate(r.created_at),
+          savedDate: "",
           sources: a.sources,
           bias: a.bias,
           biasColor: a.biasColor,
