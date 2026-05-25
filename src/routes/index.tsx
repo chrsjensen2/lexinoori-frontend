@@ -131,26 +131,11 @@ function SourceArticleCard({ article, depth }: { article: SourceArticle; depth: 
       )}
 
       <div className="flex items-center gap-2" style={{ marginTop: 12 }}>
-        <span
-          className="flex items-center justify-center"
-          style={{
-            width: 20,
-            height: 20,
-            borderRadius: 999,
-            backgroundColor: "#2C2C2E",
-            color: "#8E8E93",
-            fontSize: 11,
-            fontWeight: 700,
-          }}
-        >
-          {outletInitial}
-        </span>
-        <span style={{ color: "#8E8E93", fontSize: 13 }}>
-          {article.source_count ? `Merged · ${article.source_count} sources` : "Merged"}
-        </span>
+        <span style={{ color: "#8E8E93", fontSize: 13 }}>{sourceLabel}</span>
         <span style={{ color: "#8E8E93", fontSize: 13, marginLeft: "auto" }}>
-          {article.read_time_minutes ?? 5} min
+          {readTimeLabel(depth, article.read_time_minutes)}
         </span>
+
         <button
           aria-label={saved ? "Unsave" : "Save"}
           onClick={(e) => {
