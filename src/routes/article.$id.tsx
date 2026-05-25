@@ -238,42 +238,14 @@ function ArticleView() {
       <button
         onClick={() => router.history.back()}
         aria-label="Back"
-        className="flex items-center justify-center"
-        style={{
-          position: "fixed",
-          top: "calc(env(safe-area-inset-top) + 16px)",
-          left: 16,
-          zIndex: 50,
-          width: 40,
-          height: 40,
-          borderRadius: 8,
-          backgroundColor: "rgba(17,17,17,0.5)",
-          backdropFilter: "blur(8px)",
-          WebkitBackdropFilter: "blur(8px)",
-          color: "#FFFFFF",
-        }}
+        style={{ position: 'fixed', top: '16px', left: '16px', zIndex: 9999, width: 40, height: 40, borderRadius: 8, backgroundColor: "rgba(17,17,17,0.5)", backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)", color: "#FFFFFF", display: "flex", alignItems: "center", justifyContent: "center" }}
       >
         <ArrowLeft size={20} />
       </button>
       <button
         aria-label="Reading options"
         onClick={() => setSheet("aa")}
-        className="flex items-center justify-center"
-        style={{
-          position: "fixed",
-          top: "calc(env(safe-area-inset-top) + 16px)",
-          right: 16,
-          zIndex: 50,
-          height: 40,
-          padding: "0 12px",
-          borderRadius: 8,
-          backgroundColor: "rgba(17,17,17,0.5)",
-          backdropFilter: "blur(8px)",
-          WebkitBackdropFilter: "blur(8px)",
-          color: "#FFFFFF",
-          fontSize: 16,
-          fontWeight: 700,
-        }}
+        style={{ position: 'fixed', top: '16px', right: '16px', zIndex: 9999, height: 40, padding: "0 12px", borderRadius: 8, backgroundColor: "rgba(17,17,17,0.5)", backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)", color: "#FFFFFF", fontSize: 16, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center" }}
       >
         Aa
       </button>
