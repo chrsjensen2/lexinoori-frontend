@@ -65,7 +65,6 @@ function ArticleView() {
   const [sheet, setSheet] = useState<null | "aa">(null);
   const { isSaved, toggle } = useSavedArticles();
   const savedTop = isSaved(id);
-  const [sharedTop, setSharedTop] = useState(false);
   const [fontSize, setFontSize] = useState<FontSizeKey>("Medium");
   const [sources, setSources] = useState<{ url: string; headline: string; name: string; loaded_language: any }[]>([]);
 
