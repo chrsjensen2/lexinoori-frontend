@@ -52,11 +52,27 @@ function toTopic(t: string | null): Topic | undefined {
   return valid.includes(normalized as Topic) ? (normalized as Topic) : undefined;
 }
 
-function SourceArticleCard({ article }: { article: SourceArticle }) {
+type Depth = "Bullets" | "Brief" | "Standard" | "Deep Dive";
+function getDepth(): Depth {
+  if (typeof window === "undefined") return "Standard";
+  const v = window.localStorage.getItem("lex:depth");
+  return v === "Bullets" || v === "Brief" || v === "Deep Dive" ? v : "Standard";
+}
+function readTimeLabel(depth: Depth, minutes: number | null): string {
+  if (depth === "Bullets") return "< 1 min";
+  if (depth === "Brief") return "1-2 min";
+  return `${minutes ?? 5} min`;
+}
+
+function SourceArticleCard({ article, depth }: { article: SourceArticle; depth: Depth }) {
   const { isSaved, toggle } = useSavedArticles();
   const saved = isSaved(article.id);
   const validTopic = toTopic(article.topic);
-  const outletInitial = (article.headline || "?").trim().charAt(0).toUpperCase();
+  const sourceCount = article.source_count ?? 0;
+  const sourceLabel = sourceCount > 0
+    ? `Merged · ${sourceCount} ${sourceCount === 1 ? "source" : "sources"}`
+    : "Merged";
+
 
   return (
     <Link
@@ -115,26 +131,11 @@ function SourceArticleCard({ article }: { article: SourceArticle }) {
       )}
 
       <div className="flex items-center gap-2" style={{ marginTop: 12 }}>
-        <span
-          className="flex items-center justify-center"
-          style={{
-            width: 20,
-            height: 20,
-            borderRadius: 999,
-            backgroundColor: "#2C2C2E",
-            color: "#8E8E93",
-            fontSize: 11,
-            fontWeight: 700,
-          }}
-        >
-          {outletInitial}
-        </span>
-        <span style={{ color: "#8E8E93", fontSize: 13 }}>
-          {article.source_count ? `Merged · ${article.source_count} sources` : "Merged"}
-        </span>
+        <span style={{ color: "#8E8E93", fontSize: 13 }}>{sourceLabel}</span>
         <span style={{ color: "#8E8E93", fontSize: 13, marginLeft: "auto" }}>
-          {article.read_time_minutes ?? 5} min
+          {readTimeLabel(depth, article.read_time_minutes)}
         </span>
+
         <button
           aria-label={saved ? "Unsave" : "Save"}
           onClick={(e) => {
@@ -162,10 +163,20 @@ function TodayPage() {
   const [articles, setArticles] = useState<SourceArticle[]>([]);
   const [breakingArticle, setBreakingArticle] = useState<SourceArticle | null>(null);
   const [loading, setLoading] = useState(true);
+  const [depth, setDepth] = useState<Depth>("Standard");
 
   useEffect(() => {
     setDateLabel(formatDateTime(new Date()));
+    setDepth(getDepth());
+    const onDepth = () => setDepth(getDepth());
+    window.addEventListener("lex:depth-changed", onDepth);
+    window.addEventListener("storage", onDepth);
+    return () => {
+      window.removeEventListener("lex:depth-changed", onDepth);
+      window.removeEventListener("storage", onDepth);
+    };
   }, []);
+
 
   useEffect(() => {
     let cancelled = false;
@@ -353,22 +364,13 @@ function TodayPage() {
         <span style={{ color: "#8E8E93", fontSize: 11, letterSpacing: "0.08em", fontWeight: 700 }}>
           FOR YOU · {articles.length} STORIES
         </span>
-        <button
-          style={{
-            color: "#1A7A5E",
-            fontSize: 11,
-            letterSpacing: "0.08em",
-            fontWeight: 700,
-          }}
-        >
-          EDIT →
-        </button>
       </div>
 
       <div className="flex flex-col" style={{ gap: 12 }}>
         {articles.map((a) => (
-          <SourceArticleCard key={a.id} article={a} />
+          <SourceArticleCard key={a.id} article={a} depth={depth} />
         ))}
+
         {!loading && articles.length === 0 && (
           <p style={{ color: "#8E8E93", fontSize: 13, padding: "0 24px" }}>
             No articles yet. Check back soon.
