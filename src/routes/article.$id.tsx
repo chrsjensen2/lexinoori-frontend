@@ -255,69 +255,8 @@ function ArticleView() {
           }}
         />
 
-        {/* Top floating controls */}
-        <div
-          className="flex items-start justify-between"
-          style={{
-            position: "absolute",
-            top: 0,
-            left: 0,
-            right: 0,
-            padding: "16px 16px 0",
-            paddingTop: "calc(env(safe-area-inset-top) + 16px)",
-          }}
-        >
-          <button
-            onClick={() => router.history.back()}
-            aria-label="Back"
-            className="flex items-center justify-center"
-            style={{
-              position: "fixed",
-              top: "calc(env(safe-area-inset-top) + 16px)",
-              left: 16,
-              zIndex: 50,
-              width: 40,
-              height: 40,
-              borderRadius: 8,
-              backgroundColor: "rgba(17,17,17,0.5)",
-              backdropFilter: "blur(8px)",
-              WebkitBackdropFilter: "blur(8px)",
-              color: "#FFFFFF",
-            }}
-          >
-            <ArrowLeft size={20} />
-          </button>
+        {/* Top floating controls moved outside hero — see below */}
 
-
-          {/* Right cluster: Aa + ... */}
-          <div className="flex items-center gap-2" style={{
-            position: "fixed",
-            top: "calc(env(safe-area-inset-top) + 16px)",
-            right: 16,
-            zIndex: 50,
-          }}>
-            <button
-              aria-label="Reading options"
-              onClick={() => setSheet("aa")}
-              className="flex items-center justify-center"
-              style={{
-                height: 40,
-                padding: "0 12px",
-                borderRadius: 8,
-                backgroundColor: "rgba(17,17,17,0.5)",
-                backdropFilter: "blur(8px)",
-                WebkitBackdropFilter: "blur(8px)",
-                color: "#FFFFFF",
-                fontSize: 16,
-                fontWeight: 700,
-              }}
-            >
-              Aa
-            </button>
-          </div>
-
-
-        </div>
 
         {/* Bottom overlay content */}
         <div
