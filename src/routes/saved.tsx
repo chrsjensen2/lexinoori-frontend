@@ -4,16 +4,13 @@ import { ArrowLeft, Search, Trash2, Bookmark } from "lucide-react";
 import { TOPIC_COLORS, type Topic } from "@/components/feed/TopicPill";
 import { useSavedArticles } from "@/hooks/useSavedArticles";
 import { supabase } from "@/integrations/supabase/client";
-import { getArticle } from "@/lib/articleCatalog";
 
 type SavedArticle = {
   id: string;
   topic: Topic;
   headline: string;
-  savedDate: string;
   sources: number;
-  bias: string;
-  biasColor: string;
+  readMinutes: number;
 };
 
 const FILTERS: { label: string; topic: Topic | "all" }[] = [
@@ -47,9 +44,10 @@ export const Route = createFileRoute("/saved")({
   component: SavedPage,
 });
 
-function formatSavedDate(iso: string) {
-  const d = new Date(iso);
-  return d.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+function toTopic(t: string | null | undefined): Topic {
+  const valid: Topic[] = ["politics", "climate", "economics", "sport", "technology", "health", "culture", "local", "breaking"];
+  const n = (t ?? "").toLowerCase();
+  return (valid.includes(n as Topic) ? (n as Topic) : "politics");
 }
 
 function SavedPage() {
@@ -67,23 +65,44 @@ function SavedPage() {
         if (!cancelled) setArticles([]);
         return;
       }
-      const { data } = await supabase
+
+      let language = "en";
+      const { data: profile } = await (supabase as any)
+        .from("profiles")
+        .select("primary_language")
+        .eq("user_id", uid)
+        .maybeSingle();
+      if (profile?.primary_language) language = profile.primary_language;
+      const suffix = language === "en" ? "" : `_${language}`;
+
+      const { data: savedRows } = await supabase
         .from("saved_articles")
         .select("article_id")
         .eq("user_id", uid);
       if (cancelled) return;
-      const mapped = (data ?? []).map((r: { article_id: string }) => {
-        const a = getArticle(r.article_id);
-        return {
-          id: a.id,
-          topic: a.topic,
-          headline: a.headline,
-          savedDate: "",
-          sources: a.sources,
-          bias: a.bias,
-          biasColor: a.biasColor,
-        };
-      });
+
+      const ids = (savedRows ?? []).map((r: { article_id: string }) => r.article_id);
+      if (ids.length === 0) {
+        setArticles([]);
+        return;
+      }
+
+      const selectCols =
+        "id, topic, read_time_minutes, source_count, headline, headline_da, headline_de, headline_es";
+
+      const { data: articleRows } = await (supabase as any)
+        .from("articles")
+        .select(selectCols)
+        .in("id", ids);
+      if (cancelled) return;
+
+      const mapped: SavedArticle[] = (articleRows ?? []).map((row: any) => ({
+        id: row.id,
+        topic: toTopic(row.topic),
+        headline: (row[`headline${suffix}`] ?? row.headline) ?? "",
+        sources: row.source_count ?? 0,
+        readMinutes: row.read_time_minutes ?? 5,
+      }));
       setArticles(mapped);
     }
     load();
@@ -325,23 +344,11 @@ function SwipeableCard({
             {article.headline}
           </h3>
           <p style={{ color: "#8E8E93", fontSize: 12, marginTop: 6 }}>
-            Saved · {article.savedDate}
-          </p>
-          <p style={{ color: "#8E8E93", fontSize: 12, marginTop: 4 }}>
             Merged · {article.sources} sources
           </p>
-          <div className="flex items-center gap-2" style={{ marginTop: 4 }}>
-            <span
-              style={{
-                width: 8,
-                height: 8,
-                borderRadius: 999,
-                backgroundColor: article.biasColor,
-                display: "inline-block",
-              }}
-            />
-            <span style={{ color: "#8E8E93", fontSize: 12 }}>{article.bias}</span>
-          </div>
+          <p style={{ color: "#8E8E93", fontSize: 12, marginTop: 4 }}>
+            {article.readMinutes} min read
+          </p>
         </div>
         <div
           style={{
