@@ -314,10 +314,10 @@ function ArticleView() {
         <div className="flex items-center" style={{ gap: 12 }}>
           <button
             aria-label={savedTop ? "Unsave" : "Save"}
-            onClick={() => setSavedTop((s) => !s)}
-            style={{ color: savedTop ? "#FFFFFF" : "#8E8E93" }}
+            onClick={() => toggle(id)}
+            style={{ color: savedTop ? "#1A7A5E" : "#8E8E93" }}
           >
-            <Bookmark size={24} fill={savedTop ? "#FFFFFF" : "none"} />
+            <Bookmark size={24} fill={savedTop ? "#1A7A5E" : "none"} />
           </button>
           <button
             aria-label="Share"
