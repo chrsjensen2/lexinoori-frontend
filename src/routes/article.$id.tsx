@@ -198,14 +198,31 @@ function ArticleView() {
     diversityDisplay <= 3 ? "#FF3B30"
     : diversityDisplay <= 6 ? "#FF9500"
     : "#00C864";
-  const body = readLength === "Bullets"
+  const rawBody = readLength === "Bullets"
     ? (article?.body_bullets ?? "")
     : readLength === "Brief"
     ? (article?.body_brief ?? "")
     : readLength === "Deep Dive"
     ? (article?.body_deep_dive ?? "")
     : (article?.body_standard ?? "");
+  const body = readLength === "Bullets" && rawBody
+    ? (() => {
+        const lines = rawBody.split("\n");
+        let kept = 0;
+        const out: string[] = [];
+        for (const ln of lines) {
+          const isBullet = /^\s*[•\-*]/.test(ln);
+          if (isBullet) {
+            if (kept >= 5) break;
+            kept++;
+          }
+          out.push(ln);
+        }
+        return out.join("\n").trimEnd();
+      })()
+    : rawBody;
   const deepDiveDisabled = !article?.body_deep_dive;
+
 
 
   return (
