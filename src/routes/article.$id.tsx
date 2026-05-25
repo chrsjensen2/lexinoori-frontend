@@ -283,7 +283,12 @@ function ArticleView() {
 
 
           {/* Right cluster: Aa + ... */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2" style={{
+            position: "fixed",
+            top: "calc(env(safe-area-inset-top) + 16px)",
+            right: 16,
+            zIndex: 50,
+          }}>
             <button
               aria-label="Reading options"
               onClick={() => setSheet("aa")}
@@ -293,6 +298,8 @@ function ArticleView() {
                 padding: "0 12px",
                 borderRadius: 8,
                 backgroundColor: "rgba(17,17,17,0.5)",
+                backdropFilter: "blur(8px)",
+                WebkitBackdropFilter: "blur(8px)",
                 color: "#FFFFFF",
                 fontSize: 16,
                 fontWeight: 700,
@@ -301,6 +308,7 @@ function ArticleView() {
               Aa
             </button>
           </div>
+
 
         </div>
 
