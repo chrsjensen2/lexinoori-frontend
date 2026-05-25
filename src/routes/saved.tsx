@@ -1,7 +1,7 @@
 import { createFileRoute, useRouter, Link } from "@tanstack/react-router";
 import { useState, useRef, useEffect } from "react";
 import { ArrowLeft, Search, Trash2, Bookmark } from "lucide-react";
-import { TOPIC_COLORS, type Topic } from "@/components/feed/TopicPill";
+import { TopicPill, TOPIC_COLORS, type Topic } from "@/components/feed/TopicPill";
 import { useSavedArticles } from "@/hooks/useSavedArticles";
 import { supabase } from "@/integrations/supabase/client";
 
