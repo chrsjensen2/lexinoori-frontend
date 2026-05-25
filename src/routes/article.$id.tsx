@@ -207,21 +207,28 @@ function ArticleView() {
     : (article?.body_standard ?? "");
   const body = readLength === "Bullets" && rawBody
     ? (() => {
-        const lines = rawBody.split("\n");
-        let kept = 0;
-        const out: string[] = [];
-        for (const ln of lines) {
-          const isBullet = /^\s*[•\-*]/.test(ln);
-          if (isBullet) {
-            if (kept >= 5) break;
-            kept++;
+        const trimmed = rawBody.trim();
+        let items: string[] = [];
+        if (trimmed.startsWith("[")) {
+          try {
+            const parsed = JSON.parse(trimmed);
+            if (Array.isArray(parsed)) {
+              items = parsed.map((v) => String(v).trim()).filter(Boolean);
+            }
+          } catch {
+            items = trimmed.split("\n").map((l) => l.trim()).filter(Boolean);
           }
-          out.push(ln);
+        } else {
+          items = trimmed.split("\n").map((l) => l.trim()).filter(Boolean);
         }
-        return out.join("\n").trimEnd();
+        const normalized = items.map((l) =>
+          /^[•\-*]/.test(l) ? l : `• ${l}`
+        );
+        return normalized.slice(0, 5).join("\n");
       })()
     : rawBody;
   const deepDiveDisabled = !article?.body_deep_dive;
+
 
 
 
