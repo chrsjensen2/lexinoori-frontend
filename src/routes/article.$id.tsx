@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { ArrowLeft, Bookmark, Share2, ExternalLink, ChevronRight, ChevronDown } from "lucide-react";
 import { TopicPill, TOPIC_COLORS, type Topic } from "@/components/feed/TopicPill";
 import { supabase } from "@/integrations/supabase/client";
+import { useSavedArticles } from "@/hooks/useSavedArticles";
 
 export const Route = createFileRoute("/article/$id")({
   head: () => ({ meta: [{ title: "Article — lexinoori." }] }),
