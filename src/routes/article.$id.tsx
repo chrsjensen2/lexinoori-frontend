@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { ArrowLeft, Bookmark, Share2, ExternalLink, ChevronRight, ChevronDown } from "lucide-react";
 import { TopicPill, TOPIC_COLORS, type Topic } from "@/components/feed/TopicPill";
 import { supabase } from "@/integrations/supabase/client";
+import { useSavedArticles } from "@/hooks/useSavedArticles";
 
 export const Route = createFileRoute("/article/$id")({
   head: () => ({ meta: [{ title: "Article — lexinoori." }] }),
@@ -43,7 +44,8 @@ function ArticleView() {
   const [loading, setLoading] = useState(true);
   const [readLength, setReadLength] = useState<ReadLength>("Standard");
   const [sheet, setSheet] = useState<null | "aa">(null);
-  const [savedTop, setSavedTop] = useState(false);
+  const { isSaved, toggle } = useSavedArticles();
+  const savedTop = isSaved(id);
   const [sharedTop, setSharedTop] = useState(false);
   const [fontSize, setFontSize] = useState<FontSizeKey>("Medium");
   const [sources, setSources] = useState<{ url: string; headline: string; name: string; loaded_language: any }[]>([]);
@@ -312,10 +314,10 @@ function ArticleView() {
         <div className="flex items-center" style={{ gap: 12 }}>
           <button
             aria-label={savedTop ? "Unsave" : "Save"}
-            onClick={() => setSavedTop((s) => !s)}
-            style={{ color: savedTop ? "#FFFFFF" : "#8E8E93" }}
+            onClick={() => toggle(id)}
+            style={{ color: savedTop ? "#1A7A5E" : "#8E8E93" }}
           >
-            <Bookmark size={24} fill={savedTop ? "#FFFFFF" : "none"} />
+            <Bookmark size={24} fill={savedTop ? "#1A7A5E" : "none"} />
           </button>
           <button
             aria-label="Share"
