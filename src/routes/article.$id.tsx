@@ -4,6 +4,7 @@ import { ArrowLeft, Bookmark, Share2, ExternalLink, ChevronRight, ChevronDown } 
 import { TopicPill, TOPIC_COLORS, type Topic } from "@/components/feed/TopicPill";
 import { supabase } from "@/integrations/supabase/client";
 import { useSavedArticles } from "@/hooks/useSavedArticles";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/article/$id")({
   head: () => ({ meta: [{ title: "Article — lexinoori." }] }),
@@ -37,6 +38,24 @@ function toTopic(t: string | null | undefined): Topic {
   return (valid.includes(n as Topic) ? (n as Topic) : "politics");
 }
 
+async function shareArticle(headline: string, id: string) {
+  const url = `https://lexinoori.com/article/${id}`;
+  if (typeof navigator !== "undefined" && navigator.share) {
+    try {
+      await navigator.share({ title: headline, url });
+    } catch {
+      // User cancelled or share failed — ignore
+    }
+  } else {
+    try {
+      await navigator.clipboard.writeText(url);
+      toast.success("Link copied");
+    } catch {
+      toast.error("Could not copy link");
+    }
+  }
+}
+
 function ArticleView() {
   const router = useRouter();
   const { id } = Route.useParams();
@@ -46,7 +65,6 @@ function ArticleView() {
   const [sheet, setSheet] = useState<null | "aa">(null);
   const { isSaved, toggle } = useSavedArticles();
   const savedTop = isSaved(id);
-  const [sharedTop, setSharedTop] = useState(false);
   const [fontSize, setFontSize] = useState<FontSizeKey>("Medium");
   const [sources, setSources] = useState<{ url: string; headline: string; name: string; loaded_language: any }[]>([]);
 
@@ -321,8 +339,8 @@ function ArticleView() {
           </button>
           <button
             aria-label="Share"
-            onClick={() => setSharedTop((s) => !s)}
-            style={{ color: sharedTop ? "#1A7A5E" : "#8E8E93" }}
+            onClick={() => shareArticle(HEADLINE, id)}
+            style={{ color: "#8E8E93" }}
           >
             <Share2 size={24} />
           </button>
@@ -626,6 +644,7 @@ function ArticleView() {
 
       {/* Share button */}
       <button
+        onClick={() => shareArticle(HEADLINE, id)}
         style={{
           display: "block",
           margin: "20px 16px 0",
