@@ -339,8 +339,8 @@ function ArticleView() {
           </button>
           <button
             aria-label="Share"
-            onClick={() => setSharedTop((s) => !s)}
-            style={{ color: sharedTop ? "#1A7A5E" : "#8E8E93" }}
+            onClick={() => shareArticle(HEADLINE, id)}
+            style={{ color: "#8E8E93" }}
           >
             <Share2 size={24} />
           </button>
