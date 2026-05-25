@@ -70,8 +70,9 @@ function SourceArticleCard({ article, depth }: { article: SourceArticle; depth: 
   const validTopic = toTopic(article.topic);
   const sourceCount = article.source_count ?? 0;
   const sourceLabel = sourceCount > 0
-    ? `Merged · ${sourceCount} ${sourceCount === 1 ? "source" : "sources"}`
-    : "Merged";
+    ? `${sourceCount} ${sourceCount === 1 ? "source" : "sources"}`
+    : "";
+
 
 
   return (
