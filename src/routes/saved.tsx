@@ -1,7 +1,7 @@
 import { createFileRoute, useRouter, Link } from "@tanstack/react-router";
 import { useState, useRef, useEffect } from "react";
 import { ArrowLeft, Search, Trash2, Bookmark } from "lucide-react";
-import { TOPIC_COLORS, type Topic } from "@/components/feed/TopicPill";
+import { TopicPill, TOPIC_COLORS, type Topic } from "@/components/feed/TopicPill";
 import { useSavedArticles } from "@/hooks/useSavedArticles";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -248,14 +248,17 @@ function SwipeableCard({
 }) {
   const [offset, setOffset] = useState(0);
   const startX = useRef<number | null>(null);
+  const moved = useRef(false);
   const REVEAL = 88;
 
   const onPointerDown = (e: React.PointerEvent) => {
     startX.current = e.clientX;
+    moved.current = false;
   };
   const onPointerMove = (e: React.PointerEvent) => {
     if (startX.current === null) return;
     const dx = e.clientX - startX.current;
+    if (Math.abs(dx) > 6) moved.current = true;
     if (dx < 0) setOffset(Math.max(dx, -REVEAL - 20));
     else if (offset < 0) setOffset(Math.min(0, offset + dx));
   };
@@ -266,7 +269,6 @@ function SwipeableCard({
   };
 
   const topicColor = TOPIC_COLORS[article.topic];
-  const labelColor = DARK_TEXT.includes(article.topic) ? "#111111" : "#FFFFFF";
 
   return (
     <div style={{ position: "relative", borderRadius: 12, overflow: "hidden" }}>
@@ -295,11 +297,18 @@ function SwipeableCard({
       </button>
 
       {/* Card */}
-      <div
+      <Link
+        to="/article/$id"
+        params={{ id: article.id }}
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
         onPointerCancel={onPointerUp}
+        onClick={(e) => {
+          if (moved.current || offset !== 0) {
+            e.preventDefault();
+          }
+        }}
         style={{
           backgroundColor: "#1C1C1E",
           border: "1px solid #2C2C2E",
@@ -310,24 +319,12 @@ function SwipeableCard({
           transform: `translateX(${offset}px)`,
           transition: startX.current === null ? "transform 200ms ease" : "none",
           touchAction: "pan-y",
+          color: "inherit",
+          textDecoration: "none",
         }}
       >
         <div style={{ flex: 1, minWidth: 0 }}>
-          <span
-            style={{
-              display: "inline-block",
-              backgroundColor: topicColor,
-              color: labelColor,
-              fontWeight: 700,
-              fontSize: 11,
-              letterSpacing: "0.08em",
-              padding: "6px 8px",
-              borderRadius: 20,
-              lineHeight: 1,
-            }}
-          >
-            {TOPIC_LABELS[article.topic]}
-          </span>
+          <TopicPill topic={article.topic} />
           <h3
             style={{
               color: "#FFFFFF",
@@ -352,14 +349,39 @@ function SwipeableCard({
         </div>
         <div
           style={{
-            width: 80,
-            height: 80,
-            borderRadius: 8,
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "flex-end",
+            justifyContent: "space-between",
             flexShrink: 0,
-            background: `linear-gradient(180deg, ${topicColor} 0%, #1C1C1E 100%)`,
           }}
-        />
-      </div>
+        >
+          <button
+            aria-label="Unsave"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onRemove();
+            }}
+            style={{
+              color: "#1A7A5E",
+              background: "transparent",
+              display: "inline-flex",
+              padding: 0,
+            }}
+          >
+            <Bookmark size={22} fill="#1A7A5E" />
+          </button>
+          <div
+            style={{
+              width: 64,
+              height: 64,
+              borderRadius: 8,
+              background: `linear-gradient(180deg, ${topicColor} 0%, #1C1C1E 100%)`,
+            }}
+          />
+        </div>
+      </Link>
     </div>
   );
 }
@@ -379,7 +401,7 @@ function EmptyState() {
           marginTop: 16,
         }}
       >
-        Nothing saved yet.
+        No saved articles yet.
       </h2>
       <p style={{ color: "#8E8E93", fontSize: 14, marginTop: 8 }}>
         Tap the bookmark icon on any article to save it.
