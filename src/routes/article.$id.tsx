@@ -322,7 +322,7 @@ function ArticleView() {
           >
             R
           </span>
-          <span style={{ color: "#FFFFFF", fontSize: 14 }}>Merged · {sourceCount} sources</span>
+          <span style={{ color: "#FFFFFF", fontSize: 14 }}>{sourceCount} {sourceCount === 1 ? "source" : "sources"}</span>
         </div>
         <div className="flex items-center" style={{ gap: 12 }}>
           <button
