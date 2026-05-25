@@ -364,22 +364,13 @@ function TodayPage() {
         <span style={{ color: "#8E8E93", fontSize: 11, letterSpacing: "0.08em", fontWeight: 700 }}>
           FOR YOU · {articles.length} STORIES
         </span>
-        <button
-          style={{
-            color: "#1A7A5E",
-            fontSize: 11,
-            letterSpacing: "0.08em",
-            fontWeight: 700,
-          }}
-        >
-          EDIT →
-        </button>
       </div>
 
       <div className="flex flex-col" style={{ gap: 12 }}>
         {articles.map((a) => (
-          <SourceArticleCard key={a.id} article={a} />
+          <SourceArticleCard key={a.id} article={a} depth={depth} />
         ))}
+
         {!loading && articles.length === 0 && (
           <p style={{ color: "#8E8E93", fontSize: 13, padding: "0 24px" }}>
             No articles yet. Check back soon.
