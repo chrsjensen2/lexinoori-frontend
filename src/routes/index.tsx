@@ -52,11 +52,27 @@ function toTopic(t: string | null): Topic | undefined {
   return valid.includes(normalized as Topic) ? (normalized as Topic) : undefined;
 }
 
-function SourceArticleCard({ article }: { article: SourceArticle }) {
+type Depth = "Bullets" | "Brief" | "Standard" | "Deep Dive";
+function getDepth(): Depth {
+  if (typeof window === "undefined") return "Standard";
+  const v = window.localStorage.getItem("lex:depth");
+  return v === "Bullets" || v === "Brief" || v === "Deep Dive" ? v : "Standard";
+}
+function readTimeLabel(depth: Depth, minutes: number | null): string {
+  if (depth === "Bullets") return "< 1 min";
+  if (depth === "Brief") return "1-2 min";
+  return `${minutes ?? 5} min`;
+}
+
+function SourceArticleCard({ article, depth }: { article: SourceArticle; depth: Depth }) {
   const { isSaved, toggle } = useSavedArticles();
   const saved = isSaved(article.id);
   const validTopic = toTopic(article.topic);
-  const outletInitial = (article.headline || "?").trim().charAt(0).toUpperCase();
+  const sourceCount = article.source_count ?? 0;
+  const sourceLabel = sourceCount > 0
+    ? `Merged · ${sourceCount} ${sourceCount === 1 ? "source" : "sources"}`
+    : "Merged";
+
 
   return (
     <Link
