@@ -39,6 +39,11 @@ const TOPIC_LABELS: Record<Topic, string> = {
 
 const DARK_TEXT: Topic[] = ["economics", "technology", "health"];
 
+export const Route = createFileRoute("/saved")({
+  head: () => ({ meta: [{ title: "Saved — lexinoori." }] }),
+  component: SavedPage,
+});
+
 function toTopic(t: string | null | undefined): Topic {
   const valid: Topic[] = ["politics", "climate", "economics", "sport", "technology", "health", "culture", "local", "breaking"];
   const n = (t ?? "").toLowerCase();
