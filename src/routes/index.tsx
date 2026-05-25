@@ -163,10 +163,20 @@ function TodayPage() {
   const [articles, setArticles] = useState<SourceArticle[]>([]);
   const [breakingArticle, setBreakingArticle] = useState<SourceArticle | null>(null);
   const [loading, setLoading] = useState(true);
+  const [depth, setDepth] = useState<Depth>("Standard");
 
   useEffect(() => {
     setDateLabel(formatDateTime(new Date()));
+    setDepth(getDepth());
+    const onDepth = () => setDepth(getDepth());
+    window.addEventListener("lex:depth-changed", onDepth);
+    window.addEventListener("storage", onDepth);
+    return () => {
+      window.removeEventListener("lex:depth-changed", onDepth);
+      window.removeEventListener("storage", onDepth);
+    };
   }, []);
+
 
   useEffect(() => {
     let cancelled = false;
