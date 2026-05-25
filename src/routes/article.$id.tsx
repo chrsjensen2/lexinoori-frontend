@@ -44,7 +44,8 @@ function ArticleView() {
   const [loading, setLoading] = useState(true);
   const [readLength, setReadLength] = useState<ReadLength>("Standard");
   const [sheet, setSheet] = useState<null | "aa">(null);
-  const [savedTop, setSavedTop] = useState(false);
+  const { isSaved, toggle } = useSavedArticles();
+  const savedTop = isSaved(id);
   const [sharedTop, setSharedTop] = useState(false);
   const [fontSize, setFontSize] = useState<FontSizeKey>("Medium");
   const [sources, setSources] = useState<{ url: string; headline: string; name: string; loaded_language: any }[]>([]);
