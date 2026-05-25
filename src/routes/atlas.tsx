@@ -36,6 +36,7 @@ const BUBBLES: Bubble[] = [
 ];
 
 type Story = {
+  id: string;
   pillLabel: string;
   pillBg: string;
   pillColor: string;
@@ -46,6 +47,7 @@ type Story = {
 
 const STORIES: Story[] = [
   {
+    id: "1",
     pillLabel: "BREAKING",
     pillBg: "#FF0000",
     pillColor: "#FFFFFF",
@@ -54,6 +56,7 @@ const STORIES: Story[] = [
     breaking: true,
   },
   {
+    id: "2",
     pillLabel: "POLITICS",
     pillBg: "rgba(77,110,255,0.18)",
     pillColor: "#4D6EFF",
@@ -61,6 +64,7 @@ const STORIES: Story[] = [
     headline: "EU digital sovereignty bill fast-tracks past national vetoes.",
   },
   {
+    id: "3",
     pillLabel: "ECONOMICS",
     pillBg: "#FFD000",
     pillColor: "#111111",
@@ -68,6 +72,7 @@ const STORIES: Story[] = [
     headline: "German industrial output contracts for third consecutive quarter.",
   },
   {
+    id: "4",
     pillLabel: "CLIMATE",
     pillBg: "rgba(0,200,100,0.18)",
     pillColor: "#00C864",
@@ -75,6 +80,7 @@ const STORIES: Story[] = [
     headline: "Monsoon onset arrives ten days early across the subcontinent.",
   },
   {
+    id: "5",
     pillLabel: "TECHNOLOGY",
     pillBg: "rgba(0,229,204,0.18)",
     pillColor: "#00E5CC",
