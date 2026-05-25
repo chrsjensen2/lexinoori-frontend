@@ -39,14 +39,10 @@ const TOPIC_LABELS: Record<Topic, string> = {
 
 const DARK_TEXT: Topic[] = ["economics", "technology", "health"];
 
-export const Route = createFileRoute("/saved")({
-  head: () => ({ meta: [{ title: "Saved — lexinoori." }] }),
-  component: SavedPage,
-});
-
-function formatSavedDate(iso: string) {
-  const d = new Date(iso);
-  return d.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+function toTopic(t: string | null | undefined): Topic {
+  const valid: Topic[] = ["politics", "climate", "economics", "sport", "technology", "health", "culture", "local", "breaking"];
+  const n = (t ?? "").toLowerCase();
+  return (valid.includes(n as Topic) ? (n as Topic) : "politics");
 }
 
 function SavedPage() {
@@ -64,23 +60,44 @@ function SavedPage() {
         if (!cancelled) setArticles([]);
         return;
       }
-      const { data } = await supabase
+
+      let language = "en";
+      const { data: profile } = await (supabase as any)
+        .from("profiles")
+        .select("primary_language")
+        .eq("user_id", uid)
+        .maybeSingle();
+      if (profile?.primary_language) language = profile.primary_language;
+      const suffix = language === "en" ? "" : `_${language}`;
+
+      const { data: savedRows } = await supabase
         .from("saved_articles")
         .select("article_id")
         .eq("user_id", uid);
       if (cancelled) return;
-      const mapped = (data ?? []).map((r: { article_id: string }) => {
-        const a = getArticle(r.article_id);
-        return {
-          id: a.id,
-          topic: a.topic,
-          headline: a.headline,
-          savedDate: "",
-          sources: a.sources,
-          bias: a.bias,
-          biasColor: a.biasColor,
-        };
-      });
+
+      const ids = (savedRows ?? []).map((r: { article_id: string }) => r.article_id);
+      if (ids.length === 0) {
+        setArticles([]);
+        return;
+      }
+
+      const selectCols =
+        "id, topic, read_time_minutes, source_count, headline, headline_da, headline_de, headline_es";
+
+      const { data: articleRows } = await (supabase as any)
+        .from("articles")
+        .select(selectCols)
+        .in("id", ids);
+      if (cancelled) return;
+
+      const mapped: SavedArticle[] = (articleRows ?? []).map((row: any) => ({
+        id: row.id,
+        topic: toTopic(row.topic),
+        headline: (row[`headline${suffix}`] ?? row.headline) ?? "",
+        sources: row.source_count ?? 0,
+        readMinutes: row.read_time_minutes ?? 5,
+      }));
       setArticles(mapped);
     }
     load();
