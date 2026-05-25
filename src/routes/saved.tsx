@@ -344,23 +344,11 @@ function SwipeableCard({
             {article.headline}
           </h3>
           <p style={{ color: "#8E8E93", fontSize: 12, marginTop: 6 }}>
-            Saved · {article.savedDate}
-          </p>
-          <p style={{ color: "#8E8E93", fontSize: 12, marginTop: 4 }}>
             Merged · {article.sources} sources
           </p>
-          <div className="flex items-center gap-2" style={{ marginTop: 4 }}>
-            <span
-              style={{
-                width: 8,
-                height: 8,
-                borderRadius: 999,
-                backgroundColor: article.biasColor,
-                display: "inline-block",
-              }}
-            />
-            <span style={{ color: "#8E8E93", fontSize: 12 }}>{article.bias}</span>
-          </div>
+          <p style={{ color: "#8E8E93", fontSize: 12, marginTop: 4 }}>
+            {article.readMinutes} min read
+          </p>
         </div>
         <div
           style={{
