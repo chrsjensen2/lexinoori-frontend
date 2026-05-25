@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as StoriesRouteImport } from './routes/stories'
 import { Route as SearchRouteImport } from './routes/search'
+import { Route as SavedRouteImport } from './routes/saved'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as FollowingRouteImport } from './routes/following'
 import { Route as DigestRouteImport } from './routes/digest'
@@ -31,6 +32,11 @@ const StoriesRoute = StoriesRouteImport.update({
 const SearchRoute = SearchRouteImport.update({
   id: '/search',
   path: '/search',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SavedRoute = SavedRouteImport.update({
+  id: '/saved',
+  path: '/saved',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProfileRoute = ProfileRouteImport.update({
@@ -95,6 +101,7 @@ export interface FileRoutesByFullPath {
   '/digest': typeof DigestRoute
   '/following': typeof FollowingRoute
   '/profile': typeof ProfileRoute
+  '/saved': typeof SavedRoute
   '/search': typeof SearchRoute
   '/stories': typeof StoriesRoute
   '/article/$id': typeof ArticleIdRoute
@@ -110,6 +117,7 @@ export interface FileRoutesByTo {
   '/digest': typeof DigestRoute
   '/following': typeof FollowingRoute
   '/profile': typeof ProfileRoute
+  '/saved': typeof SavedRoute
   '/search': typeof SearchRoute
   '/stories': typeof StoriesRoute
   '/article/$id': typeof ArticleIdRoute
@@ -126,6 +134,7 @@ export interface FileRoutesById {
   '/digest': typeof DigestRoute
   '/following': typeof FollowingRoute
   '/profile': typeof ProfileRoute
+  '/saved': typeof SavedRoute
   '/search': typeof SearchRoute
   '/stories': typeof StoriesRoute
   '/article/$id': typeof ArticleIdRoute
@@ -143,6 +152,7 @@ export interface FileRouteTypes {
     | '/digest'
     | '/following'
     | '/profile'
+    | '/saved'
     | '/search'
     | '/stories'
     | '/article/$id'
@@ -158,6 +168,7 @@ export interface FileRouteTypes {
     | '/digest'
     | '/following'
     | '/profile'
+    | '/saved'
     | '/search'
     | '/stories'
     | '/article/$id'
@@ -173,6 +184,7 @@ export interface FileRouteTypes {
     | '/digest'
     | '/following'
     | '/profile'
+    | '/saved'
     | '/search'
     | '/stories'
     | '/article/$id'
@@ -189,6 +201,7 @@ export interface RootRouteChildren {
   DigestRoute: typeof DigestRoute
   FollowingRoute: typeof FollowingRoute
   ProfileRoute: typeof ProfileRoute
+  SavedRoute: typeof SavedRoute
   SearchRoute: typeof SearchRoute
   StoriesRoute: typeof StoriesRoute
   ArticleIdRoute: typeof ArticleIdRoute
@@ -213,6 +226,13 @@ declare module '@tanstack/react-router' {
       path: '/search'
       fullPath: '/search'
       preLoaderRoute: typeof SearchRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/saved': {
+      id: '/saved'
+      path: '/saved'
+      fullPath: '/saved'
+      preLoaderRoute: typeof SavedRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/profile': {
@@ -301,6 +321,7 @@ const rootRouteChildren: RootRouteChildren = {
   DigestRoute: DigestRoute,
   FollowingRoute: FollowingRoute,
   ProfileRoute: ProfileRoute,
+  SavedRoute: SavedRoute,
   SearchRoute: SearchRoute,
   StoriesRoute: StoriesRoute,
   ArticleIdRoute: ArticleIdRoute,
