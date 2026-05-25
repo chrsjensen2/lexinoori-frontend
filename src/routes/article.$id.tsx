@@ -38,6 +38,24 @@ function toTopic(t: string | null | undefined): Topic {
   return (valid.includes(n as Topic) ? (n as Topic) : "politics");
 }
 
+async function shareArticle(headline: string, id: string) {
+  const url = `https://lexinoori.com/article/${id}`;
+  if (typeof navigator !== "undefined" && navigator.share) {
+    try {
+      await navigator.share({ title: headline, url });
+    } catch {
+      // User cancelled or share failed — ignore
+    }
+  } else {
+    try {
+      await navigator.clipboard.writeText(url);
+      toast.success("Link copied");
+    } catch {
+      toast.error("Could not copy link");
+    }
+  }
+}
+
 function ArticleView() {
   const router = useRouter();
   const { id } = Route.useParams();
