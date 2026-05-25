@@ -207,21 +207,28 @@ function ArticleView() {
     : (article?.body_standard ?? "");
   const body = readLength === "Bullets" && rawBody
     ? (() => {
-        const lines = rawBody.split("\n");
-        let kept = 0;
-        const out: string[] = [];
-        for (const ln of lines) {
-          const isBullet = /^\s*[•\-*]/.test(ln);
-          if (isBullet) {
-            if (kept >= 5) break;
-            kept++;
+        const trimmed = rawBody.trim();
+        let items: string[] = [];
+        if (trimmed.startsWith("[")) {
+          try {
+            const parsed = JSON.parse(trimmed);
+            if (Array.isArray(parsed)) {
+              items = parsed.map((v) => String(v).trim()).filter(Boolean);
+            }
+          } catch {
+            items = trimmed.split("\n").map((l) => l.trim()).filter(Boolean);
           }
-          out.push(ln);
+        } else {
+          items = trimmed.split("\n").map((l) => l.trim()).filter(Boolean);
         }
-        return out.join("\n").trimEnd();
+        const normalized = items.map((l) =>
+          /^[•\-*]/.test(l) ? l : `• ${l}`
+        );
+        return normalized.slice(0, 5).join("\n");
       })()
     : rawBody;
   const deepDiveDisabled = !article?.body_deep_dive;
+
 
 
 
@@ -283,7 +290,12 @@ function ArticleView() {
 
 
           {/* Right cluster: Aa + ... */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2" style={{
+            position: "fixed",
+            top: "calc(env(safe-area-inset-top) + 16px)",
+            right: 16,
+            zIndex: 50,
+          }}>
             <button
               aria-label="Reading options"
               onClick={() => setSheet("aa")}
@@ -293,6 +305,8 @@ function ArticleView() {
                 padding: "0 12px",
                 borderRadius: 8,
                 backgroundColor: "rgba(17,17,17,0.5)",
+                backdropFilter: "blur(8px)",
+                WebkitBackdropFilter: "blur(8px)",
                 color: "#FFFFFF",
                 fontSize: 16,
                 fontWeight: 700,
@@ -301,6 +315,7 @@ function ArticleView() {
               Aa
             </button>
           </div>
+
 
         </div>
 
