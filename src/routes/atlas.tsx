@@ -283,8 +283,10 @@ function AtlasPage() {
           style={{
             display: "flex",
             justifyContent: "center",
-            paddingTop: 12,
-            paddingBottom: 8,
+            alignItems: "center",
+            paddingTop: 20,
+            paddingBottom: 20,
+            minHeight: 44,
             flexShrink: 0,
             cursor: "grab",
             touchAction: "none",
@@ -301,7 +303,13 @@ function AtlasPage() {
         </div>
 
         {snap === "collapsed" && !dragging ? (
-          <CollapsedPeek story={topStory} />
+          <Link
+            to="/article/$id"
+            params={{ id: topStory.id }}
+            style={{ textDecoration: "none", display: "block" }}
+          >
+            <CollapsedPeek story={topStory} />
+          </Link>
         ) : (
           <div
             style={{
@@ -405,59 +413,65 @@ function CollapsedPeek({ story }: { story: Story }) {
 
 type StoryRowProps = Story & { last?: boolean };
 
-function StoryRow({ pillLabel, pillBg, pillColor, meta, headline, last }: StoryRowProps) {
+function StoryRow({ id, pillLabel, pillBg, pillColor, meta, headline, last }: StoryRowProps) {
   return (
-    <div
-      style={{
-        paddingTop: 16,
-        paddingBottom: 16,
-        borderBottom: last ? "none" : "1px solid #2C2C2E",
-      }}
+    <Link
+      to="/article/$id"
+      params={{ id }}
+      style={{ textDecoration: "none", display: "block" }}
     >
-      <div className="flex items-center gap-2">
-        <span
-          style={{
-            backgroundColor: pillBg,
-            color: pillColor,
-            fontWeight: 700,
-            fontSize: 11,
-            letterSpacing: "0.08em",
-            padding: "4px 8px",
-            borderRadius: 20,
-            lineHeight: 1,
-            textTransform: "uppercase",
-          }}
-        >
-          {pillLabel}
-        </span>
-        <span
-          style={{
-            color: "#8E8E93",
-            fontSize: 11,
-            letterSpacing: "0.08em",
-            fontWeight: 700,
-            textTransform: "uppercase",
-          }}
-        >
-          {meta}
-        </span>
+      <div
+        style={{
+          paddingTop: 16,
+          paddingBottom: 16,
+          borderBottom: last ? "none" : "1px solid #2C2C2E",
+        }}
+      >
+        <div className="flex items-center gap-2">
+          <span
+            style={{
+              backgroundColor: pillBg,
+              color: pillColor,
+              fontWeight: 700,
+              fontSize: 11,
+              letterSpacing: "0.08em",
+              padding: "4px 8px",
+              borderRadius: 20,
+              lineHeight: 1,
+              textTransform: "uppercase",
+            }}
+          >
+            {pillLabel}
+          </span>
+          <span
+            style={{
+              color: "#8E8E93",
+              fontSize: 11,
+              letterSpacing: "0.08em",
+              fontWeight: 700,
+              textTransform: "uppercase",
+            }}
+          >
+            {meta}
+          </span>
+        </div>
+        <div className="flex items-end justify-between gap-3" style={{ marginTop: 8 }}>
+          <h3
+            style={{
+              color: "#FFFFFF",
+              fontWeight: 700,
+              fontSize: 18,
+              lineHeight: 1.3,
+              letterSpacing: "-0.01em",
+              flex: 1,
+            }}
+          >
+            {headline}
+          </h3>
+          <ArrowRight size={20} color="#1A7A5E" style={{ flexShrink: 0, marginBottom: 2 }} />
+        </div>
       </div>
-      <div className="flex items-end justify-between gap-3" style={{ marginTop: 8 }}>
-        <h3
-          style={{
-            color: "#FFFFFF",
-            fontWeight: 700,
-            fontSize: 18,
-            lineHeight: 1.3,
-            letterSpacing: "-0.01em",
-            flex: 1,
-          }}
-        >
-          {headline}
-        </h3>
-        <ArrowRight size={20} color="#1A7A5E" style={{ flexShrink: 0, marginBottom: 2 }} />
-      </div>
-    </div>
+    </Link>
   );
 }
 
