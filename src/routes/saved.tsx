@@ -4,16 +4,13 @@ import { ArrowLeft, Search, Trash2, Bookmark } from "lucide-react";
 import { TOPIC_COLORS, type Topic } from "@/components/feed/TopicPill";
 import { useSavedArticles } from "@/hooks/useSavedArticles";
 import { supabase } from "@/integrations/supabase/client";
-import { getArticle } from "@/lib/articleCatalog";
 
 type SavedArticle = {
   id: string;
   topic: Topic;
   headline: string;
-  savedDate: string;
   sources: number;
-  bias: string;
-  biasColor: string;
+  readMinutes: number;
 };
 
 const FILTERS: { label: string; topic: Topic | "all" }[] = [
