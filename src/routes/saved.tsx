@@ -401,7 +401,7 @@ function EmptyState() {
           marginTop: 16,
         }}
       >
-        Nothing saved yet.
+        No saved articles yet.
       </h2>
       <p style={{ color: "#8E8E93", fontSize: 14, marginTop: 8 }}>
         Tap the bookmark icon on any article to save it.
