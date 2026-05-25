@@ -265,15 +265,22 @@ function ArticleView() {
             aria-label="Back"
             className="flex items-center justify-center"
             style={{
+              position: "fixed",
+              top: "calc(env(safe-area-inset-top) + 16px)",
+              left: 16,
+              zIndex: 50,
               width: 40,
               height: 40,
               borderRadius: 8,
               backgroundColor: "rgba(17,17,17,0.5)",
+              backdropFilter: "blur(8px)",
+              WebkitBackdropFilter: "blur(8px)",
               color: "#FFFFFF",
             }}
           >
             <ArrowLeft size={20} />
           </button>
+
 
           {/* Right cluster: Aa + ... */}
           <div className="flex items-center gap-2">
