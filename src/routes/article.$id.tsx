@@ -529,8 +529,14 @@ function ArticleView() {
             <button
               key={rl}
               onClick={() => {
-                if (!disabled) setReadLength(rl);
+                if (disabled) return;
+                setReadLength(rl);
+                try {
+                  window.localStorage.setItem("lex:depth", rl);
+                  window.dispatchEvent(new Event("lex:depth-changed"));
+                } catch {}
               }}
+
               disabled={disabled}
               title={disabled ? "Not enough source material" : undefined}
               className="flex-1"
