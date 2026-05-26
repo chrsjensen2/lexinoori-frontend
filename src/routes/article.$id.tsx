@@ -165,6 +165,7 @@ function ArticleView() {
             headline: r?.headline ?? "",
             name: joined?.name ?? r?.source_name ?? "Unknown",
             loaded_language: r?.loaded_language ?? null,
+            journalist_id: r?.journalist_id ?? null,
           };
         })
         .filter((r: any) => r.url);
