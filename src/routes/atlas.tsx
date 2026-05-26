@@ -557,7 +557,13 @@ function LeafletMap({
   const markersRef = useRef<Map<string, any>>(new Map());
   const LRef = useRef<any>(null);
   const onTapRef = useRef(onMarkerTap);
+  const navigate = useNavigate();
+  const navigateRef = useRef(navigate);
   const [mapReady, setMapReady] = useState(false);
+
+  useEffect(() => {
+    navigateRef.current = navigate;
+  }, [navigate]);
 
   useEffect(() => {
     onTapRef.current = onMarkerTap;
