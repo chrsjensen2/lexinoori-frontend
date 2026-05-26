@@ -77,7 +77,7 @@ function AtlasPage() {
   const [depth, setDepth] = useState<Depth>("Standard");
   const leafletMapRef = useRef<any>(null);
   const [mapZoom, setMapZoom] = useState<number>(2);
-  const [mapCenter, setMapCenter] = useState<{ lat: number; lng: number }>({ lat: 20, lng: 0 });
+  const [mapBounds, setMapBounds] = useState<{ north: number; south: number; east: number; west: number } | null>(null);
   const [mapTick, setMapTick] = useState(0);
   const navigate = useNavigate();
 
