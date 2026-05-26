@@ -74,6 +74,13 @@ function AtlasPage() {
   const [articles, setArticles] = useState<Article[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [depth, setDepth] = useState<Depth>("Standard");
+  const leafletMapRef = useRef<any>(null);
+  const [mapZoom, setMapZoom] = useState<number>(2);
+
+  const handleZoomSelect = useCallback((z: number) => {
+    const m = leafletMapRef.current;
+    if (m) m.setZoom(z, { animate: true });
+  }, []);
 
   useEffect(() => {
     const update = () => {
@@ -281,8 +288,10 @@ function AtlasPage() {
           articles={articles}
           selectedId={selectedId}
           onMarkerTap={handleMarkerTap}
+          mapRef={leafletMapRef}
+          onZoomChange={setMapZoom}
         />
-        <ZoomControl />
+        <ZoomControl zoom={mapZoom} onSelect={handleZoomSelect} />
       </div>
 
       <div
@@ -547,10 +556,14 @@ function LeafletMap({
   articles,
   selectedId,
   onMarkerTap,
+  mapRef: externalMapRef,
+  onZoomChange,
 }: {
   articles: Article[];
   selectedId: string | null;
   onMarkerTap: (id: string) => void;
+  mapRef?: React.MutableRefObject<any>;
+  onZoomChange?: (z: number) => void;
 }) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<any>(null);
@@ -559,6 +572,7 @@ function LeafletMap({
   const onTapRef = useRef(onMarkerTap);
   const navigate = useNavigate();
   const navigateRef = useRef(navigate);
+  const onZoomRef = useRef(onZoomChange);
   const [mapReady, setMapReady] = useState(false);
 
   useEffect(() => {
@@ -568,6 +582,10 @@ function LeafletMap({
   useEffect(() => {
     onTapRef.current = onMarkerTap;
   }, [onMarkerTap]);
+
+  useEffect(() => {
+    onZoomRef.current = onZoomChange;
+  }, [onZoomChange]);
 
   // Initialise map once.
   useEffect(() => {
@@ -591,7 +609,12 @@ function LeafletMap({
           attribution: "© OpenStreetMap contributors © CARTO",
         },
       ).addTo(map);
+      map.on("zoomend", () => {
+        onZoomRef.current?.(map.getZoom());
+      });
       mapRef.current = map;
+      if (externalMapRef) externalMapRef.current = map;
+      onZoomRef.current?.(map.getZoom());
       // Ensure correct sizing after layout.
       setTimeout(() => {
         map.invalidateSize();
@@ -603,6 +626,7 @@ function LeafletMap({
       if (mapRef.current) {
         mapRef.current.remove();
         mapRef.current = null;
+        if (externalMapRef) externalMapRef.current = null;
       }
       markersRef.current.clear();
       setMapReady(false);
@@ -699,13 +723,26 @@ function LeafletMap({
 }
 
 
-function ZoomControl() {
+function ZoomControl({
+  zoom,
+  onSelect,
+}: {
+  zoom: number;
+  onSelect: (z: number) => void;
+}) {
   const levels = [
-    { key: "WORLD", top: 0 },
-    { key: "CONTINENT", top: 40 },
-    { key: "COUNTRY", top: 80, active: true },
-    { key: "LOCAL", top: 120 },
+    { key: "WORLD", top: 0, zoom: 2 },
+    { key: "CONTINENT", top: 40, zoom: 4 },
+    { key: "COUNTRY", top: 80, zoom: 6 },
+    { key: "LOCAL", top: 120, zoom: 10 },
   ];
+  // Find the closest level for the current map zoom.
+  const activeIdx = levels.reduce(
+    (best, l, i) =>
+      Math.abs(l.zoom - zoom) < Math.abs(levels[best].zoom - zoom) ? i : best,
+    0,
+  );
+  const indicatorTop = levels[activeIdx].top;
   return (
     <div
       style={{
@@ -716,7 +753,6 @@ function ZoomControl() {
         height: 120,
         width: 80,
         zIndex: 500,
-        pointerEvents: "none",
       }}
     >
       <div
@@ -728,38 +764,50 @@ function ZoomControl() {
           height: 120,
           backgroundColor: "#2C2C2E",
           borderRadius: 999,
+          pointerEvents: "none",
         }}
       />
       <div
         style={{
           position: "absolute",
           right: 3,
-          top: 80 - 6,
+          top: indicatorTop - 6,
           width: 12,
           height: 12,
           borderRadius: 999,
           backgroundColor: "#1A7A5E",
           boxShadow: "0 0 8px rgba(26,122,94,0.6)",
+          transition: "top 200ms ease-out",
+          pointerEvents: "none",
         }}
       />
-      {levels.map((l) => (
-        <span
-          key={l.key}
-          style={{
-            position: "absolute",
-            right: 20,
-            top: l.top - 5,
-            fontSize: 10,
-            fontWeight: 700,
-            letterSpacing: "0.08em",
-            color: l.active ? "#FFFFFF" : "#8E8E93",
-            textTransform: "uppercase",
-            whiteSpace: "nowrap",
-          }}
-        >
-          {l.key}
-        </span>
-      ))}
+      {levels.map((l, i) => {
+        const active = i === activeIdx;
+        return (
+          <button
+            key={l.key}
+            type="button"
+            onClick={() => onSelect(l.zoom)}
+            style={{
+              position: "absolute",
+              right: 20,
+              top: l.top - 12,
+              padding: "8px 4px 8px 8px",
+              fontSize: 10,
+              fontWeight: 700,
+              letterSpacing: "0.08em",
+              color: active ? "#1A7A5E" : "#8E8E93",
+              textTransform: "uppercase",
+              whiteSpace: "nowrap",
+              background: "transparent",
+              border: "none",
+              cursor: "pointer",
+            }}
+          >
+            {l.key}
+          </button>
+        );
+      })}
     </div>
   );
 }
