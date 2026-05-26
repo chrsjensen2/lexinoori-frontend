@@ -1,4 +1,4 @@
-import { createFileRoute, useRouter, Link } from "@tanstack/react-router";
+import { createFileRoute, useRouter, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { ArrowLeft, Bookmark, Share2, ExternalLink, ChevronRight, ChevronDown } from "lucide-react";
 import { TopicPill, TOPIC_COLORS, type Topic } from "@/components/feed/TopicPill";
@@ -66,7 +66,7 @@ function ArticleView() {
   const { isSaved, toggle } = useSavedArticles();
   const savedTop = isSaved(id);
   const [fontSize, setFontSize] = useState<FontSizeKey>("Medium");
-  const [sources, setSources] = useState<{ url: string; headline: string; name: string; loaded_language: any }[]>([]);
+  const [sources, setSources] = useState<{ url: string; headline: string; name: string; loaded_language: any; journalist_id: string | null }[]>([]);
 
   useEffect(() => {
     let cancelled = false;
@@ -153,7 +153,7 @@ function ArticleView() {
       }
       const { data, error } = await (supabase as any)
         .from("source_articles")
-        .select("url, headline, loaded_language, sources:source_id(name)")
+        .select("url, headline, loaded_language, journalist_id, sources:source_id(name)")
         .eq("cluster_id", clusterId);
       console.log("Sources fetch:", { data, error });
       if (cancelled) return;
@@ -165,6 +165,7 @@ function ArticleView() {
             headline: r?.headline ?? "",
             name: joined?.name ?? r?.source_name ?? "Unknown",
             loaded_language: r?.loaded_language ?? null,
+            journalist_id: r?.journalist_id ?? null,
           };
         })
         .filter((r: any) => r.url);
@@ -621,6 +622,7 @@ function ArticleView() {
               headline={s.headline}
               url={s.url}
               loadedLanguage={s.loaded_language}
+              journalistId={s.journalist_id}
               last={i === sources.length - 1}
             />
           ))
@@ -819,42 +821,66 @@ function SourceRow({
   headline,
   url,
   loadedLanguage,
+  journalistId,
   last = false,
 }: {
   name: string;
   headline: string;
   url: string;
   loadedLanguage?: any;
+  journalistId?: string | null;
   last?: boolean;
 }) {
+  const navigate = useNavigate();
   const [expanded, setExpanded] = useState(false);
   const truncated = headline.length > 60 ? `${headline.slice(0, 60)}…` : headline;
   const items: Array<{ phrase?: string; neutral?: string; reason?: string }> = Array.isArray(loadedLanguage)
     ? loadedLanguage.filter((it: any) => it && (it.phrase || it.neutral))
     : [];
   const count = items.length;
+  const hasJournalist = !!journalistId;
   return (
     <div style={{ borderBottom: last ? "none" : "1px solid #2C2C2E" }}>
       <div
-        role="button"
-        tabIndex={0}
-        onClick={() => setExpanded((v) => !v)}
+        role={hasJournalist ? "button" : undefined}
+        tabIndex={hasJournalist ? 0 : undefined}
+        onClick={() => {
+          if (hasJournalist) {
+            navigate({ to: "/journalist/$id", params: { id: journalistId! } });
+          } else {
+            setExpanded((v) => !v);
+          }
+        }}
         onKeyDown={(e) => {
-          if (e.key === "Enter" || e.key === " ") {
+          if (!hasJournalist && (e.key === "Enter" || e.key === " ")) {
             e.preventDefault();
             setExpanded((v) => !v);
           }
         }}
         className="flex items-center"
-        style={{ gap: 12, padding: "12px 0", cursor: "pointer" }}
+        style={{ gap: 12, padding: "12px 0", cursor: hasJournalist ? "pointer" : "default" }}
       >
-        <span
-          aria-hidden
-          className="flex items-center justify-center"
-          style={{ color: "#8E8E93", width: 16 }}
-        >
-          {expanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
-        </span>
+        {hasJournalist ? (
+          <span
+            aria-hidden
+            className="flex items-center justify-center"
+            style={{ color: "#8E8E93", width: 16 }}
+          >
+            <ChevronRight size={16} />
+          </span>
+        ) : (
+          <span
+            aria-hidden
+            className="flex items-center justify-center"
+            style={{ color: "#8E8E93", width: 16 }}
+            onClick={(e) => {
+              e.stopPropagation();
+              setExpanded((v) => !v);
+            }}
+          >
+            {expanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+          </span>
+        )}
         <div style={{ flex: 1, minWidth: 0, display: "flex", alignItems: "baseline", flexWrap: "wrap", gap: 6 }}>
           <span style={{ color: "#FFFFFF", fontSize: 14, fontWeight: 700 }}>{name}</span>
           {count > 0 && (
@@ -876,7 +902,7 @@ function SourceRow({
         </a>
       </div>
 
-      {expanded && (
+      {expanded && !hasJournalist && (
         <div style={{ padding: "4px 0 12px 28px" }}>
           <div
             style={{
@@ -928,7 +954,6 @@ function SourceRow({
           )}
         </div>
       )}
-
     </div>
   );
 }
