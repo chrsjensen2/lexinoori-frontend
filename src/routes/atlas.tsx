@@ -1,6 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Search, ArrowRight } from "lucide-react";
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState, useCallback, useMemo } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { TopicPill, TOPIC_COLORS, type Topic } from "@/components/feed/TopicPill";
 
 export const Route = createFileRoute("/atlas")({
   head: () => ({
@@ -15,100 +17,134 @@ export const Route = createFileRoute("/atlas")({
   component: AtlasPage,
 });
 
-type Bubble = {
-  x: number;
-  y: number;
-  size: number;
-  color: string;
-  pulse?: boolean;
-  label: string;
-};
-
-const BUBBLES: Bubble[] = [
-  { x: 50, y: 32, size: 32, color: "#4D6EFF", pulse: true, label: "Western Europe" },
-  { x: 54, y: 40, size: 24, color: "#FFD000", label: "Central Europe" },
-  { x: 58, y: 65, size: 32, color: "#FF0000", pulse: true, label: "East Africa" },
-  { x: 18, y: 42, size: 24, color: "#00E5CC", label: "North America" },
-  { x: 72, y: 56, size: 24, color: "#00C864", label: "South Asia" },
-  { x: 60, y: 50, size: 16, color: "#4D6EFF", label: "Middle East" },
-  { x: 84, y: 44, size: 16, color: "#FFD000", label: "East Asia" },
-  { x: 50, y: 22, size: 16, color: "#00BFFF", label: "Nordic" },
-];
-
-type Story = {
+type Article = {
   id: string;
-  pillLabel: string;
-  pillBg: string;
-  pillColor: string;
-  meta: string;
   headline: string;
-  breaking?: boolean;
+  topic: string | null;
+  source_count: number | null;
+  read_time_minutes: number | null;
+  created_at: string;
+  lat: number;
+  lng: number;
+  is_breaking: boolean | null;
 };
-
-const STORIES: Story[] = [
-  {
-    id: "1",
-    pillLabel: "BREAKING",
-    pillBg: "#FF0000",
-    pillColor: "#FFFFFF",
-    meta: "EAST AFRICA · NOW",
-    headline: "Cease-fire collapses; mediators withdraw overnight.",
-    breaking: true,
-  },
-  {
-    id: "2",
-    pillLabel: "POLITICS",
-    pillBg: "rgba(77,110,255,0.18)",
-    pillColor: "#4D6EFF",
-    meta: "EU · 1H AGO",
-    headline: "EU digital sovereignty bill fast-tracks past national vetoes.",
-  },
-  {
-    id: "3",
-    pillLabel: "ECONOMICS",
-    pillBg: "#FFD000",
-    pillColor: "#111111",
-    meta: "GERMANY · 3H AGO",
-    headline: "German industrial output contracts for third consecutive quarter.",
-  },
-  {
-    id: "4",
-    pillLabel: "CLIMATE",
-    pillBg: "rgba(0,200,100,0.18)",
-    pillColor: "#00C864",
-    meta: "SOUTH ASIA · 4H AGO",
-    headline: "Monsoon onset arrives ten days early across the subcontinent.",
-  },
-  {
-    id: "5",
-    pillLabel: "TECHNOLOGY",
-    pillBg: "rgba(0,229,204,0.18)",
-    pillColor: "#00E5CC",
-    meta: "USA · 5H AGO",
-    headline: "Open-weights vision model undercuts closed competitors on benchmarks.",
-  },
-];
 
 type SnapKey = "collapsed" | "default" | "expanded";
+
+type Depth = "Bullets" | "Brief" | "Standard" | "Deep Dive";
+function getDepth(): Depth {
+  if (typeof window === "undefined") return "Standard";
+  const v = window.localStorage.getItem("lex:depth");
+  return v === "Bullets" || v === "Brief" || v === "Deep Dive" ? v : "Standard";
+}
+function readTimeLabel(depth: Depth, minutes: number | null): string {
+  if (depth === "Bullets") return "< 1 MIN";
+  if (depth === "Brief") return "1-2 MIN";
+  return `${minutes ?? 5} MIN`;
+}
+
+function toTopic(t: string | null): Topic | undefined {
+  const valid: Topic[] = ["politics", "climate", "economics", "sport", "technology", "health", "culture", "local", "breaking"];
+  const normalized = t?.toLowerCase() ?? "";
+  return valid.includes(normalized as Topic) ? (normalized as Topic) : undefined;
+}
+
+function timeAgo(iso: string) {
+  const diff = Date.now() - new Date(iso).getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return "NOW";
+  if (mins < 60) return `${mins}M AGO`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs}H AGO`;
+  return `${Math.floor(hrs / 24)}D AGO`;
+}
+
+// Equirectangular projection → percent of map area.
+function projectLatLng(lat: number, lng: number): { x: number; y: number } {
+  const x = ((lng + 180) / 360) * 100;
+  const y = ((90 - lat) / 180) * 100;
+  return { x: Math.max(0, Math.min(100, x)), y: Math.max(0, Math.min(100, y)) };
+}
 
 function AtlasPage() {
   const containerRef = useRef<HTMLDivElement>(null);
   const [containerH, setContainerH] = useState(700);
   const [snap, setSnap] = useState<SnapKey>("collapsed");
-  const [dragOffset, setDragOffset] = useState(0); // px delta during drag (negative = up)
+  const [dragOffset, setDragOffset] = useState(0);
   const [dragging, setDragging] = useState(false);
   const dragStartY = useRef<number | null>(null);
   const dragMoved = useRef(false);
 
+  const [articles, setArticles] = useState<Article[]>([]);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [depth, setDepth] = useState<Depth>("Standard");
+
   useEffect(() => {
     const update = () => {
-      if (containerRef.current) {
-        setContainerH(containerRef.current.clientHeight);
-      }
+      if (containerRef.current) setContainerH(containerRef.current.clientHeight);
     };
     update();
     window.addEventListener("resize", update);
     return () => window.removeEventListener("resize", update);
+  }, []);
+
+  useEffect(() => {
+    setDepth(getDepth());
+    const onDepth = () => setDepth(getDepth());
+    window.addEventListener("lex:depth-changed", onDepth);
+    window.addEventListener("storage", onDepth);
+    return () => {
+      window.removeEventListener("lex:depth-changed", onDepth);
+      window.removeEventListener("storage", onDepth);
+    };
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      let language = "en";
+      const { data: userData } = await supabase.auth.getUser();
+      if (userData?.user) {
+        const { data: profile } = await (supabase as any)
+          .from("profiles")
+          .select("primary_language")
+          .eq("user_id", userData.user.id)
+          .maybeSingle();
+        if (profile?.primary_language) language = profile.primary_language;
+      }
+      const suffix = language === "en" ? "" : `_${language}`;
+      const pick = <T,>(row: any, base: string): T =>
+        (row?.[`${base}${suffix}`] ?? row?.[base]) as T;
+
+      const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+      const { data, error } = await (supabase as any)
+        .from("articles")
+        .select(
+          "id, topic, source_count, read_time_minutes, created_at, is_breaking, lat, lng, headline, headline_da, headline_de, headline_es"
+        )
+        .gte("created_at", since)
+        .not("lat", "is", null)
+        .not("lng", "is", null)
+        .order("created_at", { ascending: false })
+        .limit(100);
+
+      if (cancelled || error || !data) return;
+      const mapped: Article[] = (data as any[]).map((row) => ({
+        id: row.id,
+        headline: pick<string>(row, "headline") ?? "",
+        topic: row.topic,
+        source_count: row.source_count,
+        read_time_minutes: row.read_time_minutes,
+        created_at: row.created_at,
+        lat: Number(row.lat),
+        lng: Number(row.lng),
+        is_breaking: row.is_breaking,
+      }));
+      setArticles(mapped);
+    })();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const snapHeights: Record<SnapKey, number> = {
@@ -116,9 +152,7 @@ function AtlasPage() {
     default: Math.round(containerH * 0.55),
     expanded: Math.round(containerH * 0.8),
   };
-
   const baseH = snapHeights[snap];
-  // Dragging up (negative offset) increases sheet height.
   const liveH = Math.max(snapHeights.collapsed, Math.min(snapHeights.expanded, baseH - dragOffset));
 
   const onPointerDown = useCallback((e: React.PointerEvent) => {
@@ -146,17 +180,13 @@ function AtlasPage() {
       setDragOffset(0);
 
       if (!moved) {
-        // Tap → cycle
         setSnap((s) => cycle(s));
         return;
       }
-
-      // Determine snap target based on resulting height and 30% threshold.
       const order: SnapKey[] = ["collapsed", "default", "expanded"];
       const idx = order.indexOf(snap);
       const goingUp = dy < 0;
       const goingDown = dy > 0;
-
       if (goingUp && idx < 2) {
         const next = order[idx + 1];
         const distance = snapHeights[next] - snapHeights[snap];
@@ -173,13 +203,20 @@ function AtlasPage() {
           return;
         }
       }
-      // otherwise stay
       void e;
     },
     [dragOffset, snap, snapHeights],
   );
 
-  const topStory = STORIES.find((s) => s.breaking) ?? STORIES[0];
+  const peekArticle = useMemo(
+    () => articles.find((a) => a.id === selectedId) ?? articles[0] ?? null,
+    [articles, selectedId],
+  );
+
+  const handleMarkerTap = (id: string) => {
+    setSelectedId(id);
+    if (snap === "collapsed") setSnap("default");
+  };
 
   return (
     <div
@@ -192,7 +229,6 @@ function AtlasPage() {
         position: "relative",
       }}
     >
-      {/* LAYER 1 — Fixed header */}
       <header
         style={{
           flexShrink: 0,
@@ -224,7 +260,7 @@ function AtlasPage() {
                   textTransform: "uppercase",
                 }}
               >
-                Country · Denmark · 12 stories in view
+                {articles.length} {articles.length === 1 ? "STORY" : "STORIES"} IN VIEW
               </p>
             </div>
             <Link to="/search" aria-label="Search" style={{ color: "#8E8E93", paddingTop: 6, display: "inline-flex" }}>
@@ -234,7 +270,6 @@ function AtlasPage() {
         </div>
       </header>
 
-      {/* LAYER 2 — Map fills remaining space above sheet */}
       <div
         style={{
           flex: 1,
@@ -246,13 +281,27 @@ function AtlasPage() {
         }}
       >
         <WorldMap />
-        {BUBBLES.map((b, i) => (
-          <MapBubble key={i} bubble={b} />
-        ))}
+        {articles.map((a) => {
+          const { x, y } = projectLatLng(a.lat, a.lng);
+          const topic = toTopic(a.topic);
+          const color = topic ? TOPIC_COLORS[topic] : "#8E8E93";
+          const isSelected = a.id === selectedId;
+          return (
+            <ArticleMarker
+              key={a.id}
+              x={x}
+              y={y}
+              color={color}
+              pulse={!!a.is_breaking}
+              selected={isSelected}
+              label={a.headline}
+              onTap={() => handleMarkerTap(a.id)}
+            />
+          );
+        })}
         <ZoomControl />
       </div>
 
-      {/* LAYER 3 — Draggable bottom sheet (absolute) */}
       <div
         style={{
           position: "fixed",
@@ -274,7 +323,6 @@ function AtlasPage() {
           zIndex: 5,
         }}
       >
-        {/* Drag handle area (captures pointer) */}
         <div
           onPointerDown={onPointerDown}
           onPointerMove={onPointerMove}
@@ -303,13 +351,17 @@ function AtlasPage() {
         </div>
 
         {snap === "collapsed" && !dragging ? (
-          <Link
-            to="/article/$id"
-            params={{ id: topStory.id }}
-            style={{ textDecoration: "none", display: "block" }}
-          >
-            <CollapsedPeek story={topStory} />
-          </Link>
+          peekArticle ? (
+            <Link
+              to="/article/$id"
+              params={{ id: peekArticle.id }}
+              style={{ textDecoration: "none", display: "block" }}
+            >
+              <CollapsedPeek article={peekArticle} />
+            </Link>
+          ) : (
+            <EmptyPeek />
+          )
         ) : (
           <div
             style={{
@@ -321,9 +373,21 @@ function AtlasPage() {
               padding: "8px 20px 24px",
             }}
           >
-            {STORIES.map((s, i) => (
-              <StoryRow key={i} {...s} last={i === STORIES.length - 1} />
-            ))}
+            {articles.length === 0 ? (
+              <p style={{ color: "#8E8E93", fontSize: 14, padding: "16px 0" }}>
+                No stories with location data in the last 24 hours.
+              </p>
+            ) : (
+              articles.map((a, i) => (
+                <ArticleRow
+                  key={a.id}
+                  article={a}
+                  depth={depth}
+                  selected={a.id === selectedId}
+                  last={i === articles.length - 1}
+                />
+              ))
+            )}
           </div>
         )}
       </div>
@@ -331,7 +395,8 @@ function AtlasPage() {
   );
 }
 
-function CollapsedPeek({ story }: { story: Story }) {
+function CollapsedPeek({ article }: { article: Article }) {
+  const topic = toTopic(article.topic);
   return (
     <div
       style={{
@@ -343,23 +408,7 @@ function CollapsedPeek({ story }: { story: Story }) {
       }}
     >
       <div className="flex items-center gap-2" style={{ paddingTop: 4 }}>
-        <span
-          style={{
-            backgroundColor: story.pillBg,
-            color: story.pillColor,
-            fontWeight: 700,
-            fontSize: 11,
-            letterSpacing: "0.08em",
-            padding: "4px 8px",
-            borderRadius: 20,
-            lineHeight: 1,
-            textTransform: "uppercase",
-            flexShrink: 0,
-            whiteSpace: "nowrap",
-          }}
-        >
-          {story.breaking ? "● BREAKING" : story.pillLabel}
-        </span>
+        {topic && <TopicPill topic={topic} />}
         <span
           style={{
             color: "#8E8E93",
@@ -372,7 +421,7 @@ function CollapsedPeek({ story }: { story: Story }) {
             textOverflow: "ellipsis",
           }}
         >
-          {story.meta}
+          {timeAgo(article.created_at)}
         </span>
       </div>
       <div
@@ -392,9 +441,8 @@ function CollapsedPeek({ story }: { story: Story }) {
             letterSpacing: "-0.01em",
           }}
         >
-          {story.headline}
+          {article.headline}
         </h3>
-        {/* Fade through middle of second line */}
         <div
           style={{
             position: "absolute",
@@ -411,38 +459,53 @@ function CollapsedPeek({ story }: { story: Story }) {
   );
 }
 
-type StoryRowProps = Story & { last?: boolean };
+function EmptyPeek() {
+  return (
+    <div style={{ padding: "0 20px" }}>
+      <p style={{ color: "#8E8E93", fontSize: 14 }}>
+        No stories with location data in the last 24 hours.
+      </p>
+    </div>
+  );
+}
 
-function StoryRow({ id, pillLabel, pillBg, pillColor, meta, headline, last }: StoryRowProps) {
+function ArticleRow({
+  article,
+  depth,
+  selected,
+  last,
+}: {
+  article: Article;
+  depth: Depth;
+  selected: boolean;
+  last?: boolean;
+}) {
+  const topic = toTopic(article.topic);
+  const sourceCount = article.source_count ?? 0;
+  const sourceLabel =
+    sourceCount > 0 ? `${sourceCount} ${sourceCount === 1 ? "source" : "sources"}` : "";
+
   return (
     <Link
       to="/article/$id"
-      params={{ id }}
+      params={{ id: article.id }}
       style={{ textDecoration: "none", display: "block" }}
     >
       <div
         style={{
           paddingTop: 16,
           paddingBottom: 16,
+          paddingLeft: selected ? 12 : 0,
+          paddingRight: selected ? 12 : 0,
+          marginLeft: selected ? -12 : 0,
+          marginRight: selected ? -12 : 0,
+          borderRadius: selected ? 12 : 0,
+          backgroundColor: selected ? "rgba(26,122,94,0.10)" : "transparent",
           borderBottom: last ? "none" : "1px solid #2C2C2E",
         }}
       >
         <div className="flex items-center gap-2">
-          <span
-            style={{
-              backgroundColor: pillBg,
-              color: pillColor,
-              fontWeight: 700,
-              fontSize: 11,
-              letterSpacing: "0.08em",
-              padding: "4px 8px",
-              borderRadius: 20,
-              lineHeight: 1,
-              textTransform: "uppercase",
-            }}
-          >
-            {pillLabel}
-          </span>
+          {topic && <TopicPill topic={topic} />}
           <span
             style={{
               color: "#8E8E93",
@@ -452,7 +515,7 @@ function StoryRow({ id, pillLabel, pillBg, pillColor, meta, headline, last }: St
               textTransform: "uppercase",
             }}
           >
-            {meta}
+            {timeAgo(article.created_at)}
           </span>
         </div>
         <div className="flex items-end justify-between gap-3" style={{ marginTop: 8 }}>
@@ -466,20 +529,50 @@ function StoryRow({ id, pillLabel, pillBg, pillColor, meta, headline, last }: St
               flex: 1,
             }}
           >
-            {headline}
+            {article.headline}
           </h3>
           <ArrowRight size={20} color="#1A7A5E" style={{ flexShrink: 0, marginBottom: 2 }} />
+        </div>
+        <div
+          className="flex items-center gap-3"
+          style={{ marginTop: 8, color: "#8E8E93", fontSize: 12 }}
+        >
+          {sourceLabel && <span>{sourceLabel}</span>}
+          <span style={{ marginLeft: "auto" }}>
+            {readTimeLabel(depth, article.read_time_minutes)}
+          </span>
         </div>
       </div>
     </Link>
   );
 }
 
-function MapBubble({ bubble }: { bubble: Bubble }) {
-  const { x, y, size, color, pulse, label } = bubble;
+function ArticleMarker({
+  x,
+  y,
+  color,
+  pulse,
+  selected,
+  label,
+  onTap,
+}: {
+  x: number;
+  y: number;
+  color: string;
+  pulse: boolean;
+  selected: boolean;
+  label: string;
+  onTap: () => void;
+}) {
+  const size = selected ? 20 : 14;
   return (
-    <div
+    <button
       aria-label={label}
+      onClick={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        onTap();
+      }}
       style={{
         position: "absolute",
         left: `${x}%`,
@@ -487,6 +580,11 @@ function MapBubble({ bubble }: { bubble: Bubble }) {
         transform: "translate(-50%, -50%)",
         width: size,
         height: size,
+        padding: 0,
+        background: "transparent",
+        border: "none",
+        cursor: "pointer",
+        zIndex: 2,
       }}
     >
       {pulse && (
@@ -495,7 +593,7 @@ function MapBubble({ bubble }: { bubble: Bubble }) {
             position: "absolute",
             inset: -8,
             borderRadius: 999,
-            border: "2px solid #FF0000",
+            border: `2px solid ${color}`,
             animation: "lex-pulse 1.6s ease-in-out infinite",
           }}
         />
@@ -507,11 +605,11 @@ function MapBubble({ bubble }: { bubble: Bubble }) {
           height: "100%",
           borderRadius: 999,
           backgroundColor: color,
-          border: "2px solid #FFFFFF",
+          border: selected ? "2px solid #FFFFFF" : "2px solid rgba(255,255,255,0.7)",
           boxShadow: `0 0 12px ${color}80`,
         }}
       />
-    </div>
+    </button>
   );
 }
 
