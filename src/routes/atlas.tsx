@@ -310,11 +310,12 @@ function AtlasPage() {
         }}
       >
         <LeafletMap
-          articles={articles}
+          articles={filteredArticles}
           selectedId={selectedId}
           onMarkerTap={handleMarkerTap}
           mapRef={leafletMapRef}
           onZoomChange={setMapZoom}
+          onCenterChange={setMapCenter}
         />
         <ZoomControl zoom={mapZoom} onSelect={handleZoomSelect} />
       </div>
