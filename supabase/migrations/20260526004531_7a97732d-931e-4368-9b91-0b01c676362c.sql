@@ -1,0 +1,1 @@
+ALTER TABLE public.articles ADD COLUMN IF NOT EXISTS lat numeric(9,6), ADD COLUMN IF NOT EXISTS lng numeric(9,6);
