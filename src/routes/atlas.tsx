@@ -115,7 +115,7 @@ function AtlasPage() {
       const { data, error } = await (supabase as any)
         .from("articles")
         .select(
-          "id, topic, source_count, read_time_minutes, created_at, is_breaking, lat, lng, headline, headline_da, headline_de, headline_es"
+          "id, topic, source_count, read_time_minutes, created_at, is_breaking, lat, lng, headline"
         )
         .gte("created_at", since)
         .not("lat", "is", null)
@@ -542,6 +542,7 @@ function LeafletMap({
   const markersRef = useRef<Map<string, any>>(new Map());
   const LRef = useRef<any>(null);
   const onTapRef = useRef(onMarkerTap);
+  const [mapReady, setMapReady] = useState(false);
 
   useEffect(() => {
     onTapRef.current = onMarkerTap;
@@ -571,7 +572,10 @@ function LeafletMap({
       ).addTo(map);
       mapRef.current = map;
       // Ensure correct sizing after layout.
-      setTimeout(() => map.invalidateSize(), 0);
+      setTimeout(() => {
+        map.invalidateSize();
+        if (!cancelled) setMapReady(true);
+      }, 0);
     })();
     return () => {
       cancelled = true;
@@ -580,6 +584,7 @@ function LeafletMap({
         mapRef.current = null;
       }
       markersRef.current.clear();
+      setMapReady(false);
     };
   }, []);
 
@@ -619,7 +624,7 @@ function LeafletMap({
         markersRef.current.set(a.id, m);
       }
     }
-  }, [articles, selectedId]);
+  }, [articles, selectedId, mapReady]);
 
   return (
     <div
