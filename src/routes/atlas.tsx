@@ -682,6 +682,7 @@ function LeafletMap({
   articles,
   selectedId,
   onMarkerTap,
+  onClusterTap,
   mapRef: externalMapRef,
   onZoomChange,
   onCenterChange,
@@ -689,6 +690,7 @@ function LeafletMap({
   articles: Article[];
   selectedId: string | null;
   onMarkerTap: (id: string) => void;
+  onClusterTap: (group: Article[]) => void;
   mapRef?: React.MutableRefObject<any>;
   onZoomChange?: (z: number) => void;
   onCenterChange?: (c: { lat: number; lng: number }) => void;
@@ -698,19 +700,18 @@ function LeafletMap({
   const markerLayerRef = useRef<any>(null);
   const LRef = useRef<any>(null);
   const onTapRef = useRef(onMarkerTap);
-  const navigate = useNavigate();
-  const navigateRef = useRef(navigate);
+  const onClusterRef = useRef(onClusterTap);
   const onZoomRef = useRef(onZoomChange);
   const onCenterRef = useRef(onCenterChange);
   const [mapReady, setMapReady] = useState(false);
 
   useEffect(() => {
-    navigateRef.current = navigate;
-  }, [navigate]);
-
-  useEffect(() => {
     onTapRef.current = onMarkerTap;
   }, [onMarkerTap]);
+
+  useEffect(() => {
+    onClusterRef.current = onClusterTap;
+  }, [onClusterTap]);
 
   useEffect(() => {
     onZoomRef.current = onZoomChange;
