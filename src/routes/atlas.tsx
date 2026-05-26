@@ -76,6 +76,7 @@ function AtlasPage() {
   const [depth, setDepth] = useState<Depth>("Standard");
   const leafletMapRef = useRef<any>(null);
   const [mapZoom, setMapZoom] = useState<number>(2);
+  const [mapCenter, setMapCenter] = useState<{ lat: number; lng: number }>({ lat: 20, lng: 0 });
 
   const handleZoomSelect = useCallback((z: number) => {
     const m = leafletMapRef.current;
