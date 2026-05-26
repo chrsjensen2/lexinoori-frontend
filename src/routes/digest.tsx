@@ -48,9 +48,11 @@ function DigestPage() {
       const language = await getUserLanguage();
       const selectCols =
         "id, topic, read_time_minutes, source_count, diversity_score, created_at, " + TRANSLATED_COLS;
+      const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
       const { data } = await (supabase as any)
         .from("articles")
         .select(selectCols)
+        .gte("created_at", since)
         .order("created_at", { ascending: false })
         .limit(5);
       if (cancelled) return;

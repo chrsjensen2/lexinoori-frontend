@@ -60,9 +60,11 @@ function StoriesPage() {
       const language = await getUserLanguage();
       const selectCols =
         "id, topic, source_count, created_at, is_breaking, diversity_score, " + TRANSLATED_COLS;
+      const since = new Date(Date.now() - 72 * 60 * 60 * 1000).toISOString();
       const { data } = await (supabase as any)
         .from("articles")
         .select(selectCols)
+        .gte("created_at", since)
         .order("created_at", { ascending: false })
         .limit(10);
       if (cancelled) return;
