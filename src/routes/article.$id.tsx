@@ -66,7 +66,7 @@ function ArticleView() {
   const { isSaved, toggle } = useSavedArticles();
   const savedTop = isSaved(id);
   const [fontSize, setFontSize] = useState<FontSizeKey>("Medium");
-  const [sources, setSources] = useState<{ url: string; headline: string; name: string; loaded_language: any; journalist_id: string | null }[]>([]);
+  const [sources, setSources] = useState<{ url: string; headline: string; name: string; loaded_language: any; journalist_id: string | null; author: string | null }[]>([]);
 
   useEffect(() => {
     let cancelled = false;
@@ -153,7 +153,7 @@ function ArticleView() {
       }
       const { data, error } = await (supabase as any)
         .from("source_articles")
-        .select("url, headline, loaded_language, journalist_id, sources:source_id(name)")
+        .select("url, headline, loaded_language, journalist_id, author, sources:source_id(name)")
         .eq("cluster_id", clusterId);
       console.log("Sources fetch:", { data, error });
       if (cancelled) return;
@@ -166,6 +166,7 @@ function ArticleView() {
             name: joined?.name ?? r?.source_name ?? "Unknown",
             loaded_language: r?.loaded_language ?? null,
             journalist_id: r?.journalist_id ?? null,
+            author: r?.author ?? null,
           };
         })
         .filter((r: any) => r.url);
@@ -623,6 +624,7 @@ function ArticleView() {
               url={s.url}
               loadedLanguage={s.loaded_language}
               journalistId={s.journalist_id}
+              author={s.author}
               last={i === sources.length - 1}
             />
           ))
@@ -822,6 +824,7 @@ function SourceRow({
   url,
   loadedLanguage,
   journalistId,
+  author,
   last = false,
 }: {
   name: string;
@@ -829,6 +832,7 @@ function SourceRow({
   url: string;
   loadedLanguage?: any;
   journalistId?: string | null;
+  author?: string | null;
   last?: boolean;
 }) {
   const navigate = useNavigate();
@@ -881,12 +885,18 @@ function SourceRow({
             {expanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
           </span>
         )}
-        <div style={{ flex: 1, minWidth: 0, display: "flex", alignItems: "baseline", flexWrap: "wrap", gap: 6 }}>
-          <span style={{ color: "#FFFFFF", fontSize: 14, fontWeight: 700 }}>{name}</span>
-          {count > 0 && (
-            <span style={{ color: "#E8873A", fontSize: 12 }}>
-              · {count} loaded {count === 1 ? "phrase" : "phrases"}
-            </span>
+        <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 2 }}>
+          <div style={{ display: "flex", alignItems: "baseline", flexWrap: "wrap", gap: 6 }}>
+            <span style={{ color: "#FFFFFF", fontSize: 14, fontWeight: 700 }}>{name}</span>
+            {count > 0 && (
+              <span style={{ color: "#E8873A", fontSize: 12 }}>
+                · {count} loaded {count === 1 ? "phrase" : "phrases"}
+              </span>
+            )}
+          </div>
+          <div style={{ color: "#FFFFFF", fontSize: 13, lineHeight: 1.4, marginTop: 2 }}>{truncated}</div>
+          {author && (
+            <div style={{ color: "#8E8E93", fontSize: 13 }}>{author}</div>
           )}
         </div>
         <a
@@ -904,16 +914,6 @@ function SourceRow({
 
       {expanded && !hasJournalist && (
         <div style={{ padding: "4px 0 12px 28px" }}>
-          <div
-            style={{
-              color: "#FFFFFF",
-              fontSize: 13,
-              lineHeight: 1.4,
-              marginBottom: 10,
-            }}
-          >
-            {truncated}
-          </div>
           {items.length === 0 ? (
             <div style={{ color: "#8E8E93", fontSize: 13 }}>No loaded language detected</div>
           ) : (
