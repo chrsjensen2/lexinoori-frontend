@@ -731,6 +731,10 @@ function LeafletMap({
     onCenterRef.current = onCenterChange;
   }, [onCenterChange]);
 
+  useEffect(() => {
+    onMapTapRef.current = onMapTap;
+  }, [onMapTap]);
+
   // Initialise map once.
   useEffect(() => {
     let cancelled = false;
