@@ -821,12 +821,14 @@ function SourceRow({
   headline,
   url,
   loadedLanguage,
+  journalistId,
   last = false,
 }: {
   name: string;
   headline: string;
   url: string;
   loadedLanguage?: any;
+  journalistId?: string | null;
   last?: boolean;
 }) {
   const [expanded, setExpanded] = useState(false);
@@ -835,28 +837,51 @@ function SourceRow({
     ? loadedLanguage.filter((it: any) => it && (it.phrase || it.neutral))
     : [];
   const count = items.length;
+  const hasJournalist = !!journalistId;
   return (
     <div style={{ borderBottom: last ? "none" : "1px solid #2C2C2E" }}>
       <div
-        role="button"
-        tabIndex={0}
-        onClick={() => setExpanded((v) => !v)}
+        role={hasJournalist ? "button" : undefined}
+        tabIndex={hasJournalist ? 0 : undefined}
+        onClick={() => {
+          if (hasJournalist) {
+            // Navigate to journalist profile
+            // Use window.location for simplicity or router — this is inside a component with router in scope
+            window.location.href = `/journalist/${journalistId}`;
+          } else {
+            setExpanded((v) => !v);
+          }
+        }}
         onKeyDown={(e) => {
-          if (e.key === "Enter" || e.key === " ") {
+          if (!hasJournalist && (e.key === "Enter" || e.key === " ")) {
             e.preventDefault();
             setExpanded((v) => !v);
           }
         }}
         className="flex items-center"
-        style={{ gap: 12, padding: "12px 0", cursor: "pointer" }}
+        style={{ gap: 12, padding: "12px 0", cursor: hasJournalist ? "pointer" : "default" }}
       >
-        <span
-          aria-hidden
-          className="flex items-center justify-center"
-          style={{ color: "#8E8E93", width: 16 }}
-        >
-          {expanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
-        </span>
+        {hasJournalist ? (
+          <span
+            aria-hidden
+            className="flex items-center justify-center"
+            style={{ color: "#8E8E93", width: 16 }}
+          >
+            <ChevronRight size={16} />
+          </span>
+        ) : (
+          <span
+            aria-hidden
+            className="flex items-center justify-center"
+            style={{ color: "#8E8E93", width: 16 }}
+            onClick={(e) => {
+              e.stopPropagation();
+              setExpanded((v) => !v);
+            }}
+          >
+            {expanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+          </span>
+        )}
         <div style={{ flex: 1, minWidth: 0, display: "flex", alignItems: "baseline", flexWrap: "wrap", gap: 6 }}>
           <span style={{ color: "#FFFFFF", fontSize: 14, fontWeight: 700 }}>{name}</span>
           {count > 0 && (
@@ -878,7 +903,7 @@ function SourceRow({
         </a>
       </div>
 
-      {expanded && (
+      {expanded && !hasJournalist && (
         <div style={{ padding: "4px 0 12px 28px" }}>
           <div
             style={{
@@ -930,7 +955,6 @@ function SourceRow({
           )}
         </div>
       )}
-
     </div>
   );
 }
