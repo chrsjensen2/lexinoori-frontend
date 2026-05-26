@@ -885,12 +885,18 @@ function SourceRow({
             {expanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
           </span>
         )}
-        <div style={{ flex: 1, minWidth: 0, display: "flex", alignItems: "baseline", flexWrap: "wrap", gap: 6 }}>
-          <span style={{ color: "#FFFFFF", fontSize: 14, fontWeight: 700 }}>{name}</span>
-          {count > 0 && (
-            <span style={{ color: "#E8873A", fontSize: 12 }}>
-              · {count} loaded {count === 1 ? "phrase" : "phrases"}
-            </span>
+        <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 2 }}>
+          <div style={{ display: "flex", alignItems: "baseline", flexWrap: "wrap", gap: 6 }}>
+            <span style={{ color: "#FFFFFF", fontSize: 14, fontWeight: 700 }}>{name}</span>
+            {count > 0 && (
+              <span style={{ color: "#E8873A", fontSize: 12 }}>
+                · {count} loaded {count === 1 ? "phrase" : "phrases"}
+              </span>
+            )}
+          </div>
+          <div style={{ color: "#FFFFFF", fontSize: 13, lineHeight: 1.4, marginTop: 2 }}>{truncated}</div>
+          {author && (
+            <div style={{ color: "#8E8E93", fontSize: 13 }}>{author}</div>
           )}
         </div>
         <a
