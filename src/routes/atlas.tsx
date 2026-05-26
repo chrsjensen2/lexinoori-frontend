@@ -465,6 +465,13 @@ function ArticleRow({
   const sourceCount = article.source_count ?? 0;
   const sourceLabel =
     sourceCount > 0 ? `${sourceCount} ${sourceCount === 1 ? "source" : "sources"}` : "";
+  const rowRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (selected && rowRef.current) {
+      rowRef.current.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }
+  }, [selected]);
 
   return (
     <Link
@@ -473,16 +480,22 @@ function ArticleRow({
       style={{ textDecoration: "none", display: "block" }}
     >
       <div
+        ref={rowRef}
         style={{
           paddingTop: 16,
           paddingBottom: 16,
-          paddingLeft: selected ? 12 : 0,
-          paddingRight: selected ? 12 : 0,
-          marginLeft: selected ? -12 : 0,
-          marginRight: selected ? -12 : 0,
-          borderRadius: selected ? 12 : 0,
-          backgroundColor: selected ? "rgba(26,122,94,0.10)" : "transparent",
-          borderBottom: last ? "none" : "1px solid #2C2C2E",
+          paddingLeft: 12,
+          paddingRight: 12,
+          marginLeft: -12,
+          marginRight: -12,
+          borderRadius: 12,
+          backgroundColor: selected ? "rgba(26,122,94,0.12)" : "transparent",
+          border: selected ? "1px solid #1A7A5E" : "1px solid transparent",
+          borderBottom: selected
+            ? "1px solid #1A7A5E"
+            : last
+              ? "1px solid transparent"
+              : "1px solid #2C2C2E",
         }}
       >
         <div className="flex items-center gap-2">
@@ -615,13 +628,40 @@ function LeafletMap({
         fillColor: color,
         fillOpacity: 0.95,
       };
+      const truncated =
+        a.headline.length > 60 ? a.headline.slice(0, 57).trimEnd() + "…" : a.headline;
+      const safeHeadline = truncated.replace(/[&<>"']/g, (c) =>
+        ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]!),
+      );
+      const topicLabel = (topic ?? "").toUpperCase();
+      const popupHtml = `
+        <div style="font-family: 'Heebo', sans-serif; min-width: 180px; max-width: 240px;">
+          ${
+            topic
+              ? `<span style="display:inline-block;background-color:${color}1F;border:1px solid ${color};color:${color};font-weight:700;font-size:10px;letter-spacing:0.08em;padding:4px 6px;border-radius:20px;line-height:1;margin-bottom:6px;">${topicLabel}</span>`
+              : ""
+          }
+          <div style="color:#FFFFFF;font-weight:700;font-size:13px;line-height:1.3;letter-spacing:-0.01em;margin-top:4px;">${safeHeadline}</div>
+        </div>
+      `;
       if (existing) {
         existing.setLatLng([a.lat, a.lng]);
         existing.setStyle(opts);
+        existing.setPopupContent(popupHtml);
       } else {
         const m = L.circleMarker([a.lat, a.lng], opts).addTo(map);
+        m.bindPopup(popupHtml, {
+          offset: [0, -4],
+          closeButton: false,
+          autoPan: false,
+          className: "atlas-popup",
+        });
         m.on("click", () => onTapRef.current(a.id));
         markersRef.current.set(a.id, m);
+      }
+      if (isSelected) {
+        const m = markersRef.current.get(a.id);
+        if (m && !m.isPopupOpen()) m.openPopup();
       }
     }
   }, [articles, selectedId, mapReady]);
@@ -655,6 +695,8 @@ function ZoomControl() {
         transform: "translateY(-50%)",
         height: 120,
         width: 80,
+        zIndex: 500,
+        pointerEvents: "none",
       }}
     >
       <div
