@@ -542,6 +542,7 @@ function LeafletMap({
   const markersRef = useRef<Map<string, any>>(new Map());
   const LRef = useRef<any>(null);
   const onTapRef = useRef(onMarkerTap);
+  const [mapReady, setMapReady] = useState(false);
 
   useEffect(() => {
     onTapRef.current = onMarkerTap;
@@ -571,7 +572,10 @@ function LeafletMap({
       ).addTo(map);
       mapRef.current = map;
       // Ensure correct sizing after layout.
-      setTimeout(() => map.invalidateSize(), 0);
+      setTimeout(() => {
+        map.invalidateSize();
+        if (!cancelled) setMapReady(true);
+      }, 0);
     })();
     return () => {
       cancelled = true;
@@ -580,6 +584,7 @@ function LeafletMap({
         mapRef.current = null;
       }
       markersRef.current.clear();
+      setMapReady(false);
     };
   }, []);
 
