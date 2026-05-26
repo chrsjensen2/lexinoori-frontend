@@ -622,6 +622,7 @@ function ArticleView() {
               headline={s.headline}
               url={s.url}
               loadedLanguage={s.loaded_language}
+              journalistId={s.journalist_id}
               last={i === sources.length - 1}
             />
           ))
