@@ -153,7 +153,7 @@ function ArticleView() {
       }
       const { data, error } = await (supabase as any)
         .from("source_articles")
-        .select("url, headline, loaded_language, sources:source_id(name)")
+        .select("url, headline, loaded_language, journalist_id, sources:source_id(name)")
         .eq("cluster_id", clusterId);
       console.log("Sources fetch:", { data, error });
       if (cancelled) return;
