@@ -624,7 +624,7 @@ function LeafletMap({
         markersRef.current.set(a.id, m);
       }
     }
-  }, [articles, selectedId]);
+  }, [articles, selectedId, mapReady]);
 
   return (
     <div
