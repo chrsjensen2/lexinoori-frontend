@@ -77,7 +77,7 @@ function AtlasPage() {
   const [depth, setDepth] = useState<Depth>("Standard");
   const leafletMapRef = useRef<any>(null);
   const [mapZoom, setMapZoom] = useState<number>(2);
-  const [mapCenter, setMapCenter] = useState<{ lat: number; lng: number }>({ lat: 20, lng: 0 });
+  const [mapBounds, setMapBounds] = useState<{ north: number; south: number; east: number; west: number } | null>(null);
   const [mapTick, setMapTick] = useState(0);
   const navigate = useNavigate();
 
@@ -220,29 +220,19 @@ function AtlasPage() {
     [dragOffset, snap, snapHeights],
   );
 
-  // Map current map zoom to a geographic filter radius (in degrees) around the
-  // map center. null means "no filter — show everything".
-  const filterRadius = useMemo<number | null>(() => {
-    const levels: { zoom: number; radius: number | null }[] = [
-      { zoom: 2, radius: null },
-      { zoom: 4, radius: 40 },
-      { zoom: 6, radius: 20 },
-      { zoom: 10, radius: 5 },
-    ];
-    const closest = levels.reduce((best, l) =>
-      Math.abs(l.zoom - mapZoom) < Math.abs(best.zoom - mapZoom) ? l : best,
-    );
-    return closest.radius;
-  }, [mapZoom]);
-
+  // Filter articles to those within the current map viewport bounds.
   const filteredArticles = useMemo(() => {
-    if (filterRadius == null) return articles;
+    if (!mapBounds) return articles;
+    const { north, south, east, west } = mapBounds;
+    const lngInBounds = (lng: number) => {
+      if (west <= east) return lng >= west && lng <= east;
+      // Bounds cross antimeridian
+      return lng >= west || lng <= east;
+    };
     return articles.filter(
-      (a) =>
-        Math.abs(a.lat - mapCenter.lat) <= filterRadius &&
-        Math.abs(a.lng - mapCenter.lng) <= filterRadius,
+      (a) => a.lat <= north && a.lat >= south && lngInBounds(a.lng),
     );
-  }, [articles, filterRadius, mapCenter]);
+  }, [articles, mapBounds]);
 
   const peekArticle = useMemo(
     () => filteredArticles.find((a) => a.id === selectedId) ?? filteredArticles[0] ?? null,
@@ -250,9 +240,9 @@ function AtlasPage() {
   );
 
   const handleMarkerTap = (id: string) => {
-    setClusterIds(null);
-    setSelectedId(null);
-    navigate({ to: "/article/$id", params: { id } });
+    setSelectedId(id);
+    setClusterIds([id]);
+    if (snap === "collapsed") setSnap("default");
   };
 
   const handleClusterTap = (group: Article[]) => {
@@ -367,8 +357,8 @@ function AtlasPage() {
             setMapZoom(z);
             handleMapMoved();
           }}
-          onCenterChange={(c) => {
-            setMapCenter(c);
+          onBoundsChange={(b) => {
+            setMapBounds(b);
             handleMapMoved();
           }}
         />
@@ -693,7 +683,7 @@ function LeafletMap({
   onMapTap,
   mapRef: externalMapRef,
   onZoomChange,
-  onCenterChange,
+  onBoundsChange,
 }: {
   articles: Article[];
   selectedId: string | null;
@@ -702,7 +692,7 @@ function LeafletMap({
   onMapTap?: () => void;
   mapRef?: React.MutableRefObject<any>;
   onZoomChange?: (z: number) => void;
-  onCenterChange?: (c: { lat: number; lng: number }) => void;
+  onBoundsChange?: (b: { north: number; south: number; east: number; west: number }) => void;
 }) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<any>(null);
@@ -712,7 +702,7 @@ function LeafletMap({
   const onClusterRef = useRef(onClusterTap);
   const onMapTapRef = useRef(onMapTap);
   const onZoomRef = useRef(onZoomChange);
-  const onCenterRef = useRef(onCenterChange);
+  const onBoundsRef = useRef(onBoundsChange);
   const [mapReady, setMapReady] = useState(false);
 
   useEffect(() => {
@@ -728,8 +718,8 @@ function LeafletMap({
   }, [onZoomChange]);
 
   useEffect(() => {
-    onCenterRef.current = onCenterChange;
-  }, [onCenterChange]);
+    onBoundsRef.current = onBoundsChange;
+  }, [onBoundsChange]);
 
   useEffect(() => {
     onMapTapRef.current = onMapTap;
@@ -757,17 +747,20 @@ function LeafletMap({
           attribution: "© OpenStreetMap contributors © CARTO",
         },
       ).addTo(map);
+      const emitBounds = () => {
+        const b = map.getBounds();
+        onBoundsRef.current?.({
+          north: b.getNorth(),
+          south: b.getSouth(),
+          east: b.getEast(),
+          west: b.getWest(),
+        });
+      };
       map.on("zoomend", () => {
         onZoomRef.current?.(map.getZoom());
+        emitBounds();
       });
-      map.on("moveend", () => {
-        const c = map.getCenter();
-        onCenterRef.current?.({ lat: c.lat, lng: c.lng });
-      });
-      map.on("move zoom", () => {
-        const c = map.getCenter();
-        onCenterRef.current?.({ lat: c.lat, lng: c.lng });
-      });
+      map.on("moveend", emitBounds);
       markerLayerRef.current = L.layerGroup().addTo(map);
       mapRef.current = map;
       if (externalMapRef) externalMapRef.current = map;
@@ -775,8 +768,13 @@ function LeafletMap({
         onMapTapRef.current?.();
       });
       onZoomRef.current?.(map.getZoom());
-      const c = map.getCenter();
-      onCenterRef.current?.({ lat: c.lat, lng: c.lng });
+      const b = map.getBounds();
+      onBoundsRef.current?.({
+        north: b.getNorth(),
+        south: b.getSouth(),
+        east: b.getEast(),
+        west: b.getWest(),
+      });
       // Ensure correct sizing after layout.
       setTimeout(() => {
         map.invalidateSize();
