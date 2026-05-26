@@ -655,6 +655,8 @@ function ZoomControl() {
         transform: "translateY(-50%)",
         height: 120,
         width: 80,
+        zIndex: 500,
+        pointerEvents: "none",
       }}
     >
       <div
