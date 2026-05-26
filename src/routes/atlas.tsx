@@ -28,6 +28,7 @@ type Article = {
   lat: number;
   lng: number;
   is_breaking: boolean | null;
+  location_name: string | null;
 };
 
 type SnapKey = "collapsed" | "default" | "expanded";
