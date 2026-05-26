@@ -361,6 +361,7 @@ function AtlasPage() {
           selectedId={selectedId}
           onMarkerTap={handleMarkerTap}
           onClusterTap={handleClusterTap}
+          onMapTap={handleMapTap}
           mapRef={leafletMapRef}
           onZoomChange={(z) => {
             setMapZoom(z);
