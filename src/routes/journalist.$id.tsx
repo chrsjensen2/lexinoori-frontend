@@ -1,13 +1,44 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { ArrowLeft } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/journalist/$id")({
   head: () => ({ meta: [{ title: "Journalist — lexinoori." }] }),
   component: JournalistPage,
 });
 
+type JournalistRow = {
+  id: string;
+  name: string;
+  source_id: string | null;
+  article_count: number | null;
+  loaded_language_score: number | null;
+  source_diversity_score: number | null;
+  bias_score: number | null;
+  confidence_level: string | null;
+  created_at: string | null;
+  sources: { name: string | null } | null;
+};
+
 function JournalistPage() {
   const router = useRouter();
+  const { id } = Route.useParams();
+
+  const { data, isLoading } = useQuery({
+    queryKey: ["journalist", id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("journalists")
+        .select(
+          "id, name, source_id, article_count, loaded_language_score, source_diversity_score, bias_score, confidence_level, created_at, sources(name)",
+        )
+        .eq("id", id)
+        .maybeSingle();
+      if (error) throw error;
+      return data as JournalistRow | null;
+    },
+  });
 
   return (
     <div style={{ paddingTop: "env(safe-area-inset-top)" }}>
@@ -45,23 +76,38 @@ function JournalistPage() {
         >
           JOURNALIST
         </div>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
-          <button
-            style={{
-              background: "transparent",
-              border: "none",
-              cursor: "pointer",
-              color: "#1A7A5E",
-              fontWeight: 700,
-              fontSize: 14,
-              padding: 0,
-            }}
-          >
-            Follow
-          </button>
-        </div>
+        <div />
       </div>
 
+      {isLoading ? (
+        <div style={{ padding: 24, color: "#8E8E93", fontSize: 14 }}>Loading…</div>
+      ) : !data ? (
+        <div style={{ padding: 24, color: "#FFFFFF", fontSize: 16 }}>Journalist not found.</div>
+      ) : (
+        <JournalistContent j={data} />
+      )}
+    </div>
+  );
+}
+
+function JournalistContent({ j }: { j: JournalistRow }) {
+  const articleCount = j.article_count ?? 0;
+  const outlet = j.sources?.name ?? "Independent";
+
+  const derivedConfidence: "LOW" | "MODERATE" | "HIGH" =
+    articleCount >= 500 ? "HIGH" : articleCount >= 100 ? "MODERATE" : "LOW";
+  const confidence =
+    (j.confidence_level?.toUpperCase() as "LOW" | "MODERATE" | "HIGH" | undefined) ??
+    derivedConfidence;
+
+  const isInsufficient = confidence === "LOW" || articleCount < 100;
+  const needed = Math.max(0, 100 - articleCount);
+
+  const confidenceColor =
+    confidence === "LOW" ? "#E8873A" : confidence === "HIGH" ? "#00C864" : "#8E8E93";
+
+  return (
+    <>
       {/* Identity card */}
       <div
         style={{
@@ -75,323 +121,154 @@ function JournalistPage() {
           style={{
             color: "#FFFFFF",
             fontWeight: 700,
-            fontSize: 11,
-            letterSpacing: "0.08em",
-          }}
-        >
-          POLITICS · BRUSSELS
-        </div>
-        <div
-          style={{
-            color: "#FFFFFF",
-            fontWeight: 700,
             fontSize: 28,
-            marginTop: 8,
             lineHeight: 1.1,
           }}
         >
-          Marius Lehnert
+          {j.name}
         </div>
-        <div style={{ color: "#FFFFFF80", fontSize: 14, marginTop: 4 }}>
-          Senior Correspondent · The Wire
+        <div style={{ color: "#FFFFFFCC", fontSize: 14, marginTop: 6 }}>{outlet}</div>
+        <div style={{ color: "#FFFFFF99", fontSize: 13, marginTop: 4 }}>
+          {articleCount} {articleCount === 1 ? "article" : "articles"} analysed
         </div>
-        <div style={{ color: "#FFFFFF60", fontSize: 13, marginTop: 4 }}>
-          412 bylines analysed
-        </div>
-        <div style={{ marginTop: 12 }}>
-          <button
+        <div style={{ marginTop: 12, display: "flex", alignItems: "center", gap: 8 }}>
+          <span
             style={{
-              backgroundColor: "#FFFFFF",
-              color: "#1A7A5E",
+              backgroundColor: confidenceColor,
+              color: "#FFFFFF",
+              fontSize: 11,
               fontWeight: 700,
-              fontSize: 14,
-              borderRadius: 12,
-              padding: "0 12px",
-              height: 36,
-              border: "none",
-              cursor: "pointer",
+              letterSpacing: "0.08em",
+              padding: "4px 8px",
+              borderRadius: 6,
             }}
           >
-            Follow byline
-          </button>
+            {confidence} CONFIDENCE
+          </span>
         </div>
       </div>
 
-      {/* Stats row */}
-      <div
-        style={{
-          margin: "12px 16px 0",
-          display: "grid",
-          gridTemplateColumns: "1fr 1fr 1fr",
-          gap: 8,
-        }}
-      >
-        <StatCol label="LOADED LANGUAGE" value="0.18/1" tag="LOW" tagColor="#00C864" />
-        <StatCol label="SOURCE DIVERSITY" value="7.4/10" tag="GOOD" tagColor="#00C864" />
-        <StatCol label="BIAS · NOW" value="L · 4" tag="CENTRE-LEFT" tagColor="#8E8E93" />
-      </div>
-
-      {/* Bias trend chart */}
-      <div
-        style={{
-          margin: "16px 16px 0",
-          backgroundColor: "#1C1C1E",
-          borderRadius: 12,
-          padding: 16,
-          border: "1px solid #2C2C2E",
-        }}
-      >
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <span
-            style={{
-              color: "#8E8E93",
-              fontSize: 11,
-              fontWeight: 700,
-              letterSpacing: "0.08em",
-            }}
-          >
-            BIAS TREND · 12 QUARTERS
-          </span>
-          <span
-            style={{
-              color: "#E8873A",
-              fontSize: 11,
-              fontWeight: 700,
-              letterSpacing: "0.08em",
-            }}
-          >
-            ↗ LEFTWARD
-          </span>
-        </div>
-        <BiasChart />
-      </div>
-
-      {/* Career timeline */}
-      <div
-        style={{
-          margin: "16px 16px 0",
-          backgroundColor: "#1C1C1E",
-          borderRadius: 12,
-          padding: 16,
-          border: "1px solid #2C2C2E",
-        }}
-      >
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <span
-            style={{
-              color: "#8E8E93",
-              fontSize: 11,
-              fontWeight: 700,
-              letterSpacing: "0.08em",
-            }}
-          >
-            CAREER · OUTLET MOVES
-          </span>
-          <span
-            style={{
-              color: "#8E8E93",
-              fontSize: 11,
-              fontWeight: 700,
-              letterSpacing: "0.08em",
-            }}
-          >
-            4 EMPLOYERS · 11 YR
-          </span>
-        </div>
-        <CareerTimeline />
+      {isInsufficient && (
         <div
           style={{
-            marginTop: 8,
-            color: "#8E8E93",
+            margin: "12px 16px 0",
+            backgroundColor: "#1C1C1E",
+            border: "1px solid #2C2C2E",
+            borderRadius: 12,
+            padding: 16,
+            color: "#E8873A",
             fontSize: 13,
             lineHeight: 1.5,
           }}
         >
-          <span
-            style={{
-              display: "inline-block",
-              width: 6,
-              height: 6,
-              borderRadius: 999,
-              backgroundColor: "#00C864",
-              marginRight: 8,
-              verticalAlign: "middle",
-            }}
-          />
-          Bias drifted 0.6 points leftward on the move to The Wire. Loaded language stayed flat. We disclose this on every byline.
+          Insufficient data for reliable scores. {needed} more{" "}
+          {needed === 1 ? "article" : "articles"} needed.
         </div>
-      </div>
+      )}
 
-      <div style={{ height: 16 }} />
-    </div>
+      {articleCount >= 100 && (
+        <div
+          style={{
+            margin: "16px 16px 0",
+            backgroundColor: "#1C1C1E",
+            borderRadius: 12,
+            padding: 16,
+            border: "1px solid #2C2C2E",
+            display: "flex",
+            flexDirection: "column",
+            gap: 16,
+          }}
+        >
+          <ScoreBar
+            label="LOADED LANGUAGE"
+            value={Number(j.loaded_language_score ?? 0)}
+            max={1}
+            tone="inverse"
+          />
+          <ScoreBar
+            label="SOURCE DIVERSITY"
+            value={Number(j.source_diversity_score ?? 0)}
+            max={10}
+          />
+          <ScoreBar
+            label="BIAS SCORE"
+            value={Number(j.bias_score ?? 0)}
+            max={1}
+            signed
+          />
+        </div>
+      )}
+
+      <div style={{ height: 24 }} />
+    </>
   );
 }
 
-function StatCol({
+function ScoreBar({
   label,
   value,
-  tag,
-  tagColor,
+  max,
+  tone,
+  signed,
 }: {
   label: string;
-  value: string;
-  tag: string;
-  tagColor: string;
+  value: number;
+  max: number;
+  tone?: "inverse";
+  signed?: boolean;
 }) {
+  const pct = signed
+    ? Math.min(100, Math.max(0, ((value + max) / (max * 2)) * 100))
+    : Math.min(100, Math.max(0, (value / max) * 100));
+  // For loaded language, lower is better — invert color logic
+  const good = tone === "inverse" ? pct < 30 : pct > 60;
+  const color = good ? "#00C864" : pct > 80 || pct < 20 ? "#E8873A" : "#1A7A5E";
+
   return (
-    <div
-      style={{
-        backgroundColor: "#1C1C1E",
-        borderRadius: 12,
-        padding: 16,
-        border: "1px solid #2C2C2E",
-      }}
-    >
+    <div>
       <div
         style={{
-          color: "#8E8E93",
-          fontSize: 10,
-          fontWeight: 700,
-          letterSpacing: "0.08em",
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "baseline",
+          marginBottom: 6,
         }}
       >
-        {label}
+        <span
+          style={{
+            color: "#8E8E93",
+            fontSize: 11,
+            fontWeight: 700,
+            letterSpacing: "0.08em",
+          }}
+        >
+          {label}
+        </span>
+        <span style={{ color: "#FFFFFF", fontSize: 14, fontWeight: 700 }}>
+          {signed && value > 0 ? "+" : ""}
+          {value.toFixed(2)}
+          <span style={{ color: "#8E8E93", fontWeight: 400 }}>
+            {" "}
+            / {signed ? `±${max}` : max}
+          </span>
+        </span>
       </div>
       <div
         style={{
-          color: "#FFFFFF",
-          fontWeight: 700,
-          fontSize: 20,
-          marginTop: 6,
-        }}
-      >
-        {value}
-      </div>
-      <div
-        style={{
-          color: tagColor,
-          fontSize: 11,
-          fontWeight: 700,
-          letterSpacing: "0.08em",
-          marginTop: 4,
-        }}
-      >
-        {tag}
-      </div>
-    </div>
-  );
-}
-
-function BiasChart() {
-  // 12 quarters, value 0 = centre, +20 = right, -20 = left (px from centre)
-  // Drift gradually leftward (negative)
-  const values = [2, 1, -1, 0, -2, -4, -5, -8, -10, -13, -15, -18];
-  const w = 320;
-  const h = 100;
-  const padL = 24;
-  const padR = 8;
-  const chartW = w - padL - padR;
-  const cx = (i: number) => padL + (chartW * i) / (values.length - 1);
-  const cy = (v: number) => h / 2 - v * 1.8;
-
-  const pts = values.map((v, i) => [cx(i), cy(v)] as const);
-  const path = pts
-    .map((p, i) => {
-      if (i === 0) return `M ${p[0]} ${p[1]}`;
-      const prev = pts[i - 1];
-      const mx = (prev[0] + p[0]) / 2;
-      return `Q ${prev[0]} ${prev[1]} ${mx} ${(prev[1] + p[1]) / 2} T ${p[0]} ${p[1]}`;
-    })
-    .join(" ");
-  const area = `${path} L ${pts[pts.length - 1][0]} ${h} L ${pts[0][0]} ${h} Z`;
-
-  return (
-    <div style={{ position: "relative", height: 120, marginTop: 8 }}>
-      <svg
-        width="100%"
-        height="120"
-        viewBox={`0 0 ${w} ${h + 20}`}
-        preserveAspectRatio="none"
-        style={{ display: "block" }}
-      >
-        {/* Y axis labels */}
-        <text x={4} y={12} fill="#8E8E93" fontSize="10">
-          R 40
-        </text>
-        <text x={4} y={h - 2} fill="#8E8E93" fontSize="10">
-          L 40
-        </text>
-        {/* Centre dashed line */}
-        <line
-          x1={padL}
-          x2={w - padR}
-          y1={h / 2}
-          y2={h / 2}
-          stroke="#2C2C2E"
-          strokeWidth={1}
-          strokeDasharray="3 3"
-        />
-        {/* Area fill */}
-        <path d={area} fill="#1A7A5E" fillOpacity={0.08} />
-        {/* Trend line */}
-        <path d={path} fill="none" stroke="#1A7A5E" strokeWidth={2} />
-        {/* Points */}
-        {pts.map((p, i) => {
-          const isLast = i === pts.length - 1;
-          return isLast ? (
-            <circle key={i} cx={p[0]} cy={p[1]} r={4} fill="#1A7A5E" stroke="#FFFFFF" strokeWidth={2} />
-          ) : (
-            <circle key={i} cx={p[0]} cy={p[1]} r={3} fill="#1A7A5E" />
-          );
-        })}
-      </svg>
-    </div>
-  );
-}
-
-function CareerTimeline() {
-  const items = [
-    { year: "2014", outlet: "Local Daily" },
-    { year: "2017", outlet: "Wire Service" },
-    { year: "2020", outlet: "National" },
-    { year: "2024", outlet: "The Wire" },
-  ];
-  return (
-    <div style={{ marginTop: 16, position: "relative" }}>
-      <div
-        style={{
-          position: "absolute",
-          left: 4,
-          right: 4,
-          top: 3,
-          height: 2,
+          height: 6,
           backgroundColor: "#2C2C2E",
-        }}
-      />
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "1fr 1fr 1fr 1fr",
-          position: "relative",
+          borderRadius: 999,
+          overflow: "hidden",
         }}
       >
-        {items.map((it, i) => {
-          const isCurrent = i === items.length - 1;
-          return (
-            <div key={it.year} style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-              <div
-                style={{
-                  width: 8,
-                  height: 8,
-                  borderRadius: 999,
-                  backgroundColor: isCurrent ? "#1A7A5E" : "#2C2C2E",
-                }}
-              />
-              <div style={{ color: "#8E8E93", fontSize: 10, marginTop: 8 }}>{it.year}</div>
-              <div style={{ color: isCurrent ? "#FFFFFF" : "#8E8E93", fontSize: 11, marginTop: 2 }}>{it.outlet}</div>
-            </div>
-          );
-        })}
+        <div
+          style={{
+            width: `${pct}%`,
+            height: "100%",
+            backgroundColor: color,
+            transition: "width 0.3s ease",
+          }}
+        />
       </div>
     </div>
   );
