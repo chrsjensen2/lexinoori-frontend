@@ -73,14 +73,21 @@ function AtlasPage() {
 
   const [articles, setArticles] = useState<Article[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [clusterIds, setClusterIds] = useState<string[] | null>(null);
   const [depth, setDepth] = useState<Depth>("Standard");
   const leafletMapRef = useRef<any>(null);
   const [mapZoom, setMapZoom] = useState<number>(2);
   const [mapCenter, setMapCenter] = useState<{ lat: number; lng: number }>({ lat: 20, lng: 0 });
+  const [mapTick, setMapTick] = useState(0);
+  const navigate = useNavigate();
 
   const handleZoomSelect = useCallback((z: number) => {
     const m = leafletMapRef.current;
     if (m) m.setZoom(z, { animate: true });
+  }, []);
+
+  const handleMapMoved = useCallback(() => {
+    setMapTick((t) => t + 1);
   }, []);
 
   useEffect(() => {
@@ -243,9 +250,43 @@ function AtlasPage() {
   );
 
   const handleMarkerTap = (id: string) => {
+    setClusterIds(null);
     setSelectedId(id);
     if (snap === "collapsed") setSnap("default");
   };
+
+  const handleClusterTap = (group: Article[]) => {
+    setSelectedId(null);
+    setClusterIds(group.map((a) => a.id));
+    if (snap === "collapsed") setSnap("default");
+  };
+
+  const displayArticles = useMemo(() => {
+    if (clusterIds) {
+      const ids = new Set(clusterIds);
+      return filteredArticles.filter((a) => ids.has(a.id));
+    }
+    return filteredArticles;
+  }, [filteredArticles, clusterIds]);
+
+  const selectedArticle = useMemo(
+    () => (selectedId ? articles.find((a) => a.id === selectedId) ?? null : null),
+    [articles, selectedId],
+  );
+
+  // Compute popup viewport position when a single marker is selected.
+  const popupPos = useMemo(() => {
+    void mapTick;
+    const m = leafletMapRef.current;
+    if (!m || !selectedArticle) return null;
+    try {
+      const pt = m.latLngToContainerPoint([selectedArticle.lat, selectedArticle.lng]);
+      const rect = m.getContainer().getBoundingClientRect();
+      return { x: rect.left + pt.x, y: rect.top + pt.y };
+    } catch {
+      return null;
+    }
+  }, [selectedArticle, mapTick]);
 
   return (
     <div
@@ -313,9 +354,16 @@ function AtlasPage() {
           articles={filteredArticles}
           selectedId={selectedId}
           onMarkerTap={handleMarkerTap}
+          onClusterTap={handleClusterTap}
           mapRef={leafletMapRef}
-          onZoomChange={setMapZoom}
-          onCenterChange={setMapCenter}
+          onZoomChange={(z) => {
+            setMapZoom(z);
+            handleMapMoved();
+          }}
+          onCenterChange={(c) => {
+            setMapCenter(c);
+            handleMapMoved();
+          }}
         />
         <ZoomControl zoom={mapZoom} onSelect={handleZoomSelect} />
       </div>
@@ -391,24 +439,76 @@ function AtlasPage() {
               padding: "8px 20px 24px",
             }}
           >
-            {filteredArticles.length === 0 ? (
+            {displayArticles.length === 0 ? (
               <p style={{ color: "#8E8E93", fontSize: 14, padding: "16px 0" }}>
                 No stories with location data in the last 24 hours.
               </p>
             ) : (
-              filteredArticles.map((a, i) => (
+              displayArticles.map((a, i) => (
                 <ArticleRow
                   key={a.id}
                   article={a}
                   depth={depth}
                   selected={a.id === selectedId}
-                  last={i === filteredArticles.length - 1}
+                  last={i === displayArticles.length - 1}
                 />
               ))
             )}
           </div>
         )}
       </div>
+
+      {selectedArticle && popupPos && (
+        <button
+          type="button"
+          onClick={() => {
+            navigate({ to: "/article/$id", params: { id: selectedArticle.id } });
+          }}
+          style={{
+            position: "fixed",
+            left: popupPos.x,
+            top: popupPos.y - 16,
+            transform: "translate(-50%, -100%)",
+            zIndex: 2000,
+            background: "#1a1a1a",
+            border: "none",
+            borderRadius: 6,
+            padding: "6px 8px",
+            boxShadow: "0 4px 12px rgba(0,0,0,0.5)",
+            cursor: "pointer",
+            fontFamily: "'Heebo', sans-serif",
+            textAlign: "left",
+            maxWidth: 220,
+            pointerEvents: "auto",
+          }}
+        >
+          {selectedArticle.location_name && (
+            <div
+              style={{
+                color: "#8E8E93",
+                fontSize: 10,
+                lineHeight: 1.2,
+                marginBottom: 4,
+              }}
+            >
+              {selectedArticle.location_name}
+            </div>
+          )}
+          <div
+            style={{
+              color: "#FFFFFF",
+              fontWeight: 700,
+              fontSize: 13,
+              lineHeight: 1.3,
+              letterSpacing: "-0.01em",
+            }}
+          >
+            {selectedArticle.headline.length > 50
+              ? selectedArticle.headline.slice(0, 47).trimEnd() + "…"
+              : selectedArticle.headline}
+          </div>
+        </button>
+      )}
     </div>
   );
 }
@@ -582,6 +682,7 @@ function LeafletMap({
   articles,
   selectedId,
   onMarkerTap,
+  onClusterTap,
   mapRef: externalMapRef,
   onZoomChange,
   onCenterChange,
@@ -589,6 +690,7 @@ function LeafletMap({
   articles: Article[];
   selectedId: string | null;
   onMarkerTap: (id: string) => void;
+  onClusterTap: (group: Article[]) => void;
   mapRef?: React.MutableRefObject<any>;
   onZoomChange?: (z: number) => void;
   onCenterChange?: (c: { lat: number; lng: number }) => void;
@@ -598,19 +700,18 @@ function LeafletMap({
   const markerLayerRef = useRef<any>(null);
   const LRef = useRef<any>(null);
   const onTapRef = useRef(onMarkerTap);
-  const navigate = useNavigate();
-  const navigateRef = useRef(navigate);
+  const onClusterRef = useRef(onClusterTap);
   const onZoomRef = useRef(onZoomChange);
   const onCenterRef = useRef(onCenterChange);
   const [mapReady, setMapReady] = useState(false);
 
   useEffect(() => {
-    navigateRef.current = navigate;
-  }, [navigate]);
-
-  useEffect(() => {
     onTapRef.current = onMarkerTap;
   }, [onMarkerTap]);
+
+  useEffect(() => {
+    onClusterRef.current = onClusterTap;
+  }, [onClusterTap]);
 
   useEffect(() => {
     onZoomRef.current = onZoomChange;
@@ -649,6 +750,10 @@ function LeafletMap({
         const c = map.getCenter();
         onCenterRef.current?.({ lat: c.lat, lng: c.lng });
       });
+      map.on("move zoom", () => {
+        const c = map.getCenter();
+        onCenterRef.current?.({ lat: c.lat, lng: c.lng });
+      });
       markerLayerRef.current = L.layerGroup().addTo(map);
       mapRef.current = map;
       if (externalMapRef) externalMapRef.current = map;
@@ -682,11 +787,6 @@ function LeafletMap({
 
     layer.clearLayers();
 
-    const escape = (s: string) =>
-      s.replace(/[&<>"']/g, (c) =>
-        ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]!),
-      );
-
     // Bucket articles into 0.5° cells.
     const buckets = new Map<string, Article[]>();
     for (const a of articles) {
@@ -696,8 +796,6 @@ function LeafletMap({
       else buckets.set(key, [a]);
     }
 
-    let selectedMarker: any = null;
-    let selectedArticle: Article | null = null;
 
     for (const group of buckets.values()) {
       if (group.length === 1) {
@@ -712,43 +810,9 @@ function LeafletMap({
           fillColor: color,
           fillOpacity: 0.95,
         };
-        const truncated =
-          a.headline.length > 50 ? a.headline.slice(0, 47).trimEnd() + "…" : a.headline;
-        const safeHeadline = escape(truncated);
-        const safeLocation = a.location_name ? escape(a.location_name) : "";
-        const popupHtml = `
-          <div data-article-id="${a.id}" style="font-family:'Heebo',sans-serif;cursor:pointer;max-width:220px;">
-            ${
-              safeLocation
-                ? `<div style="color:#8E8E93;font-size:10px;line-height:1.2;margin-bottom:4px;">${safeLocation}</div>`
-                : ""
-            }
-            <div style="color:#FFFFFF;font-weight:700;font-size:13px;line-height:1.3;letter-spacing:-0.01em;">${safeHeadline}</div>
-          </div>
-        `;
         const m = L.circleMarker([a.lat, a.lng], opts);
-        m.bindPopup(popupHtml, {
-          offset: [0, -4],
-          closeButton: false,
-          autoPan: false,
-          className: "atlas-popup",
-        });
         m.on("click", () => onTapRef.current(a.id));
-        m.on("popupopen", (e: any) => {
-          const el = e.popup.getElement()?.querySelector("[data-article-id]") as
-            | HTMLElement
-            | null;
-          if (el) {
-            el.onclick = () => {
-              navigateRef.current({ to: "/article/$id", params: { id: a.id } });
-            };
-          }
-        });
         layer.addLayer(m);
-        if (isSelected) {
-          selectedMarker = m;
-          selectedArticle = a;
-        }
       } else {
         // Cluster marker with count badge.
         const count = group.length;
@@ -788,15 +852,10 @@ function LeafletMap({
         });
         const m = L.marker([meanLat, meanLng], { icon });
         m.on("click", () => {
-          const target = Math.min(map.getMaxZoom() ?? 19, map.getZoom() + 2);
-          map.setView([meanLat, meanLng], target, { animate: true });
+          onClusterRef.current(group);
         });
         layer.addLayer(m);
       }
-    }
-
-    if (selectedMarker && selectedArticle && !selectedMarker.isPopupOpen()) {
-      selectedMarker.openPopup();
     }
   }, [articles, selectedId, mapReady]);
 
