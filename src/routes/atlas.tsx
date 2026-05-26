@@ -768,8 +768,13 @@ function LeafletMap({
         onMapTapRef.current?.();
       });
       onZoomRef.current?.(map.getZoom());
-      const c = map.getCenter();
-      onCenterRef.current?.({ lat: c.lat, lng: c.lng });
+      const b = map.getBounds();
+      onBoundsRef.current?.({
+        north: b.getNorth(),
+        south: b.getSouth(),
+        east: b.getEast(),
+        west: b.getWest(),
+      });
       // Ensure correct sizing after layout.
       setTimeout(() => {
         map.invalidateSize();
