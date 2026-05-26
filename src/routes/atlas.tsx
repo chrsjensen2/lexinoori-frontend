@@ -439,18 +439,18 @@ function AtlasPage() {
               padding: "8px 20px 24px",
             }}
           >
-            {filteredArticles.length === 0 ? (
+            {displayArticles.length === 0 ? (
               <p style={{ color: "#8E8E93", fontSize: 14, padding: "16px 0" }}>
                 No stories with location data in the last 24 hours.
               </p>
             ) : (
-              filteredArticles.map((a, i) => (
+              displayArticles.map((a, i) => (
                 <ArticleRow
                   key={a.id}
                   article={a}
                   depth={depth}
                   selected={a.id === selectedId}
-                  last={i === filteredArticles.length - 1}
+                  last={i === displayArticles.length - 1}
                 />
               ))
             )}
