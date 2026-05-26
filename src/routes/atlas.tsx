@@ -869,7 +869,8 @@ function LeafletMap({
           iconAnchor: [size / 2, size / 2],
         });
         const m = L.marker([meanLat, meanLng], { icon });
-        m.on("click", () => {
+        m.on("click", (e: any) => {
+          (LRef.current as any)?.DomEvent?.stopPropagation?.(e);
           onClusterRef.current(group);
         });
         layer.addLayer(m);
