@@ -697,35 +697,3 @@ function ZoomControl() {
     </div>
   );
 }
-
-function WorldMap() {
-  const fill = "#1A1A2A";
-  return (
-    <svg
-      viewBox="0 0 390 360"
-      width="100%"
-      height="100%"
-      preserveAspectRatio="none"
-      style={{ display: "block" }}
-      aria-hidden
-    >
-      <path
-        d="M 8 80 L 55 60 L 105 70 L 130 95 L 135 135 L 115 175 L 80 195 L 45 180 L 22 150 L 10 115 Z"
-        fill={fill}
-      />
-      <path d="M 95 195 L 120 195 L 130 215 L 110 225 L 98 215 Z" fill={fill} />
-      <path d="M 110 225 L 145 225 L 160 270 L 150 320 L 125 345 L 108 325 L 105 280 Z" fill={fill} />
-      <path d="M 160 50 L 195 45 L 200 75 L 175 85 L 158 72 Z" fill={fill} />
-      <path d="M 195 90 L 230 85 L 245 105 L 240 130 L 215 138 L 195 125 Z" fill={fill} />
-      <path
-        d="M 200 145 L 260 140 L 285 175 L 295 225 L 280 280 L 245 320 L 215 320 L 195 285 L 188 235 L 188 185 Z"
-        fill={fill}
-      />
-      <path d="M 250 145 L 285 140 L 300 165 L 290 185 L 260 180 Z" fill={fill} />
-      <path d="M 245 90 L 320 75 L 370 95 L 380 135 L 370 175 L 330 195 L 295 185 L 270 160 L 252 130 Z" fill={fill} />
-      <path d="M 295 195 L 325 190 L 332 225 L 312 245 L 298 220 Z" fill={fill} />
-      <path d="M 335 230 L 375 235 L 380 265 L 350 275 L 338 255 Z" fill={fill} />
-      <path d="M 330 290 L 375 285 L 385 315 L 358 335 L 330 325 Z" fill={fill} />
-    </svg>
-  );
-}
