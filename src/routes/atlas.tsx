@@ -248,7 +248,7 @@ function AtlasPage() {
   const handleMarkerTap = (id: string) => {
     setSelectedId(id);
     setClusterIds([id]);
-    if (snap === "collapsed") setSnap("default");
+    setSnap("default");
   };
 
   const handleClusterTap = (group: Article[]) => {
