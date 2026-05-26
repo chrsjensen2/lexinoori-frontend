@@ -127,7 +127,7 @@ function AtlasPage() {
       const pick = <T,>(row: any, base: string): T =>
         (row?.[`${base}${suffix}`] ?? row?.[base]) as T;
 
-      const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+      const since = new Date(Date.now() - 72 * 60 * 60 * 1000).toISOString();
       const { data, error } = await (supabase as any)
         .from("articles")
         .select(
