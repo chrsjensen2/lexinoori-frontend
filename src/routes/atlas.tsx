@@ -288,8 +288,10 @@ function AtlasPage() {
           articles={articles}
           selectedId={selectedId}
           onMarkerTap={handleMarkerTap}
+          mapRef={leafletMapRef}
+          onZoomChange={setMapZoom}
         />
-        <ZoomControl />
+        <ZoomControl zoom={mapZoom} onSelect={handleZoomSelect} />
       </div>
 
       <div
