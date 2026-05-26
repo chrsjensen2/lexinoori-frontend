@@ -159,10 +159,16 @@ function AtlasPage() {
     };
   }, []);
 
+  // displayCount is computed below; reference forward via a closure-safe value.
+  const displayCount = useMemo(() => {
+    if (!clusterIds) return null;
+    return clusterIds.length;
+  }, [clusterIds]);
+  const isSingleCard = displayCount === 1;
   const snapHeights: Record<SnapKey, number> = {
     collapsed: 130,
-    default: Math.round(containerH * 0.55),
-    expanded: Math.round(containerH * 0.8),
+    default: isSingleCard ? 220 : Math.round(containerH * 0.55),
+    expanded: isSingleCard ? 220 : Math.round(containerH * 0.8),
   };
   const baseH = snapHeights[snap];
   const liveH = Math.max(snapHeights.collapsed, Math.min(snapHeights.expanded, baseH - dragOffset));
@@ -242,7 +248,7 @@ function AtlasPage() {
   const handleMarkerTap = (id: string) => {
     setSelectedId(id);
     setClusterIds([id]);
-    if (snap === "collapsed") setSnap("default");
+    setSnap("default");
   };
 
   const handleClusterTap = (group: Article[]) => {
@@ -826,7 +832,10 @@ function LeafletMap({
           fillOpacity: 0.95,
         };
         const m = L.circleMarker([a.lat, a.lng], opts);
-        m.on("click", () => onTapRef.current(a.id));
+        m.on("click", (e: any) => {
+          (LRef.current as any)?.DomEvent?.stopPropagation?.(e);
+          onTapRef.current(a.id);
+        });
         layer.addLayer(m);
       } else {
         // Cluster marker with count badge.
@@ -866,7 +875,8 @@ function LeafletMap({
           iconAnchor: [size / 2, size / 2],
         });
         const m = L.marker([meanLat, meanLng], { icon });
-        m.on("click", () => {
+        m.on("click", (e: any) => {
+          (LRef.current as any)?.DomEvent?.stopPropagation?.(e);
           onClusterRef.current(group);
         });
         layer.addLayer(m);
