@@ -556,10 +556,14 @@ function LeafletMap({
   articles,
   selectedId,
   onMarkerTap,
+  mapRef: externalMapRef,
+  onZoomChange,
 }: {
   articles: Article[];
   selectedId: string | null;
   onMarkerTap: (id: string) => void;
+  mapRef?: React.MutableRefObject<any>;
+  onZoomChange?: (z: number) => void;
 }) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<any>(null);
@@ -568,6 +572,7 @@ function LeafletMap({
   const onTapRef = useRef(onMarkerTap);
   const navigate = useNavigate();
   const navigateRef = useRef(navigate);
+  const onZoomRef = useRef(onZoomChange);
   const [mapReady, setMapReady] = useState(false);
 
   useEffect(() => {
@@ -577,6 +582,10 @@ function LeafletMap({
   useEffect(() => {
     onTapRef.current = onMarkerTap;
   }, [onMarkerTap]);
+
+  useEffect(() => {
+    onZoomRef.current = onZoomChange;
+  }, [onZoomChange]);
 
   // Initialise map once.
   useEffect(() => {
@@ -600,7 +609,12 @@ function LeafletMap({
           attribution: "© OpenStreetMap contributors © CARTO",
         },
       ).addTo(map);
+      map.on("zoomend", () => {
+        onZoomRef.current?.(map.getZoom());
+      });
       mapRef.current = map;
+      if (externalMapRef) externalMapRef.current = map;
+      onZoomRef.current?.(map.getZoom());
       // Ensure correct sizing after layout.
       setTimeout(() => {
         map.invalidateSize();
@@ -612,6 +626,7 @@ function LeafletMap({
       if (mapRef.current) {
         mapRef.current.remove();
         mapRef.current = null;
+        if (externalMapRef) externalMapRef.current = null;
       }
       markersRef.current.clear();
       setMapReady(false);
