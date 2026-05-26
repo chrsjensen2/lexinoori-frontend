@@ -817,43 +817,9 @@ function LeafletMap({
           fillColor: color,
           fillOpacity: 0.95,
         };
-        const truncated =
-          a.headline.length > 50 ? a.headline.slice(0, 47).trimEnd() + "…" : a.headline;
-        const safeHeadline = escape(truncated);
-        const safeLocation = a.location_name ? escape(a.location_name) : "";
-        const popupHtml = `
-          <div data-article-id="${a.id}" style="font-family:'Heebo',sans-serif;cursor:pointer;max-width:220px;">
-            ${
-              safeLocation
-                ? `<div style="color:#8E8E93;font-size:10px;line-height:1.2;margin-bottom:4px;">${safeLocation}</div>`
-                : ""
-            }
-            <div style="color:#FFFFFF;font-weight:700;font-size:13px;line-height:1.3;letter-spacing:-0.01em;">${safeHeadline}</div>
-          </div>
-        `;
         const m = L.circleMarker([a.lat, a.lng], opts);
-        m.bindPopup(popupHtml, {
-          offset: [0, -4],
-          closeButton: false,
-          autoPan: false,
-          className: "atlas-popup",
-        });
         m.on("click", () => onTapRef.current(a.id));
-        m.on("popupopen", (e: any) => {
-          const el = e.popup.getElement()?.querySelector("[data-article-id]") as
-            | HTMLElement
-            | null;
-          if (el) {
-            el.onclick = () => {
-              navigateRef.current({ to: "/article/$id", params: { id: a.id } });
-            };
-          }
-        });
         layer.addLayer(m);
-        if (isSelected) {
-          selectedMarker = m;
-          selectedArticle = a;
-        }
       } else {
         // Cluster marker with count badge.
         const count = group.length;
