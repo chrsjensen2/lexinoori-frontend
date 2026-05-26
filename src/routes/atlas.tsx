@@ -683,7 +683,7 @@ function LeafletMap({
   onMapTap,
   mapRef: externalMapRef,
   onZoomChange,
-  onCenterChange,
+  onBoundsChange,
 }: {
   articles: Article[];
   selectedId: string | null;
@@ -692,7 +692,7 @@ function LeafletMap({
   onMapTap?: () => void;
   mapRef?: React.MutableRefObject<any>;
   onZoomChange?: (z: number) => void;
-  onCenterChange?: (c: { lat: number; lng: number }) => void;
+  onBoundsChange?: (b: { north: number; south: number; east: number; west: number }) => void;
 }) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<any>(null);
@@ -702,7 +702,7 @@ function LeafletMap({
   const onClusterRef = useRef(onClusterTap);
   const onMapTapRef = useRef(onMapTap);
   const onZoomRef = useRef(onZoomChange);
-  const onCenterRef = useRef(onCenterChange);
+  const onBoundsRef = useRef(onBoundsChange);
   const [mapReady, setMapReady] = useState(false);
 
   useEffect(() => {
@@ -718,8 +718,8 @@ function LeafletMap({
   }, [onZoomChange]);
 
   useEffect(() => {
-    onCenterRef.current = onCenterChange;
-  }, [onCenterChange]);
+    onBoundsRef.current = onBoundsChange;
+  }, [onBoundsChange]);
 
   useEffect(() => {
     onMapTapRef.current = onMapTap;
@@ -747,17 +747,20 @@ function LeafletMap({
           attribution: "© OpenStreetMap contributors © CARTO",
         },
       ).addTo(map);
+      const emitBounds = () => {
+        const b = map.getBounds();
+        onBoundsRef.current?.({
+          north: b.getNorth(),
+          south: b.getSouth(),
+          east: b.getEast(),
+          west: b.getWest(),
+        });
+      };
       map.on("zoomend", () => {
         onZoomRef.current?.(map.getZoom());
+        emitBounds();
       });
-      map.on("moveend", () => {
-        const c = map.getCenter();
-        onCenterRef.current?.({ lat: c.lat, lng: c.lng });
-      });
-      map.on("move zoom", () => {
-        const c = map.getCenter();
-        onCenterRef.current?.({ lat: c.lat, lng: c.lng });
-      });
+      map.on("moveend", emitBounds);
       markerLayerRef.current = L.layerGroup().addTo(map);
       mapRef.current = map;
       if (externalMapRef) externalMapRef.current = map;
