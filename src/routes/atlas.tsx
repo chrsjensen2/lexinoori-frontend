@@ -528,71 +528,112 @@ function ArticleRow({
   );
 }
 
-function ArticleMarker({
-  x,
-  y,
-  color,
-  pulse,
-  selected,
-  label,
-  onTap,
+function LeafletMap({
+  articles,
+  selectedId,
+  onMarkerTap,
 }: {
-  x: number;
-  y: number;
-  color: string;
-  pulse: boolean;
-  selected: boolean;
-  label: string;
-  onTap: () => void;
+  articles: Article[];
+  selectedId: string | null;
+  onMarkerTap: (id: string) => void;
 }) {
-  const size = selected ? 20 : 14;
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const mapRef = useRef<any>(null);
+  const markersRef = useRef<Map<string, any>>(new Map());
+  const LRef = useRef<any>(null);
+  const onTapRef = useRef(onMarkerTap);
+
+  useEffect(() => {
+    onTapRef.current = onMarkerTap;
+  }, [onMarkerTap]);
+
+  // Initialise map once.
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const L = (await import("leaflet")).default;
+      if (cancelled || !containerRef.current || mapRef.current) return;
+      LRef.current = L;
+      const map = L.map(containerRef.current, {
+        center: [20, 0],
+        zoom: 2,
+        minZoom: 2,
+        worldCopyJump: true,
+        zoomControl: false,
+        attributionControl: true,
+      });
+      L.tileLayer(
+        "https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png",
+        {
+          maxZoom: 20,
+          attribution:
+            '&copy; <a href="https://stadiamaps.com/">Stadia Maps</a> &copy; <a href="https://openmaptiles.org/">OpenMapTiles</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+        },
+      ).addTo(map);
+      mapRef.current = map;
+      // Ensure correct sizing after layout.
+      setTimeout(() => map.invalidateSize(), 0);
+    })();
+    return () => {
+      cancelled = true;
+      if (mapRef.current) {
+        mapRef.current.remove();
+        mapRef.current = null;
+      }
+      markersRef.current.clear();
+    };
+  }, []);
+
+  // Sync markers with articles + selection.
+  useEffect(() => {
+    const L = LRef.current;
+    const map = mapRef.current;
+    if (!L || !map) return;
+
+    const nextIds = new Set(articles.map((a) => a.id));
+    // Remove stale markers.
+    for (const [id, marker] of markersRef.current.entries()) {
+      if (!nextIds.has(id)) {
+        map.removeLayer(marker);
+        markersRef.current.delete(id);
+      }
+    }
+    // Add/update markers.
+    for (const a of articles) {
+      const topic = toTopic(a.topic);
+      const color = topic ? TOPIC_COLORS[topic] : "#FFFFFF";
+      const isSelected = a.id === selectedId;
+      const existing = markersRef.current.get(a.id);
+      const opts = {
+        radius: isSelected ? 9 : 6,
+        color: "#FFFFFF",
+        weight: isSelected ? 2 : 1,
+        fillColor: color,
+        fillOpacity: 0.95,
+      };
+      if (existing) {
+        existing.setLatLng([a.lat, a.lng]);
+        existing.setStyle(opts);
+      } else {
+        const m = L.circleMarker([a.lat, a.lng], opts).addTo(map);
+        m.on("click", () => onTapRef.current(a.id));
+        markersRef.current.set(a.id, m);
+      }
+    }
+  }, [articles, selectedId]);
+
   return (
-    <button
-      aria-label={label}
-      onClick={(e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        onTap();
-      }}
+    <div
+      ref={containerRef}
       style={{
         position: "absolute",
-        left: `${x}%`,
-        top: `${y}%`,
-        transform: "translate(-50%, -50%)",
-        width: size,
-        height: size,
-        padding: 0,
-        background: "transparent",
-        border: "none",
-        cursor: "pointer",
-        zIndex: 2,
+        inset: 0,
+        backgroundColor: "#0A0A0F",
       }}
-    >
-      {pulse && (
-        <span
-          style={{
-            position: "absolute",
-            inset: -8,
-            borderRadius: 999,
-            border: `2px solid ${color}`,
-            animation: "lex-pulse 1.6s ease-in-out infinite",
-          }}
-        />
-      )}
-      <span
-        style={{
-          display: "block",
-          width: "100%",
-          height: "100%",
-          borderRadius: 999,
-          backgroundColor: color,
-          border: selected ? "2px solid #FFFFFF" : "2px solid rgba(255,255,255,0.7)",
-          boxShadow: `0 0 12px ${color}80`,
-        }}
-      />
-    </button>
+    />
   );
 }
+
 
 function ZoomControl() {
   const levels = [
