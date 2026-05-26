@@ -831,6 +831,7 @@ function SourceRow({
   journalistId?: string | null;
   last?: boolean;
 }) {
+  const navigate = useNavigate();
   const [expanded, setExpanded] = useState(false);
   const truncated = headline.length > 60 ? `${headline.slice(0, 60)}…` : headline;
   const items: Array<{ phrase?: string; neutral?: string; reason?: string }> = Array.isArray(loadedLanguage)
