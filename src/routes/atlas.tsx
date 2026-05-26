@@ -826,7 +826,10 @@ function LeafletMap({
           fillOpacity: 0.95,
         };
         const m = L.circleMarker([a.lat, a.lng], opts);
-        m.on("click", () => onTapRef.current(a.id));
+        m.on("click", (e: any) => {
+          (LRef.current as any)?.DomEvent?.stopPropagation?.(e);
+          onTapRef.current(a.id);
+        });
         layer.addLayer(m);
       } else {
         // Cluster marker with count badge.
