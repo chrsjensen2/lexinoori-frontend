@@ -845,9 +845,7 @@ function SourceRow({
         tabIndex={hasJournalist ? 0 : undefined}
         onClick={() => {
           if (hasJournalist) {
-            // Navigate to journalist profile
-            // Use window.location for simplicity or router — this is inside a component with router in scope
-            window.location.href = `/journalist/${journalistId}`;
+            navigate({ to: "/journalist/$id", params: { id: journalistId! } });
           } else {
             setExpanded((v) => !v);
           }
