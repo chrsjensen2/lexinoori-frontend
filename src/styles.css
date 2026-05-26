@@ -156,3 +156,10 @@
   background: #1a1a1a;
   box-shadow: none;
 }
+
+.leaflet-popup.atlas-popup {
+  z-index: 2000 !important;
+}
+.leaflet-pane.leaflet-popup-pane {
+  z-index: 2000 !important;
+}
