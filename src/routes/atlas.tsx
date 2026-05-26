@@ -357,8 +357,8 @@ function AtlasPage() {
             setMapZoom(z);
             handleMapMoved();
           }}
-          onCenterChange={(c) => {
-            setMapCenter(c);
+          onBoundsChange={(b) => {
+            setMapBounds(b);
             handleMapMoved();
           }}
         />
