@@ -116,7 +116,7 @@ function AtlasPage() {
       const { data, error } = await (supabase as any)
         .from("articles")
         .select(
-          "id, topic, source_count, read_time_minutes, created_at, is_breaking, lat, lng, headline"
+          "id, topic, source_count, read_time_minutes, created_at, is_breaking, lat, lng, headline, location_name"
         )
         .gte("created_at", since)
         .not("lat", "is", null)
@@ -135,6 +135,7 @@ function AtlasPage() {
         lat: Number(row.lat),
         lng: Number(row.lng),
         is_breaking: row.is_breaking,
+        location_name: row.location_name ?? null,
       }));
       setArticles(mapped);
     })();
