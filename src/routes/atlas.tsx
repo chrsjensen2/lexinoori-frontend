@@ -3,6 +3,7 @@ import { Search, ArrowRight } from "lucide-react";
 import { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { TopicPill, TOPIC_COLORS, type Topic } from "@/components/feed/TopicPill";
+import "leaflet/dist/leaflet.css";
 
 export const Route = createFileRoute("/atlas")({
   head: () => ({
@@ -59,12 +60,6 @@ function timeAgo(iso: string) {
   return `${Math.floor(hrs / 24)}D AGO`;
 }
 
-// Equirectangular projection → percent of map area.
-function projectLatLng(lat: number, lng: number): { x: number; y: number } {
-  const x = ((lng + 180) / 360) * 100;
-  const y = ((90 - lat) / 180) * 100;
-  return { x: Math.max(0, Math.min(100, x)), y: Math.max(0, Math.min(100, y)) };
-}
 
 function AtlasPage() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -280,25 +275,11 @@ function AtlasPage() {
           overflow: "hidden",
         }}
       >
-        <WorldMap />
-        {articles.map((a) => {
-          const { x, y } = projectLatLng(a.lat, a.lng);
-          const topic = toTopic(a.topic);
-          const color = topic ? TOPIC_COLORS[topic] : "#8E8E93";
-          const isSelected = a.id === selectedId;
-          return (
-            <ArticleMarker
-              key={a.id}
-              x={x}
-              y={y}
-              color={color}
-              pulse={!!a.is_breaking}
-              selected={isSelected}
-              label={a.headline}
-              onTap={() => handleMarkerTap(a.id)}
-            />
-          );
-        })}
+        <LeafletMap
+          articles={articles}
+          selectedId={selectedId}
+          onMarkerTap={handleMarkerTap}
+        />
         <ZoomControl />
       </div>
 
@@ -547,71 +528,112 @@ function ArticleRow({
   );
 }
 
-function ArticleMarker({
-  x,
-  y,
-  color,
-  pulse,
-  selected,
-  label,
-  onTap,
+function LeafletMap({
+  articles,
+  selectedId,
+  onMarkerTap,
 }: {
-  x: number;
-  y: number;
-  color: string;
-  pulse: boolean;
-  selected: boolean;
-  label: string;
-  onTap: () => void;
+  articles: Article[];
+  selectedId: string | null;
+  onMarkerTap: (id: string) => void;
 }) {
-  const size = selected ? 20 : 14;
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const mapRef = useRef<any>(null);
+  const markersRef = useRef<Map<string, any>>(new Map());
+  const LRef = useRef<any>(null);
+  const onTapRef = useRef(onMarkerTap);
+
+  useEffect(() => {
+    onTapRef.current = onMarkerTap;
+  }, [onMarkerTap]);
+
+  // Initialise map once.
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const L = (await import("leaflet")).default;
+      if (cancelled || !containerRef.current || mapRef.current) return;
+      LRef.current = L;
+      const map = L.map(containerRef.current, {
+        center: [20, 0],
+        zoom: 2,
+        minZoom: 2,
+        worldCopyJump: true,
+        zoomControl: false,
+        attributionControl: true,
+      });
+      L.tileLayer(
+        "https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png",
+        {
+          maxZoom: 20,
+          attribution:
+            '&copy; <a href="https://stadiamaps.com/">Stadia Maps</a> &copy; <a href="https://openmaptiles.org/">OpenMapTiles</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+        },
+      ).addTo(map);
+      mapRef.current = map;
+      // Ensure correct sizing after layout.
+      setTimeout(() => map.invalidateSize(), 0);
+    })();
+    return () => {
+      cancelled = true;
+      if (mapRef.current) {
+        mapRef.current.remove();
+        mapRef.current = null;
+      }
+      markersRef.current.clear();
+    };
+  }, []);
+
+  // Sync markers with articles + selection.
+  useEffect(() => {
+    const L = LRef.current;
+    const map = mapRef.current;
+    if (!L || !map) return;
+
+    const nextIds = new Set(articles.map((a) => a.id));
+    // Remove stale markers.
+    for (const [id, marker] of markersRef.current.entries()) {
+      if (!nextIds.has(id)) {
+        map.removeLayer(marker);
+        markersRef.current.delete(id);
+      }
+    }
+    // Add/update markers.
+    for (const a of articles) {
+      const topic = toTopic(a.topic);
+      const color = topic ? TOPIC_COLORS[topic] : "#FFFFFF";
+      const isSelected = a.id === selectedId;
+      const existing = markersRef.current.get(a.id);
+      const opts = {
+        radius: isSelected ? 9 : 6,
+        color: "#FFFFFF",
+        weight: isSelected ? 2 : 1,
+        fillColor: color,
+        fillOpacity: 0.95,
+      };
+      if (existing) {
+        existing.setLatLng([a.lat, a.lng]);
+        existing.setStyle(opts);
+      } else {
+        const m = L.circleMarker([a.lat, a.lng], opts).addTo(map);
+        m.on("click", () => onTapRef.current(a.id));
+        markersRef.current.set(a.id, m);
+      }
+    }
+  }, [articles, selectedId]);
+
   return (
-    <button
-      aria-label={label}
-      onClick={(e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        onTap();
-      }}
+    <div
+      ref={containerRef}
       style={{
         position: "absolute",
-        left: `${x}%`,
-        top: `${y}%`,
-        transform: "translate(-50%, -50%)",
-        width: size,
-        height: size,
-        padding: 0,
-        background: "transparent",
-        border: "none",
-        cursor: "pointer",
-        zIndex: 2,
+        inset: 0,
+        backgroundColor: "#0A0A0F",
       }}
-    >
-      {pulse && (
-        <span
-          style={{
-            position: "absolute",
-            inset: -8,
-            borderRadius: 999,
-            border: `2px solid ${color}`,
-            animation: "lex-pulse 1.6s ease-in-out infinite",
-          }}
-        />
-      )}
-      <span
-        style={{
-          display: "block",
-          width: "100%",
-          height: "100%",
-          borderRadius: 999,
-          backgroundColor: color,
-          border: selected ? "2px solid #FFFFFF" : "2px solid rgba(255,255,255,0.7)",
-          boxShadow: `0 0 12px ${color}80`,
-        }}
-      />
-    </button>
+    />
   );
 }
+
 
 function ZoomControl() {
   const levels = [
@@ -673,37 +695,5 @@ function ZoomControl() {
         </span>
       ))}
     </div>
-  );
-}
-
-function WorldMap() {
-  const fill = "#1A1A2A";
-  return (
-    <svg
-      viewBox="0 0 390 360"
-      width="100%"
-      height="100%"
-      preserveAspectRatio="none"
-      style={{ display: "block" }}
-      aria-hidden
-    >
-      <path
-        d="M 8 80 L 55 60 L 105 70 L 130 95 L 135 135 L 115 175 L 80 195 L 45 180 L 22 150 L 10 115 Z"
-        fill={fill}
-      />
-      <path d="M 95 195 L 120 195 L 130 215 L 110 225 L 98 215 Z" fill={fill} />
-      <path d="M 110 225 L 145 225 L 160 270 L 150 320 L 125 345 L 108 325 L 105 280 Z" fill={fill} />
-      <path d="M 160 50 L 195 45 L 200 75 L 175 85 L 158 72 Z" fill={fill} />
-      <path d="M 195 90 L 230 85 L 245 105 L 240 130 L 215 138 L 195 125 Z" fill={fill} />
-      <path
-        d="M 200 145 L 260 140 L 285 175 L 295 225 L 280 280 L 245 320 L 215 320 L 195 285 L 188 235 L 188 185 Z"
-        fill={fill}
-      />
-      <path d="M 250 145 L 285 140 L 300 165 L 290 185 L 260 180 Z" fill={fill} />
-      <path d="M 245 90 L 320 75 L 370 95 L 380 135 L 370 175 L 330 195 L 295 185 L 270 160 L 252 130 Z" fill={fill} />
-      <path d="M 295 195 L 325 190 L 332 225 L 312 245 L 298 220 Z" fill={fill} />
-      <path d="M 335 230 L 375 235 L 380 265 L 350 275 L 338 255 Z" fill={fill} />
-      <path d="M 330 290 L 375 285 L 385 315 L 358 335 L 330 325 Z" fill={fill} />
-    </svg>
   );
 }
