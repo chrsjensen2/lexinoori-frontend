@@ -60,12 +60,6 @@ function timeAgo(iso: string) {
   return `${Math.floor(hrs / 24)}D AGO`;
 }
 
-// Equirectangular projection → percent of map area.
-function projectLatLng(lat: number, lng: number): { x: number; y: number } {
-  const x = ((lng + 180) / 360) * 100;
-  const y = ((90 - lat) / 180) * 100;
-  return { x: Math.max(0, Math.min(100, x)), y: Math.max(0, Math.min(100, y)) };
-}
 
 function AtlasPage() {
   const containerRef = useRef<HTMLDivElement>(null);
