@@ -750,6 +750,10 @@ function LeafletMap({
         const c = map.getCenter();
         onCenterRef.current?.({ lat: c.lat, lng: c.lng });
       });
+      map.on("move zoom", () => {
+        const c = map.getCenter();
+        onCenterRef.current?.({ lat: c.lat, lng: c.lng });
+      });
       markerLayerRef.current = L.layerGroup().addTo(map);
       mapRef.current = map;
       if (externalMapRef) externalMapRef.current = map;
