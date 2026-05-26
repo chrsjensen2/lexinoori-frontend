@@ -584,21 +584,24 @@ function LeafletMap({
   onMarkerTap,
   mapRef: externalMapRef,
   onZoomChange,
+  onCenterChange,
 }: {
   articles: Article[];
   selectedId: string | null;
   onMarkerTap: (id: string) => void;
   mapRef?: React.MutableRefObject<any>;
   onZoomChange?: (z: number) => void;
+  onCenterChange?: (c: { lat: number; lng: number }) => void;
 }) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<any>(null);
-  const markersRef = useRef<Map<string, any>>(new Map());
+  const markerLayerRef = useRef<any>(null);
   const LRef = useRef<any>(null);
   const onTapRef = useRef(onMarkerTap);
   const navigate = useNavigate();
   const navigateRef = useRef(navigate);
   const onZoomRef = useRef(onZoomChange);
+  const onCenterRef = useRef(onCenterChange);
   const [mapReady, setMapReady] = useState(false);
 
   useEffect(() => {
@@ -612,6 +615,10 @@ function LeafletMap({
   useEffect(() => {
     onZoomRef.current = onZoomChange;
   }, [onZoomChange]);
+
+  useEffect(() => {
+    onCenterRef.current = onCenterChange;
+  }, [onCenterChange]);
 
   // Initialise map once.
   useEffect(() => {
@@ -638,9 +645,16 @@ function LeafletMap({
       map.on("zoomend", () => {
         onZoomRef.current?.(map.getZoom());
       });
+      map.on("moveend", () => {
+        const c = map.getCenter();
+        onCenterRef.current?.({ lat: c.lat, lng: c.lng });
+      });
+      markerLayerRef.current = L.layerGroup().addTo(map);
       mapRef.current = map;
       if (externalMapRef) externalMapRef.current = map;
       onZoomRef.current?.(map.getZoom());
+      const c = map.getCenter();
+      onCenterRef.current?.({ lat: c.lat, lng: c.lng });
       // Ensure correct sizing after layout.
       setTimeout(() => {
         map.invalidateSize();
@@ -654,62 +668,65 @@ function LeafletMap({
         mapRef.current = null;
         if (externalMapRef) externalMapRef.current = null;
       }
-      markersRef.current.clear();
+      markerLayerRef.current = null;
       setMapReady(false);
     };
   }, []);
 
-  // Sync markers with articles + selection.
+  // Sync markers — cluster articles within ~0.5° buckets.
   useEffect(() => {
     const L = LRef.current;
     const map = mapRef.current;
-    if (!L || !map) return;
+    const layer = markerLayerRef.current;
+    if (!L || !map || !layer) return;
 
-    const nextIds = new Set(articles.map((a) => a.id));
-    // Remove stale markers.
-    for (const [id, marker] of markersRef.current.entries()) {
-      if (!nextIds.has(id)) {
-        map.removeLayer(marker);
-        markersRef.current.delete(id);
-      }
-    }
-    // Add/update markers.
+    layer.clearLayers();
+
+    const escape = (s: string) =>
+      s.replace(/[&<>"']/g, (c) =>
+        ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]!),
+      );
+
+    // Bucket articles into 0.5° cells.
+    const buckets = new Map<string, Article[]>();
     for (const a of articles) {
-      const topic = toTopic(a.topic);
-      const color = topic ? TOPIC_COLORS[topic] : "#FFFFFF";
-      const isSelected = a.id === selectedId;
-      const existing = markersRef.current.get(a.id);
-      const opts = {
-        radius: isSelected ? 9 : 6,
-        color: "#FFFFFF",
-        weight: isSelected ? 2 : 1,
-        fillColor: color,
-        fillOpacity: 0.95,
-      };
-      const escape = (s: string) =>
-        s.replace(/[&<>"']/g, (c) =>
-          ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]!),
-        );
-      const truncated =
-        a.headline.length > 50 ? a.headline.slice(0, 47).trimEnd() + "…" : a.headline;
-      const safeHeadline = escape(truncated);
-      const safeLocation = a.location_name ? escape(a.location_name) : "";
-      const popupHtml = `
-        <div data-article-id="${a.id}" style="font-family:'Heebo',sans-serif;cursor:pointer;max-width:220px;">
-          ${
-            safeLocation
-              ? `<div style="color:#8E8E93;font-size:10px;line-height:1.2;margin-bottom:4px;">${safeLocation}</div>`
-              : ""
-          }
-          <div style="color:#FFFFFF;font-weight:700;font-size:13px;line-height:1.3;letter-spacing:-0.01em;">${safeHeadline}</div>
-        </div>
-      `;
-      if (existing) {
-        existing.setLatLng([a.lat, a.lng]);
-        existing.setStyle(opts);
-        existing.setPopupContent(popupHtml);
-      } else {
-        const m = L.circleMarker([a.lat, a.lng], opts).addTo(map);
+      const key = `${Math.floor(a.lat / 0.5)}_${Math.floor(a.lng / 0.5)}`;
+      const arr = buckets.get(key);
+      if (arr) arr.push(a);
+      else buckets.set(key, [a]);
+    }
+
+    let selectedMarker: any = null;
+    let selectedArticle: Article | null = null;
+
+    for (const group of buckets.values()) {
+      if (group.length === 1) {
+        const a = group[0];
+        const topic = toTopic(a.topic);
+        const color = topic ? TOPIC_COLORS[topic] : "#FFFFFF";
+        const isSelected = a.id === selectedId;
+        const opts = {
+          radius: isSelected ? 9 : 6,
+          color: "#FFFFFF",
+          weight: isSelected ? 2 : 1,
+          fillColor: color,
+          fillOpacity: 0.95,
+        };
+        const truncated =
+          a.headline.length > 50 ? a.headline.slice(0, 47).trimEnd() + "…" : a.headline;
+        const safeHeadline = escape(truncated);
+        const safeLocation = a.location_name ? escape(a.location_name) : "";
+        const popupHtml = `
+          <div data-article-id="${a.id}" style="font-family:'Heebo',sans-serif;cursor:pointer;max-width:220px;">
+            ${
+              safeLocation
+                ? `<div style="color:#8E8E93;font-size:10px;line-height:1.2;margin-bottom:4px;">${safeLocation}</div>`
+                : ""
+            }
+            <div style="color:#FFFFFF;font-weight:700;font-size:13px;line-height:1.3;letter-spacing:-0.01em;">${safeHeadline}</div>
+          </div>
+        `;
+        const m = L.circleMarker([a.lat, a.lng], opts);
         m.bindPopup(popupHtml, {
           offset: [0, -4],
           closeButton: false,
@@ -727,12 +744,59 @@ function LeafletMap({
             };
           }
         });
-        markersRef.current.set(a.id, m);
+        layer.addLayer(m);
+        if (isSelected) {
+          selectedMarker = m;
+          selectedArticle = a;
+        }
+      } else {
+        // Cluster marker with count badge.
+        const count = group.length;
+        const meanLat = group.reduce((s, a) => s + a.lat, 0) / count;
+        const meanLng = group.reduce((s, a) => s + a.lng, 0) / count;
+        // Dominant topic colour in the cluster.
+        const tally = new Map<string, number>();
+        for (const a of group) {
+          const t = toTopic(a.topic);
+          const c = t ? TOPIC_COLORS[t] : "#FFFFFF";
+          tally.set(c, (tally.get(c) ?? 0) + 1);
+        }
+        let color = "#FFFFFF";
+        let best = 0;
+        for (const [c, n] of tally.entries()) {
+          if (n > best) {
+            best = n;
+            color = c;
+          }
+        }
+        const size = count >= 10 ? 32 : 26;
+        const html = `
+          <div style="
+            width:${size}px;height:${size}px;border-radius:999px;
+            background:${color};border:2px solid #FFFFFF;
+            display:flex;align-items:center;justify-content:center;
+            color:#FFFFFF;font-family:'Heebo',sans-serif;font-weight:700;
+            font-size:${count >= 10 ? 12 : 13}px;letter-spacing:-0.01em;
+            box-shadow:0 2px 6px rgba(0,0,0,0.5);
+          ">${count}</div>
+        `;
+        const icon = L.divIcon({
+          html,
+          className: "atlas-cluster",
+          iconSize: [size, size],
+          iconAnchor: [size / 2, size / 2],
+        });
+        const m = L.marker([meanLat, meanLng], { icon });
+        m.on("click", () => {
+          const target = Math.min(map.getMaxZoom() ?? 19, map.getZoom() + 2);
+          map.setView([meanLat, meanLng], target, { animate: true });
+        });
+        layer.addLayer(m);
       }
-      if (isSelected) {
-        const m = markersRef.current.get(a.id);
-        if (m && !m.isPopupOpen()) m.openPopup();
-      }
+    }
+
+    if (selectedMarker && selectedArticle && !selectedMarker.isPopupOpen()) {
+      selectedMarker.openPopup();
     }
   }, [articles, selectedId, mapReady]);
 
