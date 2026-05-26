@@ -250,9 +250,43 @@ function AtlasPage() {
   );
 
   const handleMarkerTap = (id: string) => {
+    setClusterIds(null);
     setSelectedId(id);
     if (snap === "collapsed") setSnap("default");
   };
+
+  const handleClusterTap = (group: Article[]) => {
+    setSelectedId(null);
+    setClusterIds(group.map((a) => a.id));
+    if (snap === "collapsed") setSnap("default");
+  };
+
+  const displayArticles = useMemo(() => {
+    if (clusterIds) {
+      const ids = new Set(clusterIds);
+      return filteredArticles.filter((a) => ids.has(a.id));
+    }
+    return filteredArticles;
+  }, [filteredArticles, clusterIds]);
+
+  const selectedArticle = useMemo(
+    () => (selectedId ? articles.find((a) => a.id === selectedId) ?? null : null),
+    [articles, selectedId],
+  );
+
+  // Compute popup viewport position when a single marker is selected.
+  const popupPos = useMemo(() => {
+    void mapTick;
+    const m = leafletMapRef.current;
+    if (!m || !selectedArticle) return null;
+    try {
+      const pt = m.latLngToContainerPoint([selectedArticle.lat, selectedArticle.lng]);
+      const rect = m.getContainer().getBoundingClientRect();
+      return { x: rect.left + pt.x, y: rect.top + pt.y };
+    } catch {
+      return null;
+    }
+  }, [selectedArticle, mapTick]);
 
   return (
     <div
