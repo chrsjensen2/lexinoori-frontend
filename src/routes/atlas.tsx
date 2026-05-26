@@ -787,11 +787,6 @@ function LeafletMap({
 
     layer.clearLayers();
 
-    const escape = (s: string) =>
-      s.replace(/[&<>"']/g, (c) =>
-        ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]!),
-      );
-
     // Bucket articles into 0.5° cells.
     const buckets = new Map<string, Article[]>();
     for (const a of articles) {
@@ -801,8 +796,6 @@ function LeafletMap({
       else buckets.set(key, [a]);
     }
 
-    let selectedMarker: any = null;
-    let selectedArticle: Article | null = null;
 
     for (const group of buckets.values()) {
       if (group.length === 1) {
