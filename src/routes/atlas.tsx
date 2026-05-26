@@ -3,6 +3,7 @@ import { Search, ArrowRight } from "lucide-react";
 import { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { TopicPill, TOPIC_COLORS, type Topic } from "@/components/feed/TopicPill";
+import "leaflet/dist/leaflet.css";
 
 export const Route = createFileRoute("/atlas")({
   head: () => ({
