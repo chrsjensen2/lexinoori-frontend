@@ -457,6 +457,58 @@ function AtlasPage() {
           </div>
         )}
       </div>
+
+      {selectedArticle && popupPos && (
+        <button
+          type="button"
+          onClick={() => {
+            navigate({ to: "/article/$id", params: { id: selectedArticle.id } });
+          }}
+          style={{
+            position: "fixed",
+            left: popupPos.x,
+            top: popupPos.y - 16,
+            transform: "translate(-50%, -100%)",
+            zIndex: 2000,
+            background: "#1a1a1a",
+            border: "none",
+            borderRadius: 6,
+            padding: "6px 8px",
+            boxShadow: "0 4px 12px rgba(0,0,0,0.5)",
+            cursor: "pointer",
+            fontFamily: "'Heebo', sans-serif",
+            textAlign: "left",
+            maxWidth: 220,
+            pointerEvents: "auto",
+          }}
+        >
+          {selectedArticle.location_name && (
+            <div
+              style={{
+                color: "#8E8E93",
+                fontSize: 10,
+                lineHeight: 1.2,
+                marginBottom: 4,
+              }}
+            >
+              {selectedArticle.location_name}
+            </div>
+          )}
+          <div
+            style={{
+              color: "#FFFFFF",
+              fontWeight: 700,
+              fontSize: 13,
+              lineHeight: 1.3,
+              letterSpacing: "-0.01em",
+            }}
+          >
+            {selectedArticle.headline.length > 50
+              ? selectedArticle.headline.slice(0, 47).trimEnd() + "…"
+              : selectedArticle.headline}
+          </div>
+        </button>
+      )}
     </div>
   );
 }
