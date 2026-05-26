@@ -220,29 +220,19 @@ function AtlasPage() {
     [dragOffset, snap, snapHeights],
   );
 
-  // Map current map zoom to a geographic filter radius (in degrees) around the
-  // map center. null means "no filter — show everything".
-  const filterRadius = useMemo<number | null>(() => {
-    const levels: { zoom: number; radius: number | null }[] = [
-      { zoom: 2, radius: null },
-      { zoom: 4, radius: 40 },
-      { zoom: 6, radius: 20 },
-      { zoom: 10, radius: 5 },
-    ];
-    const closest = levels.reduce((best, l) =>
-      Math.abs(l.zoom - mapZoom) < Math.abs(best.zoom - mapZoom) ? l : best,
-    );
-    return closest.radius;
-  }, [mapZoom]);
-
+  // Filter articles to those within the current map viewport bounds.
   const filteredArticles = useMemo(() => {
-    if (filterRadius == null) return articles;
+    if (!mapBounds) return articles;
+    const { north, south, east, west } = mapBounds;
+    const lngInBounds = (lng: number) => {
+      if (west <= east) return lng >= west && lng <= east;
+      // Bounds cross antimeridian
+      return lng >= west || lng <= east;
+    };
     return articles.filter(
-      (a) =>
-        Math.abs(a.lat - mapCenter.lat) <= filterRadius &&
-        Math.abs(a.lng - mapCenter.lng) <= filterRadius,
+      (a) => a.lat <= north && a.lat >= south && lngInBounds(a.lng),
     );
-  }, [articles, filterRadius, mapCenter]);
+  }, [articles, mapBounds]);
 
   const peekArticle = useMemo(
     () => filteredArticles.find((a) => a.id === selectedId) ?? filteredArticles[0] ?? null,
