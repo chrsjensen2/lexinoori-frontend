@@ -465,6 +465,13 @@ function ArticleRow({
   const sourceCount = article.source_count ?? 0;
   const sourceLabel =
     sourceCount > 0 ? `${sourceCount} ${sourceCount === 1 ? "source" : "sources"}` : "";
+  const rowRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (selected && rowRef.current) {
+      rowRef.current.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }
+  }, [selected]);
 
   return (
     <Link
@@ -473,16 +480,22 @@ function ArticleRow({
       style={{ textDecoration: "none", display: "block" }}
     >
       <div
+        ref={rowRef}
         style={{
           paddingTop: 16,
           paddingBottom: 16,
-          paddingLeft: selected ? 12 : 0,
-          paddingRight: selected ? 12 : 0,
-          marginLeft: selected ? -12 : 0,
-          marginRight: selected ? -12 : 0,
-          borderRadius: selected ? 12 : 0,
-          backgroundColor: selected ? "rgba(26,122,94,0.10)" : "transparent",
-          borderBottom: last ? "none" : "1px solid #2C2C2E",
+          paddingLeft: 12,
+          paddingRight: 12,
+          marginLeft: -12,
+          marginRight: -12,
+          borderRadius: 12,
+          backgroundColor: selected ? "rgba(26,122,94,0.12)" : "transparent",
+          border: selected ? "1px solid #1A7A5E" : "1px solid transparent",
+          borderBottom: selected
+            ? "1px solid #1A7A5E"
+            : last
+              ? "1px solid transparent"
+              : "1px solid #2C2C2E",
         }}
       >
         <div className="flex items-center gap-2">
