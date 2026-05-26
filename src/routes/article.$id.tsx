@@ -914,16 +914,6 @@ function SourceRow({
 
       {expanded && !hasJournalist && (
         <div style={{ padding: "4px 0 12px 28px" }}>
-          <div
-            style={{
-              color: "#FFFFFF",
-              fontSize: 13,
-              lineHeight: 1.4,
-              marginBottom: 10,
-            }}
-          >
-            {truncated}
-          </div>
           {items.length === 0 ? (
             <div style={{ color: "#8E8E93", fontSize: 13 }}>No loaded language detected</div>
           ) : (
