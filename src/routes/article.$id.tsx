@@ -66,7 +66,7 @@ function ArticleView() {
   const { isSaved, toggle } = useSavedArticles();
   const savedTop = isSaved(id);
   const [fontSize, setFontSize] = useState<FontSizeKey>("Medium");
-  const [sources, setSources] = useState<{ url: string; headline: string; name: string; loaded_language: any }[]>([]);
+  const [sources, setSources] = useState<{ url: string; headline: string; name: string; loaded_language: any; journalist_id: string | null }[]>([]);
 
   useEffect(() => {
     let cancelled = false;
