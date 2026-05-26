@@ -29,6 +29,8 @@ export type Database = {
           image_url: string | null
           is_breaking: boolean | null
           language: string
+          lat: number | null
+          lng: number | null
           loaded_language: Json | null
           pool_lean: number | null
           read_time_minutes: number | null
@@ -51,6 +53,8 @@ export type Database = {
           image_url?: string | null
           is_breaking?: boolean | null
           language?: string
+          lat?: number | null
+          lng?: number | null
           loaded_language?: Json | null
           pool_lean?: number | null
           read_time_minutes?: number | null
@@ -73,6 +77,8 @@ export type Database = {
           image_url?: string | null
           is_breaking?: boolean | null
           language?: string
+          lat?: number | null
+          lng?: number | null
           loaded_language?: Json | null
           pool_lean?: number | null
           read_time_minutes?: number | null
