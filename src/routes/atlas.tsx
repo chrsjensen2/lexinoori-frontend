@@ -354,9 +354,16 @@ function AtlasPage() {
           articles={filteredArticles}
           selectedId={selectedId}
           onMarkerTap={handleMarkerTap}
+          onClusterTap={handleClusterTap}
           mapRef={leafletMapRef}
-          onZoomChange={setMapZoom}
-          onCenterChange={setMapCenter}
+          onZoomChange={(z) => {
+            setMapZoom(z);
+            handleMapMoved();
+          }}
+          onCenterChange={(c) => {
+            setMapCenter(c);
+            handleMapMoved();
+          }}
         />
         <ZoomControl zoom={mapZoom} onSelect={handleZoomSelect} />
       </div>
