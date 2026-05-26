@@ -32,6 +32,7 @@ export type Database = {
           lat: number | null
           lng: number | null
           loaded_language: Json | null
+          location_name: string | null
           pool_lean: number | null
           read_time_minutes: number | null
           source_count: number | null
@@ -56,6 +57,7 @@ export type Database = {
           lat?: number | null
           lng?: number | null
           loaded_language?: Json | null
+          location_name?: string | null
           pool_lean?: number | null
           read_time_minutes?: number | null
           source_count?: number | null
@@ -80,6 +82,7 @@ export type Database = {
           lat?: number | null
           lng?: number | null
           loaded_language?: Json | null
+          location_name?: string | null
           pool_lean?: number | null
           read_time_minutes?: number | null
           source_count?: number | null

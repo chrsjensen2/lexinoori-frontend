@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { Search, ArrowRight } from "lucide-react";
 import { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -28,6 +28,7 @@ type Article = {
   lat: number;
   lng: number;
   is_breaking: boolean | null;
+  location_name: string | null;
 };
 
 type SnapKey = "collapsed" | "default" | "expanded";
@@ -115,7 +116,7 @@ function AtlasPage() {
       const { data, error } = await (supabase as any)
         .from("articles")
         .select(
-          "id, topic, source_count, read_time_minutes, created_at, is_breaking, lat, lng, headline"
+          "id, topic, source_count, read_time_minutes, created_at, is_breaking, lat, lng, headline, location_name"
         )
         .gte("created_at", since)
         .not("lat", "is", null)
@@ -134,6 +135,7 @@ function AtlasPage() {
         lat: Number(row.lat),
         lng: Number(row.lng),
         is_breaking: row.is_breaking,
+        location_name: row.location_name ?? null,
       }));
       setArticles(mapped);
     })();
@@ -555,7 +557,13 @@ function LeafletMap({
   const markersRef = useRef<Map<string, any>>(new Map());
   const LRef = useRef<any>(null);
   const onTapRef = useRef(onMarkerTap);
+  const navigate = useNavigate();
+  const navigateRef = useRef(navigate);
   const [mapReady, setMapReady] = useState(false);
+
+  useEffect(() => {
+    navigateRef.current = navigate;
+  }, [navigate]);
 
   useEffect(() => {
     onTapRef.current = onMarkerTap;
@@ -628,20 +636,22 @@ function LeafletMap({
         fillColor: color,
         fillOpacity: 0.95,
       };
+      const escape = (s: string) =>
+        s.replace(/[&<>"']/g, (c) =>
+          ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]!),
+        );
       const truncated =
-        a.headline.length > 60 ? a.headline.slice(0, 57).trimEnd() + "…" : a.headline;
-      const safeHeadline = truncated.replace(/[&<>"']/g, (c) =>
-        ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]!),
-      );
-      const topicLabel = (topic ?? "").toUpperCase();
+        a.headline.length > 50 ? a.headline.slice(0, 47).trimEnd() + "…" : a.headline;
+      const safeHeadline = escape(truncated);
+      const safeLocation = a.location_name ? escape(a.location_name) : "";
       const popupHtml = `
-        <div style="font-family: 'Heebo', sans-serif; min-width: 180px; max-width: 240px;">
+        <div data-article-id="${a.id}" style="font-family:'Heebo',sans-serif;cursor:pointer;max-width:220px;">
           ${
-            topic
-              ? `<span style="display:inline-block;background-color:${color}1F;border:1px solid ${color};color:${color};font-weight:700;font-size:10px;letter-spacing:0.08em;padding:4px 6px;border-radius:20px;line-height:1;margin-bottom:6px;">${topicLabel}</span>`
+            safeLocation
+              ? `<div style="color:#8E8E93;font-size:10px;line-height:1.2;margin-bottom:4px;">${safeLocation}</div>`
               : ""
           }
-          <div style="color:#FFFFFF;font-weight:700;font-size:13px;line-height:1.3;letter-spacing:-0.01em;margin-top:4px;">${safeHeadline}</div>
+          <div style="color:#FFFFFF;font-weight:700;font-size:13px;line-height:1.3;letter-spacing:-0.01em;">${safeHeadline}</div>
         </div>
       `;
       if (existing) {
@@ -657,6 +667,16 @@ function LeafletMap({
           className: "atlas-popup",
         });
         m.on("click", () => onTapRef.current(a.id));
+        m.on("popupopen", (e: any) => {
+          const el = e.popup.getElement()?.querySelector("[data-article-id]") as
+            | HTMLElement
+            | null;
+          if (el) {
+            el.onclick = () => {
+              navigateRef.current({ to: "/article/$id", params: { id: a.id } });
+            };
+          }
+        });
         markersRef.current.set(a.id, m);
       }
       if (isSelected) {
