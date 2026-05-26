@@ -159,10 +159,16 @@ function AtlasPage() {
     };
   }, []);
 
+  // displayCount is computed below; reference forward via a closure-safe value.
+  const displayCount = useMemo(() => {
+    if (!clusterIds) return null;
+    return clusterIds.length;
+  }, [clusterIds]);
+  const isSingleCard = displayCount === 1;
   const snapHeights: Record<SnapKey, number> = {
     collapsed: 130,
-    default: Math.round(containerH * 0.55),
-    expanded: Math.round(containerH * 0.8),
+    default: isSingleCard ? 220 : Math.round(containerH * 0.55),
+    expanded: isSingleCard ? 220 : Math.round(containerH * 0.8),
   };
   const baseH = snapHeights[snap];
   const liveH = Math.max(snapHeights.collapsed, Math.min(snapHeights.expanded, baseH - dragOffset));
