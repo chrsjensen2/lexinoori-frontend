@@ -771,6 +771,9 @@ function LeafletMap({
       markerLayerRef.current = L.layerGroup().addTo(map);
       mapRef.current = map;
       if (externalMapRef) externalMapRef.current = map;
+      map.on("click", () => {
+        onMapTapRef.current?.();
+      });
       onZoomRef.current?.(map.getZoom());
       const c = map.getCenter();
       onCenterRef.current?.({ lat: c.lat, lng: c.lng });
