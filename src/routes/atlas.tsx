@@ -240,9 +240,9 @@ function AtlasPage() {
   );
 
   const handleMarkerTap = (id: string) => {
-    setClusterIds(null);
-    setSelectedId(null);
-    navigate({ to: "/article/$id", params: { id } });
+    setSelectedId(id);
+    setClusterIds([id]);
+    if (snap === "collapsed") setSnap("default");
   };
 
   const handleClusterTap = (group: Article[]) => {
