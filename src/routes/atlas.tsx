@@ -301,7 +301,7 @@ function AtlasPage() {
           boxShadow: "0 -8px 24px rgba(0,0,0,0.4)",
           transition: dragging ? "none" : "height 300ms ease-in-out",
           touchAction: "none",
-          zIndex: 5,
+          zIndex: 1000,
         }}
       >
         <div
@@ -564,10 +564,10 @@ function LeafletMap({
         attributionControl: true,
       });
       L.tileLayer(
-        "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+        "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
         {
           maxZoom: 19,
-          attribution: "© OpenStreetMap contributors",
+          attribution: "© OpenStreetMap contributors © CARTO",
         },
       ).addTo(map);
       mapRef.current = map;
