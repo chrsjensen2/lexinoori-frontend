@@ -251,8 +251,8 @@ function AtlasPage() {
 
   const handleMarkerTap = (id: string) => {
     setClusterIds(null);
-    setSelectedId(id);
-    if (snap === "collapsed") setSnap("default");
+    setSelectedId(null);
+    navigate({ to: "/article/$id", params: { id } });
   };
 
   const handleClusterTap = (group: Article[]) => {
@@ -260,6 +260,12 @@ function AtlasPage() {
     setClusterIds(group.map((a) => a.id));
     if (snap === "collapsed") setSnap("default");
   };
+
+  const handleMapTap = useCallback(() => {
+    setSelectedId(null);
+    setClusterIds(null);
+    setSnap("collapsed");
+  }, []);
 
   const displayArticles = useMemo(() => {
     if (clusterIds) {
