@@ -289,7 +289,7 @@ function AtlasPage() {
                   textTransform: "uppercase",
                 }}
               >
-                {articles.length} {articles.length === 1 ? "STORY" : "STORIES"} IN VIEW
+                {filteredArticles.length} {filteredArticles.length === 1 ? "STORY" : "STORIES"} IN VIEW
               </p>
             </div>
             <Link to="/search" aria-label="Search" style={{ color: "#8E8E93", paddingTop: 6, display: "inline-flex" }}>
