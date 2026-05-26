@@ -127,7 +127,7 @@ function AtlasPage() {
       const pick = <T,>(row: any, base: string): T =>
         (row?.[`${base}${suffix}`] ?? row?.[base]) as T;
 
-      const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+      const since = new Date(Date.now() - 72 * 60 * 60 * 1000).toISOString();
       const { data, error } = await (supabase as any)
         .from("articles")
         .select(
@@ -251,8 +251,8 @@ function AtlasPage() {
 
   const handleMarkerTap = (id: string) => {
     setClusterIds(null);
-    setSelectedId(id);
-    if (snap === "collapsed") setSnap("default");
+    setSelectedId(null);
+    navigate({ to: "/article/$id", params: { id } });
   };
 
   const handleClusterTap = (group: Article[]) => {
@@ -260,6 +260,12 @@ function AtlasPage() {
     setClusterIds(group.map((a) => a.id));
     if (snap === "collapsed") setSnap("default");
   };
+
+  const handleMapTap = useCallback(() => {
+    setSelectedId(null);
+    setClusterIds(null);
+    setSnap("collapsed");
+  }, []);
 
   const displayArticles = useMemo(() => {
     if (clusterIds) {
@@ -355,6 +361,7 @@ function AtlasPage() {
           selectedId={selectedId}
           onMarkerTap={handleMarkerTap}
           onClusterTap={handleClusterTap}
+          onMapTap={handleMapTap}
           mapRef={leafletMapRef}
           onZoomChange={(z) => {
             setMapZoom(z);
@@ -683,6 +690,7 @@ function LeafletMap({
   selectedId,
   onMarkerTap,
   onClusterTap,
+  onMapTap,
   mapRef: externalMapRef,
   onZoomChange,
   onCenterChange,
@@ -691,6 +699,7 @@ function LeafletMap({
   selectedId: string | null;
   onMarkerTap: (id: string) => void;
   onClusterTap: (group: Article[]) => void;
+  onMapTap?: () => void;
   mapRef?: React.MutableRefObject<any>;
   onZoomChange?: (z: number) => void;
   onCenterChange?: (c: { lat: number; lng: number }) => void;
@@ -701,6 +710,7 @@ function LeafletMap({
   const LRef = useRef<any>(null);
   const onTapRef = useRef(onMarkerTap);
   const onClusterRef = useRef(onClusterTap);
+  const onMapTapRef = useRef(onMapTap);
   const onZoomRef = useRef(onZoomChange);
   const onCenterRef = useRef(onCenterChange);
   const [mapReady, setMapReady] = useState(false);
@@ -720,6 +730,10 @@ function LeafletMap({
   useEffect(() => {
     onCenterRef.current = onCenterChange;
   }, [onCenterChange]);
+
+  useEffect(() => {
+    onMapTapRef.current = onMapTap;
+  }, [onMapTap]);
 
   // Initialise map once.
   useEffect(() => {
@@ -757,6 +771,9 @@ function LeafletMap({
       markerLayerRef.current = L.layerGroup().addTo(map);
       mapRef.current = map;
       if (externalMapRef) externalMapRef.current = map;
+      map.on("click", () => {
+        onMapTapRef.current?.();
+      });
       onZoomRef.current?.(map.getZoom());
       const c = map.getCenter();
       onCenterRef.current?.({ lat: c.lat, lng: c.lng });
