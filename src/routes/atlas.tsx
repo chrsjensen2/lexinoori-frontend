@@ -275,25 +275,11 @@ function AtlasPage() {
           overflow: "hidden",
         }}
       >
-        <WorldMap />
-        {articles.map((a) => {
-          const { x, y } = projectLatLng(a.lat, a.lng);
-          const topic = toTopic(a.topic);
-          const color = topic ? TOPIC_COLORS[topic] : "#8E8E93";
-          const isSelected = a.id === selectedId;
-          return (
-            <ArticleMarker
-              key={a.id}
-              x={x}
-              y={y}
-              color={color}
-              pulse={!!a.is_breaking}
-              selected={isSelected}
-              label={a.headline}
-              onTap={() => handleMarkerTap(a.id)}
-            />
-          );
-        })}
+        <LeafletMap
+          articles={articles}
+          selectedId={selectedId}
+          onMarkerTap={handleMarkerTap}
+        />
         <ZoomControl />
       </div>
 
