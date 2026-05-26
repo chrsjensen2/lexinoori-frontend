@@ -852,15 +852,10 @@ function LeafletMap({
         });
         const m = L.marker([meanLat, meanLng], { icon });
         m.on("click", () => {
-          const target = Math.min(map.getMaxZoom() ?? 19, map.getZoom() + 2);
-          map.setView([meanLat, meanLng], target, { animate: true });
+          onClusterRef.current(group);
         });
         layer.addLayer(m);
       }
-    }
-
-    if (selectedMarker && selectedArticle && !selectedMarker.isPopupOpen()) {
-      selectedMarker.openPopup();
     }
   }, [articles, selectedId, mapReady]);
 
