@@ -115,7 +115,7 @@ function AtlasPage() {
       const { data, error } = await (supabase as any)
         .from("articles")
         .select(
-          "id, topic, source_count, read_time_minutes, created_at, is_breaking, lat, lng, headline, headline_da, headline_de, headline_es"
+          "id, topic, source_count, read_time_minutes, created_at, is_breaking, lat, lng, headline"
         )
         .gte("created_at", since)
         .not("lat", "is", null)
