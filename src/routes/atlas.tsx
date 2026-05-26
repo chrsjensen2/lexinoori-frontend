@@ -73,14 +73,21 @@ function AtlasPage() {
 
   const [articles, setArticles] = useState<Article[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [clusterIds, setClusterIds] = useState<string[] | null>(null);
   const [depth, setDepth] = useState<Depth>("Standard");
   const leafletMapRef = useRef<any>(null);
   const [mapZoom, setMapZoom] = useState<number>(2);
   const [mapCenter, setMapCenter] = useState<{ lat: number; lng: number }>({ lat: 20, lng: 0 });
+  const [mapTick, setMapTick] = useState(0);
+  const navigate = useNavigate();
 
   const handleZoomSelect = useCallback((z: number) => {
     const m = leafletMapRef.current;
     if (m) m.setZoom(z, { animate: true });
+  }, []);
+
+  const handleMapMoved = useCallback(() => {
+    setMapTick((t) => t + 1);
   }, []);
 
   useEffect(() => {
