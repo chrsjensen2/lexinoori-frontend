@@ -165,7 +165,7 @@ function TodayPage() {
   const [depth, setDepth] = useState<Depth>("Standard");
 
   useEffect(() => {
-    setDateLabel(formatDateTime(new Date()));
+    setDateLabel(formatDate(new Date()));
     setDepth(getDepth());
     const onDepth = () => setDepth(getDepth());
     window.addEventListener("lex:depth-changed", onDepth);
