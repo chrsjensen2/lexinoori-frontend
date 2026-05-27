@@ -7,25 +7,14 @@ export function SplashScreen() {
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-    let alreadyShown = false;
-    try {
-      alreadyShown = sessionStorage.getItem("lex_splash_shown") === "1";
-    } catch {
-      // sessionStorage can throw on iOS Safari in private mode or when
-      // storage is blocked. Treat as "not shown yet" and continue.
-    }
-    if (alreadyShown) {
+    if (sessionStorage.getItem("lex_splash_shown") === "1") {
       setShow(false);
       return;
     }
     const fadeTimer = setTimeout(() => setFading(true), 2000);
     const hideTimer = setTimeout(() => {
       setShow(false);
-      try {
-        sessionStorage.setItem("lex_splash_shown", "1");
-      } catch {
-        // Ignore storage write failures — splash hiding must still proceed.
-      }
+      sessionStorage.setItem("lex_splash_shown", "1");
     }, 2400);
     return () => {
       clearTimeout(fadeTimer);

@@ -197,47 +197,33 @@ export type Database = {
       }
       source_articles: {
         Row: {
-          author: string | null
           body: string | null
           created_at: string
           headline: string
           id: string
-          journalist_id: string | null
           scraped_at: string
           source_name: string | null
           url: string
         }
         Insert: {
-          author?: string | null
           body?: string | null
           created_at?: string
           headline: string
           id?: string
-          journalist_id?: string | null
           scraped_at?: string
           source_name?: string | null
           url: string
         }
         Update: {
-          author?: string | null
           body?: string | null
           created_at?: string
           headline?: string
           id?: string
-          journalist_id?: string | null
           scraped_at?: string
           source_name?: string | null
           url?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "source_articles_journalist_id_fkey"
-            columns: ["journalist_id"]
-            isOneToOne: false
-            referencedRelation: "journalists"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       sources: {
         Row: {
