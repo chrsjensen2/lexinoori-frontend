@@ -252,18 +252,28 @@ function TodayPage() {
         const mapped = (data as any[]).map(mapRow);
         setArticles(mapped);
         const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+
+        // Count outlets active in the last 24h: source_articles -> journalists -> sources.id
         const { data: saData } = await (supabase as any)
           .from("source_articles")
-          .select("source_name, journalists:journalist_id(source_id)")
-          .gte("created_at", twentyFourHoursAgo);
+          .select("journalists:journalist_id(source_id)")
+          .gt("scraped_at", twentyFourHoursAgo);
         const outlets = new Set<string>();
         for (const row of (saData as any[]) ?? []) {
-          const key = row?.journalists?.source_id ?? row?.source_name;
-          if (key) outlets.add(String(key));
+          const sid = row?.journalists?.source_id;
+          if (sid) outlets.add(String(sid));
         }
         setSourceCount(outlets.size);
+
+        // Count articles created in the last 24h
+        const { count: storyCount } = await (supabase as any)
+          .from("articles")
+          .select("id", { count: "exact", head: true })
+          .gt("created_at", twentyFourHoursAgo);
+        setTodayStoryCount(storyCount ?? 0);
       } else {
         setSourceCount(0);
+        setTodayStoryCount(0);
       }
       setBreakingArticle(
         !breakingRes.error && breakingRes.data ? mapRow(breakingRes.data) : null
