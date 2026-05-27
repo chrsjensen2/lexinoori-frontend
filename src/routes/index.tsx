@@ -28,12 +28,10 @@ type SourceArticle = {
   is_breaking: boolean | null;
 };
 
-function formatDateTime(d: Date) {
+function formatDate(d: Date) {
   const days = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
   const months = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
-  const hh = String(d.getHours()).padStart(2, "0");
-  const mm = String(d.getMinutes()).padStart(2, "0");
-  return `${days[d.getDay()]} · ${d.getDate()} ${months[d.getMonth()]} · ${hh}:${mm}`;
+  return `${days[d.getDay()]} · ${d.getDate()} ${months[d.getMonth()]}`;
 }
 
 function timeAgo(iso: string) {
