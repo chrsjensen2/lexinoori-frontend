@@ -464,24 +464,9 @@ function ArticleView() {
             <span style={{ color: "#8E8E93", fontSize: 11, fontWeight: 700, letterSpacing: "0.08em" }}>
               SOURCE DIVERSITY
             </span>
-            <span
-              className="inline-flex items-center gap-1"
-              style={{ color: diversityColor, fontSize: 11, fontWeight: 700, letterSpacing: "0.08em" }}
-            >
-              <span
-                style={{
-                  width: 8,
-                  height: 8,
-                  borderRadius: 999,
-                  backgroundColor: diversityColor,
-                  display: "inline-block",
-                }}
-              />
-              {diversityLabel}
-            </span>
           </div>
           <div style={{ color: "#FFFFFF", fontSize: 22, fontWeight: 700, marginBottom: 8 }}>
-            {diversityDisplay} / 10
+            {sourceCount} {sourceCount === 1 ? "source" : "sources"}
           </div>
           <div style={{ position: "relative", height: 4, backgroundColor: "#2C2C2E", borderRadius: 999 }}>
             <div
