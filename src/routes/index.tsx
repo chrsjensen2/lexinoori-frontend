@@ -217,12 +217,10 @@ function TodayPage() {
         "headline_da, body_standard_da, headline_de, body_standard_de, headline_es, body_standard_es";
 
       const topicFilter = TAB_TO_TOPIC[activeTab] ?? null;
-      const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
 
       let query = (supabase as any)
         .from("articles")
         .select(selectCols)
-        .gte("created_at", twentyFourHoursAgo)
         .order("created_at", { ascending: false })
         .limit(50);
       if (topicFilter) query = query.eq("topic", topicFilter);
