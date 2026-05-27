@@ -165,6 +165,11 @@ function TodayPage() {
   const [depth, setDepth] = useState<Depth>("Standard");
   const [sourceCount, setSourceCount] = useState(0);
   const [todayStoryCount, setTodayStoryCount] = useState(0);
+  const [refreshKey, setRefreshKey] = useState(0);
+  const [pullDistance, setPullDistance] = useState(0);
+  const [refreshing, setRefreshing] = useState(false);
+  const touchStartY = useRef<number | null>(null);
+  const PULL_THRESHOLD = 70;
 
   useEffect(() => {
     setDateLabel(formatDate(new Date()));
