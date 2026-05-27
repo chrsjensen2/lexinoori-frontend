@@ -163,6 +163,7 @@ function TodayPage() {
   const [breakingArticle, setBreakingArticle] = useState<SourceArticle | null>(null);
   const [loading, setLoading] = useState(true);
   const [depth, setDepth] = useState<Depth>("Standard");
+  const [sourceCount, setSourceCount] = useState(0);
 
   useEffect(() => {
     setDateLabel(formatDate(new Date()));
