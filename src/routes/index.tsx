@@ -347,7 +347,7 @@ function TodayPage() {
           </div>
 
           <p style={{ color: "#8E8E93", fontSize: 13, marginTop: 8 }}>
-            {loading ? "Loading latest stories…" : `${articles.length} stories merged from across the web.`}
+            {loading ? "Loading latest stories…" : `${articles.length} stories from ${sourceCount} news source${sourceCount === 1 ? "" : "s"}.`}
           </p>
         </div>
 
