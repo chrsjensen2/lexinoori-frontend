@@ -28,12 +28,10 @@ type SourceArticle = {
   is_breaking: boolean | null;
 };
 
-function formatDateTime(d: Date) {
+function formatDate(d: Date) {
   const days = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
   const months = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
-  const hh = String(d.getHours()).padStart(2, "0");
-  const mm = String(d.getMinutes()).padStart(2, "0");
-  return `${days[d.getDay()]} · ${d.getDate()} ${months[d.getMonth()]} · ${hh}:${mm}`;
+  return `${days[d.getDay()]} · ${d.getDate()} ${months[d.getMonth()]}`;
 }
 
 function timeAgo(iso: string) {
@@ -165,9 +163,10 @@ function TodayPage() {
   const [breakingArticle, setBreakingArticle] = useState<SourceArticle | null>(null);
   const [loading, setLoading] = useState(true);
   const [depth, setDepth] = useState<Depth>("Standard");
+  const [sourceCount, setSourceCount] = useState(0);
 
   useEffect(() => {
-    setDateLabel(formatDateTime(new Date()));
+    setDateLabel(formatDate(new Date()));
     setDepth(getDepth());
     const onDepth = () => setDepth(getDepth());
     window.addEventListener("lex:depth-changed", onDepth);
@@ -250,7 +249,19 @@ function TodayPage() {
         headline: pick<string>(row, "headline") ?? "",
         body_standard: pick<string | null>(row, "body_standard") ?? null,
       });
-      if (!error && data) setArticles((data as any[]).map(mapRow));
+      if (!error && data) {
+        const mapped = (data as any[]).map(mapRow);
+        setArticles(mapped);
+        const articleIds = (data as any[]).map((row: any) => row.id);
+        const { data: saData } = await (supabase as any)
+          .from("source_articles")
+          .select("source_id")
+          .in("article_id", articleIds);
+        const uniqueSources = new Set(saData?.map((s: any) => s.source_id) ?? []).size;
+        setSourceCount(uniqueSources);
+      } else {
+        setSourceCount(0);
+      }
       setBreakingArticle(
         !breakingRes.error && breakingRes.data ? mapRow(breakingRes.data) : null
       );
@@ -336,7 +347,7 @@ function TodayPage() {
           </div>
 
           <p style={{ color: "#8E8E93", fontSize: 13, marginTop: 8 }}>
-            {loading ? "Loading latest stories…" : `${articles.length} stories merged from across the web.`}
+            {loading ? "Loading latest stories…" : `${articles.length} stories from ${sourceCount} news source${sourceCount === 1 ? "" : "s"}.`}
           </p>
         </div>
 
