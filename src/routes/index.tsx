@@ -284,6 +284,8 @@ function TodayPage() {
         !breakingRes.error && breakingRes.data ? mapRow(breakingRes.data) : null
       );
       setLoading(false);
+      setRefreshing(false);
+      setPullDistance(0);
     };
 
     fetchArticles();
