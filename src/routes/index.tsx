@@ -250,13 +250,17 @@ function TodayPage() {
       if (!error && data) {
         const mapped = (data as any[]).map(mapRow);
         setArticles(mapped);
-        const articleIds = (data as any[]).map((row: any) => row.id);
+        const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
         const { data: saData } = await (supabase as any)
           .from("source_articles")
-          .select("source_id")
-          .in("article_id", articleIds);
-        const uniqueSources = new Set(saData?.map((s: any) => s.source_id) ?? []).size;
-        setSourceCount(uniqueSources);
+          .select("source_name, journalists:journalist_id(source_id)")
+          .gte("created_at", twentyFourHoursAgo);
+        const outlets = new Set<string>();
+        for (const row of (saData as any[]) ?? []) {
+          const key = row?.journalists?.source_id ?? row?.source_name;
+          if (key) outlets.add(String(key));
+        }
+        setSourceCount(outlets.size);
       } else {
         setSourceCount(0);
       }
