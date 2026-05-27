@@ -249,7 +249,19 @@ function TodayPage() {
         headline: pick<string>(row, "headline") ?? "",
         body_standard: pick<string | null>(row, "body_standard") ?? null,
       });
-      if (!error && data) setArticles((data as any[]).map(mapRow));
+      if (!error && data) {
+        const mapped = (data as any[]).map(mapRow);
+        setArticles(mapped);
+        const articleIds = (data as any[]).map((row: any) => row.id);
+        const { data: saData } = await (supabase as any)
+          .from("source_articles")
+          .select("source_id")
+          .in("article_id", articleIds);
+        const uniqueSources = new Set(saData?.map((s: any) => s.source_id) ?? []).size;
+        setSourceCount(uniqueSources);
+      } else {
+        setSourceCount(0);
+      }
       setBreakingArticle(
         !breakingRes.error && breakingRes.data ? mapRow(breakingRes.data) : null
       );
