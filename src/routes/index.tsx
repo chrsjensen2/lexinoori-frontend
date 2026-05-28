@@ -260,8 +260,8 @@ function TodayPage() {
 
     let query = (supabase as any)
       .from("articles")
-      .select(selectCols + ", greatest_time: greatest(created_at, coalesce(updated_at, created_at))")
-      .order("greatest_time", { ascending: false })
+      .select(selectCols)
+      .order("created_at", { ascending: false })
       .limit(50);
     if (topicFilter) query = query.eq("topic", topicFilter);
 
