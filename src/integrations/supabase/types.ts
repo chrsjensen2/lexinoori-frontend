@@ -38,6 +38,10 @@ export type Database = {
           read_time_minutes: number | null
           source_count: number | null
           topic: string
+          update_summary: string | null
+          update_summary_da: string | null
+          update_summary_de: string | null
+          update_summary_es: string | null
           updated_at: string | null
           whats_missing: string | null
         }
@@ -64,6 +68,10 @@ export type Database = {
           read_time_minutes?: number | null
           source_count?: number | null
           topic: string
+          update_summary?: string | null
+          update_summary_da?: string | null
+          update_summary_de?: string | null
+          update_summary_es?: string | null
           updated_at?: string | null
           whats_missing?: string | null
         }
@@ -90,6 +98,10 @@ export type Database = {
           read_time_minutes?: number | null
           source_count?: number | null
           topic?: string
+          update_summary?: string | null
+          update_summary_da?: string | null
+          update_summary_de?: string | null
+          update_summary_es?: string | null
           updated_at?: string | null
           whats_missing?: string | null
         }
