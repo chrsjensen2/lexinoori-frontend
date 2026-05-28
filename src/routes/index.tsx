@@ -219,7 +219,7 @@ function TodayPage() {
         (row?.[`${base}${suffix}`] ?? row?.[base]) as T;
 
       const selectCols =
-        "id, topic, read_time_minutes, source_count, created_at, is_breaking, " +
+        "id, topic, read_time_minutes, source_count, created_at, is_breaking, is_update, " +
         "headline, body_standard, " +
         "headline_da, body_standard_da, headline_de, body_standard_de, headline_es, body_standard_es";
 
