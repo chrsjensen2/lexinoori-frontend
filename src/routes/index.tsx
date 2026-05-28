@@ -26,6 +26,7 @@ type SourceArticle = {
   source_count: number | null;
   created_at: string;
   is_breaking: boolean | null;
+  is_update: boolean | null;
 };
 
 function formatDate(d: Date) {
@@ -91,6 +92,22 @@ function SourceArticleCard({ article, depth }: { article: SourceArticle; depth: 
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           {validTopic && <TopicPill topic={validTopic} />}
+          {article.is_update && (
+            <span
+              style={{
+                backgroundColor: "#0F6E56",
+                color: "#FFFFFF",
+                fontWeight: 700,
+                fontSize: 11,
+                letterSpacing: "0.08em",
+                padding: "6px 8px",
+                borderRadius: 20,
+                lineHeight: 1,
+              }}
+            >
+              UPDATE
+            </span>
+          )}
           {article.is_breaking && <WhatsNewPill />}
         </div>
         <span style={{ color: "#8E8E93", fontSize: 12 }}>{timeAgo(article.created_at)}</span>
@@ -218,7 +235,7 @@ function TodayPage() {
         (row?.[`${base}${suffix}`] ?? row?.[base]) as T;
 
       const selectCols =
-        "id, topic, read_time_minutes, source_count, created_at, is_breaking, " +
+        "id, topic, read_time_minutes, source_count, created_at, is_breaking, is_update, " +
         "headline, body_standard, " +
         "headline_da, body_standard_da, headline_de, body_standard_de, headline_es, body_standard_es";
 
@@ -250,6 +267,7 @@ function TodayPage() {
         source_count: row.source_count,
         created_at: row.created_at,
         is_breaking: row.is_breaking,
+        is_update: row.is_update,
         headline: pick<string>(row, "headline") ?? "",
         body_standard: pick<string | null>(row, "body_standard") ?? null,
       });
