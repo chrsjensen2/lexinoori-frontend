@@ -260,8 +260,8 @@ function TodayPage() {
 
     let query = (supabase as any)
       .from("articles")
-      .select(selectCols + ", greatest_time: greatest(created_at, coalesce(updated_at, created_at))")
-      .order("greatest_time", { ascending: false })
+      .select(selectCols)
+      .order("created_at", { ascending: false })
       .limit(50);
     if (topicFilter) query = query.eq("topic", topicFilter);
 
@@ -292,6 +292,12 @@ function TodayPage() {
     });
     if (!error && data) {
       const mapped = (data as any[]).map(mapRow);
+      const sortKey = (r: any, row: any) =>
+        row.is_update && row.updated_at
+          ? Math.max(new Date(row.created_at).getTime(), new Date(row.updated_at).getTime())
+          : new Date(row.created_at).getTime();
+      const rowsById = new Map<string, any>((data as any[]).map((r) => [r.id, r]));
+      mapped.sort((a, b) => sortKey(b, rowsById.get(b.id)) - sortKey(a, rowsById.get(a.id)));
       setArticles(mapped);
       const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
 
