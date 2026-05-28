@@ -28,6 +28,7 @@ export type Database = {
           id: string
           image_url: string | null
           is_breaking: boolean | null
+          is_update: boolean | null
           language: string
           lat: number | null
           lng: number | null
@@ -53,6 +54,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           is_breaking?: boolean | null
+          is_update?: boolean | null
           language?: string
           lat?: number | null
           lng?: number | null
@@ -78,6 +80,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           is_breaking?: boolean | null
+          is_update?: boolean | null
           language?: string
           lat?: number | null
           lng?: number | null
