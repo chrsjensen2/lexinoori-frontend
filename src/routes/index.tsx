@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Search, Bookmark } from "lucide-react";
 import { TopicTabs } from "@/components/feed/TopicTabs";
 import { BreakingNewsCard } from "@/components/feed/BreakingNewsCard";
@@ -200,11 +200,25 @@ function TodayPage() {
   const [depth, setDepth] = useState<Depth>("Standard");
   const [sourceCount, setSourceCount] = useState(0);
   const [todayStoryCount, setTodayStoryCount] = useState(0);
-  const [refreshKey, setRefreshKey] = useState(0);
+  
   const [pullDistance, setPullDistance] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
   const touchStartY = useRef<number | null>(null);
+  const fetchSeq = useRef(0);
   const PULL_THRESHOLD = 70;
+
+  const TAB_TO_TOPIC: Record<string, string | null> = {
+    Today: null,
+    Politics: "politics",
+    World: "world",
+    Climate: "climate",
+    Tech: "technology",
+    Economy: "economics",
+    Sport: "sport",
+    Culture: "culture",
+    Health: "health",
+    Local: "local",
+  };
 
   useEffect(() => {
     setDateLabel(formatDate(new Date()));
@@ -218,113 +232,100 @@ function TodayPage() {
     };
   }, []);
 
+  const fetchArticles = useCallback(async (opts?: { isRefresh?: boolean }) => {
+    const seq = ++fetchSeq.current;
+    if (!opts?.isRefresh) setLoading(true);
 
-  useEffect(() => {
-    let cancelled = false;
+    let language = "en";
+    const { data: userData } = await supabase.auth.getUser();
+    if (userData?.user) {
+      const { data: profile } = await (supabase as any)
+        .from("profiles")
+        .select("primary_language")
+        .eq("user_id", userData.user.id)
+        .maybeSingle();
+      if (profile?.primary_language) language = profile.primary_language;
+    }
 
-    const TAB_TO_TOPIC: Record<string, string | null> = {
-      Today: null,
-      Politics: "politics",
-      World: "world",
-      Climate: "climate",
-      Tech: "technology",
-      Economy: "economics",
-      Sport: "sport",
-      Culture: "culture",
-      Health: "health",
-      Local: "local",
-    };
+    const suffix = language === "en" ? "" : `_${language}`;
+    const pick = <T,>(row: any, base: string): T =>
+      (row?.[`${base}${suffix}`] ?? row?.[base]) as T;
 
-    const fetchArticles = async () => {
-      setLoading(true);
+    const selectCols =
+      "id, topic, read_time_minutes, source_count, created_at, is_breaking, is_update, " +
+      "headline, body_standard, " +
+      "headline_da, body_standard_da, headline_de, body_standard_de, headline_es, body_standard_es";
 
-      let language = "en";
-      const { data: userData } = await supabase.auth.getUser();
-      if (userData?.user) {
-        const { data: profile } = await (supabase as any)
-          .from("profiles")
-          .select("primary_language")
-          .eq("user_id", userData.user.id)
-          .maybeSingle();
-        if (profile?.primary_language) language = profile.primary_language;
-      }
+    const topicFilter = TAB_TO_TOPIC[activeTab] ?? null;
 
-      const suffix = language === "en" ? "" : `_${language}`;
-      const pick = <T,>(row: any, base: string): T =>
-        (row?.[`${base}${suffix}`] ?? row?.[base]) as T;
+    let query = (supabase as any)
+      .from("articles")
+      .select(selectCols)
+      .order("created_at", { ascending: false })
+      .limit(50);
+    if (topicFilter) query = query.eq("topic", topicFilter);
 
-      const selectCols =
-        "id, topic, read_time_minutes, source_count, created_at, is_breaking, is_update, " +
-        "headline, body_standard, " +
-        "headline_da, body_standard_da, headline_de, body_standard_de, headline_es, body_standard_es";
-
-      const topicFilter = TAB_TO_TOPIC[activeTab] ?? null;
-
-      let query = (supabase as any)
+    const [{ data, error }, breakingRes] = await Promise.all([
+      query,
+      (supabase as any)
         .from("articles")
         .select(selectCols)
+        .eq("is_breaking", true)
         .order("created_at", { ascending: false })
-        .limit(50);
-      if (topicFilter) query = query.eq("topic", topicFilter);
+        .limit(1)
+        .maybeSingle(),
+    ]);
 
-      const [{ data, error }, breakingRes] = await Promise.all([
-        query,
-        (supabase as any)
-          .from("articles")
-          .select(selectCols)
-          .eq("is_breaking", true)
-          .order("created_at", { ascending: false })
-          .limit(1)
-          .maybeSingle(),
-      ]);
+    // Discard stale responses if a newer fetch started
+    if (seq !== fetchSeq.current) return;
 
-      if (cancelled) return;
-      const mapRow = (row: any): SourceArticle => ({
-        id: row.id,
-        topic: row.topic,
-        read_time_minutes: row.read_time_minutes,
-        source_count: row.source_count,
-        created_at: row.created_at,
-        is_breaking: row.is_breaking,
-        is_update: row.is_update,
-        headline: pick<string>(row, "headline") ?? "",
-        body_standard: pick<string | null>(row, "body_standard") ?? null,
-      });
-      if (!error && data) {
-        const mapped = (data as any[]).map(mapRow);
-        setArticles(mapped);
-        const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+    const mapRow = (row: any): SourceArticle => ({
+      id: row.id,
+      topic: row.topic,
+      read_time_minutes: row.read_time_minutes,
+      source_count: row.source_count,
+      created_at: row.created_at,
+      is_breaking: row.is_breaking,
+      is_update: row.is_update,
+      headline: pick<string>(row, "headline") ?? "",
+      body_standard: pick<string | null>(row, "body_standard") ?? null,
+    });
+    if (!error && data) {
+      const mapped = (data as any[]).map(mapRow);
+      setArticles(mapped);
+      const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
 
-        // Count outlets active in the last 24h: source_articles -> journalists -> sources.id
-        const { data: saData } = await (supabase as any)
-          .from("source_articles")
-          .select("journalists:journalist_id(source_id)")
-          .gt("scraped_at", twentyFourHoursAgo);
-        const outlets = new Set<string>();
-        for (const row of (saData as any[]) ?? []) {
-          const sid = row?.journalists?.source_id;
-          if (sid) outlets.add(String(sid));
-        }
-        setSourceCount(outlets.size);
-
-        // Count articles created in the last 24h
-        const { count: storyCount } = await (supabase as any)
-          .from("articles")
-          .select("id", { count: "exact", head: true })
-          .gt("created_at", twentyFourHoursAgo);
-        setTodayStoryCount(storyCount ?? 0);
-      } else {
-        setSourceCount(0);
-        setTodayStoryCount(0);
+      const { data: saData } = await (supabase as any)
+        .from("source_articles")
+        .select("journalists:journalist_id(source_id)")
+        .gt("scraped_at", twentyFourHoursAgo);
+      if (seq !== fetchSeq.current) return;
+      const outlets = new Set<string>();
+      for (const row of (saData as any[]) ?? []) {
+        const sid = row?.journalists?.source_id;
+        if (sid) outlets.add(String(sid));
       }
-      setBreakingArticle(
-        !breakingRes.error && breakingRes.data ? mapRow(breakingRes.data) : null
-      );
-      setLoading(false);
-      setRefreshing(false);
-      setPullDistance(0);
-    };
+      setSourceCount(outlets.size);
 
+      const { count: storyCount } = await (supabase as any)
+        .from("articles")
+        .select("id", { count: "exact", head: true })
+        .gt("created_at", twentyFourHoursAgo);
+      if (seq !== fetchSeq.current) return;
+      setTodayStoryCount(storyCount ?? 0);
+    } else {
+      setSourceCount(0);
+      setTodayStoryCount(0);
+    }
+    setBreakingArticle(
+      !breakingRes.error && breakingRes.data ? mapRow(breakingRes.data) : null
+    );
+    setLoading(false);
+    setRefreshing(false);
+    setPullDistance(0);
+  }, [activeTab]);
+
+  useEffect(() => {
     fetchArticles();
 
     const { data: sub } = supabase.auth.onAuthStateChange(() => {
@@ -336,13 +337,11 @@ function TodayPage() {
     window.addEventListener("lex:language-changed", onFocus);
 
     return () => {
-      cancelled = true;
       sub.subscription.unsubscribe();
       window.removeEventListener("focus", onFocus);
       window.removeEventListener("lex:language-changed", onFocus);
     };
-
-  }, [activeTab, refreshKey]);
+  }, [fetchArticles]);
 
   const onTouchStart = (e: React.TouchEvent) => {
     if (window.scrollY <= 0 && !refreshing) {
@@ -363,12 +362,14 @@ function TodayPage() {
     if (pullDistance >= PULL_THRESHOLD) {
       setRefreshing(true);
       setPullDistance(50);
-      setRefreshKey((k) => k + 1);
+      // Force a fresh fetch from Supabase, bypassing any in-flight stale state
+      void fetchArticles({ isRefresh: true });
     } else {
       setPullDistance(0);
     }
     touchStartY.current = null;
   };
+
 
 
 
