@@ -251,6 +251,7 @@ function TodayPage() {
         source_count: row.source_count,
         created_at: row.created_at,
         is_breaking: row.is_breaking,
+        is_update: row.is_update,
         headline: pick<string>(row, "headline") ?? "",
         body_standard: pick<string | null>(row, "body_standard") ?? null,
       });
