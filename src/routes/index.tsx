@@ -91,7 +91,25 @@ function SourceArticleCard({ article, depth }: { article: SourceArticle; depth: 
     >
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2">
-          {validTopic && <TopicPill topic={validTopic} />}
+          {validTopic ? (
+            <TopicPill topic={validTopic} />
+          ) : article.topic && article.topic.trim() !== "" ? (
+            <span
+              style={{
+                backgroundColor: "#8E8E931F",
+                border: "1px solid #8E8E93",
+                color: "#8E8E93",
+                fontWeight: 700,
+                fontSize: 11,
+                letterSpacing: "0.08em",
+                padding: "6px 8px",
+                borderRadius: 20,
+                lineHeight: 1,
+              }}
+            >
+              {article.topic.toUpperCase()}
+            </span>
+          ) : null}
           {article.is_update && (
             <span
               style={{
