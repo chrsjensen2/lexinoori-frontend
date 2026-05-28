@@ -30,6 +30,7 @@ type ArticleRow = {
   bias_score: number | null;
   diversity_score: number | null;
   whats_missing: string | null;
+  update_summary: string | null;
 };
 
 function toTopic(t: string | null | undefined): Topic {
