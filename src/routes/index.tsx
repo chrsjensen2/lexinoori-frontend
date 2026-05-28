@@ -336,7 +336,38 @@ function TodayPage() {
 
 
   return (
-    <div>
+    <div
+      onTouchStart={onTouchStart}
+      onTouchMove={onTouchMove}
+      onTouchEnd={onTouchEnd}
+      style={{
+        transform: pullDistance > 0 ? `translateY(${pullDistance}px)` : undefined,
+        transition: touchStartY.current == null ? "transform 0.2s ease" : undefined,
+      }}
+    >
+      {(pullDistance > 0 || refreshing) && (
+        <div
+          style={{
+            position: "absolute",
+            top: -40,
+            left: 0,
+            right: 0,
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            height: 40,
+            color: "#8E8E93",
+            fontSize: 12,
+            letterSpacing: "0.08em",
+          }}
+        >
+          {refreshing
+            ? "REFRESHING…"
+            : pullDistance >= PULL_THRESHOLD
+              ? "RELEASE TO REFRESH"
+              : "PULL TO REFRESH"}
+        </div>
+      )}
       <header
         className="sticky top-0 z-30 bg-background"
         style={{ paddingTop: "env(safe-area-inset-top)" }}
