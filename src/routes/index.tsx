@@ -26,6 +26,7 @@ type SourceArticle = {
   source_count: number | null;
   created_at: string;
   is_breaking: boolean | null;
+  is_update: boolean | null;
 };
 
 function formatDate(d: Date) {
