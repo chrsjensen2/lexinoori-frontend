@@ -3,6 +3,7 @@ import { useRef } from "react";
 const TABS = [
   "Today",
   "Politics",
+  "World",
   "Climate",
   "Tech",
   "Economy",
@@ -11,6 +12,7 @@ const TABS = [
   "Culture",
   "Local",
 ];
+
 
 export function TopicTabs({
   active,
