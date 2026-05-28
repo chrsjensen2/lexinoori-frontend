@@ -16,6 +16,7 @@ type DigestCard = {
 
 const TOPIC_LABELS: Record<Topic, string> = {
   politics: "POLITICS",
+  world: "WORLD",
   climate: "CLIMATE",
   economics: "ECONOMICS",
   sport: "SPORT",
@@ -56,7 +57,7 @@ function DigestPage() {
         .order("created_at", { ascending: false })
         .limit(5);
       if (cancelled) return;
-      const valid: Topic[] = ["politics","climate","economics","sport","technology","health","culture","local","breaking"];
+      const valid: Topic[] = ["politics","world","climate","economics","sport","technology","health","culture","local","breaking"];
       setCards(
         ((data as any[]) || []).map((r) => {
           const t = (r.topic || "").toLowerCase();
