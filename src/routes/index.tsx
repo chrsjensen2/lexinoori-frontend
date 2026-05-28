@@ -46,7 +46,7 @@ function timeAgo(iso: string) {
 }
 
 function toTopic(t: string | null): Topic | undefined {
-  const valid: Topic[] = ["politics", "climate", "economics", "sport", "technology", "health", "culture", "local", "breaking"];
+  const valid: Topic[] = ["politics", "world", "climate", "economics", "sport", "technology", "health", "culture", "local", "breaking"];
   const normalized = t?.toLowerCase() ?? "";
   return valid.includes(normalized as Topic) ? (normalized as Topic) : undefined;
 }
@@ -225,6 +225,7 @@ function TodayPage() {
     const TAB_TO_TOPIC: Record<string, string | null> = {
       Today: null,
       Politics: "politics",
+      World: "world",
       Climate: "climate",
       Tech: "technology",
       Economy: "economics",
