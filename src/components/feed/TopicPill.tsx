@@ -1,5 +1,6 @@
 type Topic =
   | "politics"
+  | "world"
   | "climate"
   | "economics"
   | "sport"
@@ -11,6 +12,7 @@ type Topic =
 
 const TOPIC_COLORS: Record<Topic, string> = {
   politics: "#4D6EFF",
+  world: "#6B7280",
   climate: "#00C864",
   economics: "#FFD000",
   sport: "#FF4500",
@@ -23,6 +25,7 @@ const TOPIC_COLORS: Record<Topic, string> = {
 
 const TOPIC_LABELS: Record<Topic, string> = {
   politics: "POLITICS",
+  world: "WORLD",
   climate: "CLIMATE",
   economics: "ECONOMICS",
   sport: "SPORT",

@@ -16,6 +16,7 @@ type SavedArticle = {
 const FILTERS: { label: string; topic: Topic | "all" }[] = [
   { label: "All", topic: "all" },
   { label: "Politics", topic: "politics" },
+  { label: "World", topic: "world" },
   { label: "Climate", topic: "climate" },
   { label: "Tech", topic: "technology" },
   { label: "Economy", topic: "economics" },
@@ -27,6 +28,7 @@ const FILTERS: { label: string; topic: Topic | "all" }[] = [
 
 const TOPIC_LABELS: Record<Topic, string> = {
   politics: "POLITICS",
+  world: "WORLD",
   climate: "CLIMATE",
   economics: "ECONOMICS",
   sport: "SPORT",
@@ -45,7 +47,7 @@ export const Route = createFileRoute("/saved")({
 });
 
 function toTopic(t: string | null | undefined): Topic {
-  const valid: Topic[] = ["politics", "climate", "economics", "sport", "technology", "health", "culture", "local", "breaking"];
+  const valid: Topic[] = ["politics", "world", "climate", "economics", "sport", "technology", "health", "culture", "local", "breaking"];
   const n = (t ?? "").toLowerCase();
   return (valid.includes(n as Topic) ? (n as Topic) : "politics");
 }
