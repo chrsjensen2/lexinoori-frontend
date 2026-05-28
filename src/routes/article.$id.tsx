@@ -93,6 +93,7 @@ function ArticleView() {
         "body_brief",
         "body_deep_dive",
         "whats_missing",
+        "update_summary",
       ];
       const langCols =
         suffix === ""
