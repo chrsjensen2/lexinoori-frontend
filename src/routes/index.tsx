@@ -305,7 +305,33 @@ function TodayPage() {
       window.removeEventListener("lex:language-changed", onFocus);
     };
 
-  }, [activeTab]);
+  }, [activeTab, refreshKey]);
+
+  const onTouchStart = (e: React.TouchEvent) => {
+    if (window.scrollY <= 0 && !refreshing) {
+      touchStartY.current = e.touches[0].clientY;
+    } else {
+      touchStartY.current = null;
+    }
+  };
+  const onTouchMove = (e: React.TouchEvent) => {
+    if (touchStartY.current == null) return;
+    const dy = e.touches[0].clientY - touchStartY.current;
+    if (dy > 0) {
+      setPullDistance(Math.min(dy * 0.5, 100));
+    }
+  };
+  const onTouchEnd = () => {
+    if (touchStartY.current == null) return;
+    if (pullDistance >= PULL_THRESHOLD) {
+      setRefreshing(true);
+      setPullDistance(50);
+      setRefreshKey((k) => k + 1);
+    } else {
+      setPullDistance(0);
+    }
+    touchStartY.current = null;
+  };
 
 
 
