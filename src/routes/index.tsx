@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Search, Bookmark } from "lucide-react";
 import { TopicTabs } from "@/components/feed/TopicTabs";
 import { BreakingNewsCard } from "@/components/feed/BreakingNewsCard";
@@ -165,6 +165,11 @@ function TodayPage() {
   const [depth, setDepth] = useState<Depth>("Standard");
   const [sourceCount, setSourceCount] = useState(0);
   const [todayStoryCount, setTodayStoryCount] = useState(0);
+  const [refreshKey, setRefreshKey] = useState(0);
+  const [pullDistance, setPullDistance] = useState(0);
+  const [refreshing, setRefreshing] = useState(false);
+  const touchStartY = useRef<number | null>(null);
+  const PULL_THRESHOLD = 70;
 
   useEffect(() => {
     setDateLabel(formatDate(new Date()));
@@ -279,6 +284,8 @@ function TodayPage() {
         !breakingRes.error && breakingRes.data ? mapRow(breakingRes.data) : null
       );
       setLoading(false);
+      setRefreshing(false);
+      setPullDistance(0);
     };
 
     fetchArticles();
@@ -298,12 +305,69 @@ function TodayPage() {
       window.removeEventListener("lex:language-changed", onFocus);
     };
 
-  }, [activeTab]);
+  }, [activeTab, refreshKey]);
+
+  const onTouchStart = (e: React.TouchEvent) => {
+    if (window.scrollY <= 0 && !refreshing) {
+      touchStartY.current = e.touches[0].clientY;
+    } else {
+      touchStartY.current = null;
+    }
+  };
+  const onTouchMove = (e: React.TouchEvent) => {
+    if (touchStartY.current == null) return;
+    const dy = e.touches[0].clientY - touchStartY.current;
+    if (dy > 0) {
+      setPullDistance(Math.min(dy * 0.5, 100));
+    }
+  };
+  const onTouchEnd = () => {
+    if (touchStartY.current == null) return;
+    if (pullDistance >= PULL_THRESHOLD) {
+      setRefreshing(true);
+      setPullDistance(50);
+      setRefreshKey((k) => k + 1);
+    } else {
+      setPullDistance(0);
+    }
+    touchStartY.current = null;
+  };
 
 
 
   return (
-    <div>
+    <div
+      onTouchStart={onTouchStart}
+      onTouchMove={onTouchMove}
+      onTouchEnd={onTouchEnd}
+      style={{
+        transform: pullDistance > 0 ? `translateY(${pullDistance}px)` : undefined,
+        transition: touchStartY.current == null ? "transform 0.2s ease" : undefined,
+      }}
+    >
+      {(pullDistance > 0 || refreshing) && (
+        <div
+          style={{
+            position: "absolute",
+            top: -40,
+            left: 0,
+            right: 0,
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            height: 40,
+            color: "#8E8E93",
+            fontSize: 12,
+            letterSpacing: "0.08em",
+          }}
+        >
+          {refreshing
+            ? "REFRESHING…"
+            : pullDistance >= PULL_THRESHOLD
+              ? "RELEASE TO REFRESH"
+              : "PULL TO REFRESH"}
+        </div>
+      )}
       <header
         className="sticky top-0 z-30 bg-background"
         style={{ paddingTop: "env(safe-area-inset-top)" }}
