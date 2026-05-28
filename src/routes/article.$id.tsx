@@ -30,6 +30,7 @@ type ArticleRow = {
   bias_score: number | null;
   diversity_score: number | null;
   whats_missing: string | null;
+  update_summary: string | null;
 };
 
 function toTopic(t: string | null | undefined): Topic {
@@ -92,6 +93,7 @@ function ArticleView() {
         "body_brief",
         "body_deep_dive",
         "whats_missing",
+        "update_summary",
       ];
       const langCols =
         suffix === ""
@@ -131,6 +133,7 @@ function ArticleView() {
           body_brief: pick("body_brief"),
           body_deep_dive: (data as any).body_deep_dive ?? null,
           whats_missing: pick("whats_missing"),
+          update_summary: pick("update_summary"),
         } as ArticleRow);
       }
       setLoading(false);
@@ -345,28 +348,27 @@ function ArticleView() {
       </div>
 
       {/* WHAT'S NEW */}
-      <section
-        style={{
-          margin: "12px 16px 0",
-          padding: 16,
-          borderRadius: 12,
-          backgroundColor: "rgba(26,122,94,0.08)",
-          border: "1px solid rgba(26,122,94,0.25)",
-        }}
-      >
-        <div className="flex items-center justify-between" style={{ marginBottom: 8 }}>
-          <span style={{ color: "#1A7A5E", fontSize: 11, fontWeight: 700, letterSpacing: "0.08em" }}>
-            WHAT'S NEW
-          </span>
-          <span style={{ color: "#8E8E93", fontSize: 11, fontWeight: 700, letterSpacing: "0.08em" }}>
-            SINCE YOU LAST READ · 3H AGO
-          </span>
-        </div>
-        <p style={{ color: "#FFFFFF", fontSize: 14, lineHeight: 1.5 }}>
-          Council legal service has now formally objected to the 72-hour consultation window. Two
-          new sources added.
-        </p>
-      </section>
+      {article?.update_summary && article.update_summary.trim() !== "" && (
+        <section
+          style={{
+            margin: "12px 16px 0",
+            padding: 16,
+            borderRadius: 12,
+            backgroundColor: "rgba(26,122,94,0.08)",
+            border: "1px solid rgba(26,122,94,0.25)",
+          }}
+        >
+          <div className="flex items-center justify-between" style={{ marginBottom: 8 }}>
+            <span style={{ color: "#1A7A5E", fontSize: 11, fontWeight: 700, letterSpacing: "0.08em" }}>
+              WHAT'S NEW
+            </span>
+          </div>
+          <p style={{ color: "#FFFFFF", fontSize: 14, lineHeight: 1.5 }}>
+            {article.update_summary}
+          </p>
+        </section>
+      )}
+
 
       {/* BEFORE YOU READ */}
       <section
