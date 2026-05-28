@@ -92,6 +92,22 @@ function SourceArticleCard({ article, depth }: { article: SourceArticle; depth: 
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           {validTopic && <TopicPill topic={validTopic} />}
+          {article.is_update && (
+            <span
+              style={{
+                backgroundColor: "#0F6E56",
+                color: "#FFFFFF",
+                fontWeight: 700,
+                fontSize: 11,
+                letterSpacing: "0.08em",
+                padding: "6px 8px",
+                borderRadius: 20,
+                lineHeight: 1,
+              }}
+            >
+              UPDATE
+            </span>
+          )}
           {article.is_breaking && <WhatsNewPill />}
         </div>
         <span style={{ color: "#8E8E93", fontSize: 12 }}>{timeAgo(article.created_at)}</span>
