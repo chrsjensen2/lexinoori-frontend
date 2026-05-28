@@ -133,6 +133,7 @@ function ArticleView() {
           body_brief: pick("body_brief"),
           body_deep_dive: (data as any).body_deep_dive ?? null,
           whats_missing: pick("whats_missing"),
+          update_summary: pick("update_summary"),
         } as ArticleRow);
       }
       setLoading(false);
