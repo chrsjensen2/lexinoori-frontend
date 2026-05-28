@@ -830,48 +830,29 @@ function SourceRow({
     : [];
   const count = items.length;
   const hasJournalist = !!journalistId;
+  const toggleExpand = () => setExpanded((v) => !v);
   return (
     <div style={{ borderBottom: last ? "none" : "1px solid #2C2C2E" }}>
       <div
-        role={hasJournalist ? "button" : undefined}
-        tabIndex={hasJournalist ? 0 : undefined}
-        onClick={() => {
-          if (hasJournalist) {
-            navigate({ to: "/journalist/$id", params: { id: journalistId! } });
-          } else {
-            setExpanded((v) => !v);
-          }
-        }}
+        role="button"
+        tabIndex={0}
+        onClick={toggleExpand}
         onKeyDown={(e) => {
-          if (!hasJournalist && (e.key === "Enter" || e.key === " ")) {
+          if (e.key === "Enter" || e.key === " ") {
             e.preventDefault();
-            setExpanded((v) => !v);
+            toggleExpand();
           }
         }}
         className="flex items-center"
-        style={{ gap: 12, padding: "12px 0", cursor: hasJournalist ? "pointer" : "default" }}
+        style={{ gap: 12, padding: "12px 0", cursor: "pointer" }}
       >
-        {hasJournalist ? (
-          <span
-            aria-hidden
-            className="flex items-center justify-center"
-            style={{ color: "#8E8E93", width: 16 }}
-          >
-            <ChevronRight size={16} />
-          </span>
-        ) : (
-          <span
-            aria-hidden
-            className="flex items-center justify-center"
-            style={{ color: "#8E8E93", width: 16 }}
-            onClick={(e) => {
-              e.stopPropagation();
-              setExpanded((v) => !v);
-            }}
-          >
-            {expanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
-          </span>
-        )}
+        <span
+          aria-hidden
+          className="flex items-center justify-center"
+          style={{ color: "#8E8E93", width: 16 }}
+        >
+          {expanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+        </span>
         <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 2 }}>
           <div style={{ display: "flex", alignItems: "baseline", flexWrap: "wrap", gap: 6 }}>
             <span style={{ color: "#FFFFFF", fontSize: 14, fontWeight: 700 }}>{name}</span>
@@ -883,7 +864,29 @@ function SourceRow({
           </div>
           <div style={{ color: "#FFFFFF", fontSize: 13, lineHeight: 1.4, marginTop: 2 }}>{truncated}</div>
           {author && (
-            <div style={{ color: "#8E8E93", fontSize: 13 }}>{author}</div>
+            hasJournalist ? (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  navigate({ to: "/journalist/$id", params: { id: journalistId! } });
+                }}
+                style={{
+                  alignSelf: "flex-start",
+                  background: "transparent",
+                  border: "none",
+                  padding: 0,
+                  color: "#8E8E93",
+                  fontSize: 13,
+                  textDecoration: "underline",
+                  cursor: "pointer",
+                }}
+              >
+                {author}
+              </button>
+            ) : (
+              <div style={{ color: "#8E8E93", fontSize: 13 }}>{author}</div>
+            )
           )}
         </div>
         <a
@@ -899,7 +902,7 @@ function SourceRow({
         </a>
       </div>
 
-      {expanded && !hasJournalist && (
+      {expanded && (
         <div style={{ padding: "4px 0 12px 28px" }}>
           {items.length === 0 ? (
             <div style={{ color: "#8E8E93", fontSize: 13 }}>No loaded language detected</div>
