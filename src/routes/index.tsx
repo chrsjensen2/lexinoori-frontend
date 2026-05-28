@@ -251,17 +251,17 @@ function TodayPage() {
     const pick = <T,>(row: any, base: string): T =>
       (row?.[`${base}${suffix}`] ?? row?.[base]) as T;
 
-    const selectCols =
-      "id, topic, read_time_minutes, source_count, created_at, is_breaking, is_update, " +
-      "headline, body_standard, " +
-      "headline_da, body_standard_da, headline_de, body_standard_de, headline_es, body_standard_es";
+  const selectCols =
+    "id, topic, read_time_minutes, source_count, created_at, updated_at, is_breaking, is_update, " +
+    "headline, body_standard, " +
+    "headline_da, body_standard_da, headline_de, body_standard_de, headline_es, body_standard_es";
 
     const topicFilter = TAB_TO_TOPIC[activeTab] ?? null;
 
     let query = (supabase as any)
       .from("articles")
-      .select(selectCols)
-      .order("created_at", { ascending: false })
+      .select(selectCols + ", greatest_time: greatest(created_at, coalesce(updated_at, created_at))")
+      .order("greatest_time", { ascending: false })
       .limit(50);
     if (topicFilter) query = query.eq("topic", topicFilter);
 
