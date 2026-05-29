@@ -395,7 +395,7 @@ function ArticleView() {
               SOURCES
             </div>
             <div style={{ color: "#FFFFFF", fontSize: 22, fontWeight: 700, marginTop: 4 }}>
-              {sourceCount} sources
+              {sourceCount} {sourceCount === 1 ? "source" : "sources"}
             </div>
           </div>
           <div className="flex-1">
