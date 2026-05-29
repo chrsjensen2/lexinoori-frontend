@@ -156,22 +156,19 @@ function ArticleView() {
       }
       const { data, error } = await (supabase as any)
         .from("source_articles")
-        .select("url, headline, loaded_language, journalist_id, author, sources:source_id(name)")
+        .select("url, headline, loaded_language, journalist_id, author, source_name")
         .eq("cluster_id", clusterId);
       console.log("Sources fetch:", { data, error });
       if (cancelled) return;
       const rows = (data ?? [])
-        .map((r: any) => {
-          const joined = Array.isArray(r?.sources) ? r.sources[0] : r?.sources;
-          return {
-            url: r?.url ?? "",
-            headline: r?.headline ?? "",
-            name: joined?.name ?? r?.source_name ?? "Unknown",
-            loaded_language: r?.loaded_language ?? null,
-            journalist_id: r?.journalist_id ?? null,
-            author: r?.author ?? null,
-          };
-        })
+        .map((r: any) => ({
+          url: r?.url ?? "",
+          headline: r?.headline ?? "",
+          name: r?.source_name ?? "Unknown",
+          loaded_language: r?.loaded_language ?? null,
+          journalist_id: r?.journalist_id ?? null,
+          author: r?.author ?? null,
+        }))
         .filter((r: any) => r.url);
       setSources(rows);
     })();
