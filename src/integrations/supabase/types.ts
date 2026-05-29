@@ -214,6 +214,7 @@ export type Database = {
         Row: {
           author: string | null
           body: string | null
+          cluster_id: string | null
           created_at: string
           headline: string
           id: string
@@ -225,6 +226,7 @@ export type Database = {
         Insert: {
           author?: string | null
           body?: string | null
+          cluster_id?: string | null
           created_at?: string
           headline: string
           id?: string
@@ -236,6 +238,7 @@ export type Database = {
         Update: {
           author?: string | null
           body?: string | null
+          cluster_id?: string | null
           created_at?: string
           headline?: string
           id?: string
@@ -245,6 +248,13 @@ export type Database = {
           url?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "source_articles_cluster_id_fkey"
+            columns: ["cluster_id"]
+            isOneToOne: false
+            referencedRelation: "story_clusters"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "source_articles_journalist_id_fkey"
             columns: ["journalist_id"]

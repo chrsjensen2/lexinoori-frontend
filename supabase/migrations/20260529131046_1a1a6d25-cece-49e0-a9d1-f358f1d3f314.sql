@@ -1,0 +1,2 @@
+ALTER TABLE public.source_articles ADD COLUMN IF NOT EXISTS cluster_id uuid REFERENCES public.story_clusters(id) ON DELETE SET NULL;
+CREATE INDEX IF NOT EXISTS idx_source_articles_cluster_id ON public.source_articles(cluster_id);
