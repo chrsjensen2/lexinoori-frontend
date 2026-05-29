@@ -582,36 +582,46 @@ function ArticleView() {
         </div>
 
         {/* Sources */}
-        <div
-          style={{
-            color: "#8E8E93",
-            fontSize: 11,
-            fontWeight: 700,
-            letterSpacing: "0.08em",
-            marginTop: 16,
-            marginBottom: 4,
-          }}
-        >
-          SOURCES · {sources.length} {sources.length === 1 ? "SOURCE" : "SOURCES"}
-        </div>
-
         {sources.length === 0 ? (
-          <div style={{ color: "#8E8E93", fontSize: 14, padding: "12px 0" }}>
-            No sources available.
+          <div
+            style={{
+              color: "#8E8E93",
+              fontSize: 11,
+              fontWeight: 700,
+              letterSpacing: "0.08em",
+              marginTop: 16,
+              marginBottom: 4,
+            }}
+          >
+            Source articles not available
           </div>
         ) : (
-          sources.map((s, i) => (
-            <SourceRow
-              key={`${s.url}-${i}`}
-              name={s.name}
-              headline={s.headline}
-              url={s.url}
-              loadedLanguage={s.loaded_language}
-              journalistId={s.journalist_id}
-              author={s.author}
-              last={i === sources.length - 1}
-            />
-          ))
+          <>
+            <div
+              style={{
+                color: "#8E8E93",
+                fontSize: 11,
+                fontWeight: 700,
+                letterSpacing: "0.08em",
+                marginTop: 16,
+                marginBottom: 4,
+              }}
+            >
+              SOURCES · {sources.length} {sources.length === 1 ? "SOURCE" : "SOURCES"}
+            </div>
+            {sources.map((s, i) => (
+              <SourceRow
+                key={`${s.url}-${i}`}
+                name={s.name}
+                headline={s.headline}
+                url={s.url}
+                loadedLanguage={s.loaded_language}
+                journalistId={s.journalist_id}
+                author={s.author}
+                last={i === sources.length - 1}
+              />
+            ))}
+          </>
         )}
 
         {/* Bottom action */}
