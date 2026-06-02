@@ -160,7 +160,7 @@ function TimelinePage() {
           pillLabel="ORIGINAL"
           time="2 DAYS AGO · 14:30"
           title="Story created from 4 sources"
-          body="Initial merge from Reuters, AP, BBC, DR. Pool lean L·22, diversity 6.8."
+          body="Initial merge from Reuters, AP, BBC, DR. Diversity 6.8."
           footer="4 SOURCES · STORY OPENED"
           last
         />
