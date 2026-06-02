@@ -410,53 +410,8 @@ function ArticleView() {
           </div>
         </div>
 
-        {/* Pool lean slider */}
-        <div style={{ marginBottom: 16 }}>
-          <div className="flex items-center justify-between" style={{ marginBottom: 12 }}>
-            <span style={{ color: "#8E8E93", fontSize: 11, fontWeight: 700, letterSpacing: "0.08em" }}>
-              POOL LEAN
-            </span>
-            <span style={{ color: "#8E8E93", fontSize: 11, fontWeight: 700, letterSpacing: "0.08em" }}>
-              {poolLeanLabel}
-            </span>
-          </div>
-          <div style={{ position: "relative", width: "100%", height: 14 }}>
-            <div
-              style={{
-                position: "absolute",
-                top: 5,
-                left: 0,
-                right: 0,
-                height: 4,
-                backgroundColor: "#2C2C2E",
-                borderRadius: 999,
-              }}
-            />
-            <div
-              style={{
-                position: "absolute",
-                top: 5,
-                left: 0,
-                width: `${biasPct}%`,
-                height: 4,
-                backgroundColor: "#1A7A5E",
-                borderRadius: 999,
-              }}
-            />
-            <div
-              style={{
-                position: "absolute",
-                top: 0,
-                left: `calc(${biasPct}% - 7px)`,
-                width: 14,
-                height: 14,
-                borderRadius: 999,
-                backgroundColor: "#1A7A5E",
-              }}
-            />
+        {/* Pool lean slider hidden */}
 
-          </div>
-        </div>
 
         {/* Source diversity */}
         <div>
