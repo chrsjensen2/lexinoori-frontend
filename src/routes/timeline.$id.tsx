@@ -136,7 +136,7 @@ function TimelinePage() {
           pillLabel="UPDATE"
           time="YESTERDAY · 18:40"
           title="Israeli foreign minister responds, calling sanctions unacceptable"
-          body="Two new perspectives added to the source pool. Pool lean shifted from L·18 to L·12."
+          body="Two new perspectives added to the source pool."
           footer="+3 SOURCES · ADDED ISRAELI RESPONSE SECTION"
         />
         <Entry
