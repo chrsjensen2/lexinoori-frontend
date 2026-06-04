@@ -55,6 +55,17 @@ export const Route = createFileRoute("/digest")({
 
 function DigestPage() {
   const [cards, setCards] = useState<DigestCard[]>([]);
+  const [depth, setDepth] = useState<Depth>(getDepth());
+
+  useEffect(() => {
+    const onDepth = () => setDepth(getDepth());
+    window.addEventListener("lex:depth-changed", onDepth);
+    window.addEventListener("storage", onDepth);
+    return () => {
+      window.removeEventListener("lex:depth-changed", onDepth);
+      window.removeEventListener("storage", onDepth);
+    };
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
