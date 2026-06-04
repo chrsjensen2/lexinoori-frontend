@@ -28,6 +28,19 @@ const TOPIC_LABELS: Record<Topic, string> = {
 };
 const DARK_TEXT: Topic[] = ["economics", "technology", "health"];
 
+type Depth = "Bullets" | "Brief" | "Standard" | "Deep Dive";
+function getDepth(): Depth {
+  if (typeof window === "undefined") return "Standard";
+  const v = window.localStorage.getItem("lex:depth");
+  return v === "Bullets" || v === "Brief" || v === "Deep Dive" ? v : "Standard";
+}
+function depthMinutes(depth: Depth, minutes: number): number {
+  if (depth === "Bullets") return 1;
+  if (depth === "Brief") return 2;
+  if (depth === "Deep Dive") return minutes * 3;
+  return minutes;
+}
+
 function todayLabel() {
   const d = new Date();
   const days = ["SUN","MON","TUE","WED","THU","FRI","SAT"];
