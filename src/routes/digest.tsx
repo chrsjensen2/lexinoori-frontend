@@ -245,7 +245,7 @@ function DigestArticleCard({ card, depth }: { card: DigestCard; depth: Depth }) 
         {card.headline}
       </h3>
       <p style={{ color: "#8E8E93", fontSize: 13, marginTop: 8 }}>
-        Merged · {card.sources} sources · {card.readMinutes} min
+        Merged · {card.sources} sources · {depthMinutes(depth, card.readMinutes)} min
       </p>
       <div className="flex items-center gap-2" style={{ marginTop: 8 }}>
         <span
