@@ -200,7 +200,7 @@ function DigestPage() {
 }
 
 
-function DigestArticleCard({ card }: { card: DigestCard }) {
+function DigestArticleCard({ card, depth }: { card: DigestCard; depth: Depth }) {
   const topicColor = TOPIC_COLORS[card.topic];
   return (
     <Link
