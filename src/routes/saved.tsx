@@ -267,9 +267,11 @@ function SavedPage() {
 function SwipeableCard({
   article,
   onRemove,
+  depth,
 }: {
   article: SavedArticle;
   onRemove: () => void;
+  depth: Depth;
 }) {
   const [offset, setOffset] = useState(0);
   const startX = useRef<number | null>(null);
