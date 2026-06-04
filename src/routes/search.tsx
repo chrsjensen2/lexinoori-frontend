@@ -114,7 +114,7 @@ function ResultCard({ article }: { article: ArticleResult }) {
           {article.source_count ? `Merged · ${article.source_count} sources` : "Merged"}
         </span>
         <span style={{ color: "#8E8E93", fontSize: 13, marginLeft: "auto" }}>
-          {article.read_time_minutes ?? 5} min
+          {depthMinutes(getDepth(), article.read_time_minutes ?? 5)} min
         </span>
         <button
           aria-label={saved ? "Unsave" : "Save"}
