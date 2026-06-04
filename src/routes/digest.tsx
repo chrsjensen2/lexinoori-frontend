@@ -186,7 +186,7 @@ function DigestPage() {
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 12, marginTop: 12 }}>
               {group.cards.map((c) => (
-                <DigestArticleCard key={c.id} card={c} />
+                <DigestArticleCard key={c.id} card={c} depth={depth} />
               ))}
               {group.cards.length === 0 && (
                 <p style={{ color: "#8E8E93", fontSize: 13 }}>No articles yet.</p>
