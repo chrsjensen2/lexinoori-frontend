@@ -256,7 +256,7 @@ function SavedPage() {
           }}
         >
           {filtered.map((a) => (
-            <SwipeableCard key={a.id} article={a} onRemove={() => handleRemove(a.id)} />
+            <SwipeableCard key={a.id} article={a} depth={depth} onRemove={() => handleRemove(a.id)} />
           ))}
         </div>
       )}
