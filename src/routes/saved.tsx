@@ -13,6 +13,19 @@ type SavedArticle = {
   readMinutes: number;
 };
 
+type Depth = "Bullets" | "Brief" | "Standard" | "Deep Dive";
+function getDepth(): Depth {
+  if (typeof window === "undefined") return "Standard";
+  const v = window.localStorage.getItem("lex:depth");
+  return v === "Bullets" || v === "Brief" || v === "Deep Dive" ? v : "Standard";
+}
+function depthMinutes(depth: Depth, minutes: number): number {
+  if (depth === "Bullets") return 1;
+  if (depth === "Brief") return 2;
+  if (depth === "Deep Dive") return minutes * 3;
+  return minutes;
+}
+
 const FILTERS: { label: string; topic: Topic | "all" }[] = [
   { label: "All", topic: "all" },
   { label: "Politics", topic: "politics" },
@@ -57,6 +70,16 @@ function SavedPage() {
   const [filter, setFilter] = useState<Topic | "all">("all");
   const [articles, setArticles] = useState<SavedArticle[]>([]);
   const { toggle, userId } = useSavedArticles();
+  const [depth, setDepth] = useState<Depth>(getDepth());
+  useEffect(() => {
+    const onDepth = () => setDepth(getDepth());
+    window.addEventListener("lex:depth-changed", onDepth);
+    window.addEventListener("storage", onDepth);
+    return () => {
+      window.removeEventListener("lex:depth-changed", onDepth);
+      window.removeEventListener("storage", onDepth);
+    };
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -233,7 +256,7 @@ function SavedPage() {
           }}
         >
           {filtered.map((a) => (
-            <SwipeableCard key={a.id} article={a} onRemove={() => handleRemove(a.id)} />
+            <SwipeableCard key={a.id} article={a} depth={depth} onRemove={() => handleRemove(a.id)} />
           ))}
         </div>
       )}
@@ -244,9 +267,11 @@ function SavedPage() {
 function SwipeableCard({
   article,
   onRemove,
+  depth,
 }: {
   article: SavedArticle;
   onRemove: () => void;
+  depth: Depth;
 }) {
   const [offset, setOffset] = useState(0);
   const startX = useRef<number | null>(null);
@@ -346,7 +371,7 @@ function SwipeableCard({
             Merged · {article.sources} sources
           </p>
           <p style={{ color: "#8E8E93", fontSize: 12, marginTop: 4 }}>
-            {article.readMinutes} min read
+            {depthMinutes(depth, article.readMinutes)} min read
           </p>
         </div>
         <div

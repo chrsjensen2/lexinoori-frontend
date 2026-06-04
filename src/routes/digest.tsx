@@ -28,6 +28,19 @@ const TOPIC_LABELS: Record<Topic, string> = {
 };
 const DARK_TEXT: Topic[] = ["economics", "technology", "health"];
 
+type Depth = "Bullets" | "Brief" | "Standard" | "Deep Dive";
+function getDepth(): Depth {
+  if (typeof window === "undefined") return "Standard";
+  const v = window.localStorage.getItem("lex:depth");
+  return v === "Bullets" || v === "Brief" || v === "Deep Dive" ? v : "Standard";
+}
+function depthMinutes(depth: Depth, minutes: number): number {
+  if (depth === "Bullets") return 1;
+  if (depth === "Brief") return 2;
+  if (depth === "Deep Dive") return minutes * 3;
+  return minutes;
+}
+
 function todayLabel() {
   const d = new Date();
   const days = ["SUN","MON","TUE","WED","THU","FRI","SAT"];
@@ -42,6 +55,17 @@ export const Route = createFileRoute("/digest")({
 
 function DigestPage() {
   const [cards, setCards] = useState<DigestCard[]>([]);
+  const [depth, setDepth] = useState<Depth>(getDepth());
+
+  useEffect(() => {
+    const onDepth = () => setDepth(getDepth());
+    window.addEventListener("lex:depth-changed", onDepth);
+    window.addEventListener("storage", onDepth);
+    return () => {
+      window.removeEventListener("lex:depth-changed", onDepth);
+      window.removeEventListener("storage", onDepth);
+    };
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -162,7 +186,7 @@ function DigestPage() {
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 12, marginTop: 12 }}>
               {group.cards.map((c) => (
-                <DigestArticleCard key={c.id} card={c} />
+                <DigestArticleCard key={c.id} card={c} depth={depth} />
               ))}
               {group.cards.length === 0 && (
                 <p style={{ color: "#8E8E93", fontSize: 13 }}>No articles yet.</p>
@@ -176,7 +200,7 @@ function DigestPage() {
 }
 
 
-function DigestArticleCard({ card }: { card: DigestCard }) {
+function DigestArticleCard({ card, depth }: { card: DigestCard; depth: Depth }) {
   const topicColor = TOPIC_COLORS[card.topic];
   return (
     <Link
@@ -221,7 +245,7 @@ function DigestArticleCard({ card }: { card: DigestCard }) {
         {card.headline}
       </h3>
       <p style={{ color: "#8E8E93", fontSize: 13, marginTop: 8 }}>
-        Merged · {card.sources} sources · {card.readMinutes} min
+        Merged · {card.sources} sources · {depthMinutes(depth, card.readMinutes)} min
       </p>
       <div className="flex items-center gap-2" style={{ marginTop: 8 }}>
         <span

@@ -58,10 +58,12 @@ function getDepth(): Depth {
   return v === "Bullets" || v === "Brief" || v === "Deep Dive" ? v : "Standard";
 }
 function readTimeLabel(depth: Depth, minutes: number | null): string {
-  if (depth === "Bullets") return "< 1 min";
-  if (depth === "Brief") return "1-2 min";
+  if (depth === "Bullets") return "1 min";
+  if (depth === "Brief") return "2 min";
+  if (depth === "Deep Dive") return `${(minutes ?? 5) * 3} min`;
   return `${minutes ?? 5} min`;
 }
+
 
 function SourceArticleCard({ article, depth }: { article: SourceArticle; depth: Depth }) {
   const { isSaved, toggle } = useSavedArticles();

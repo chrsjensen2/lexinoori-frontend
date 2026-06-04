@@ -40,10 +40,12 @@ function getDepth(): Depth {
   return v === "Bullets" || v === "Brief" || v === "Deep Dive" ? v : "Standard";
 }
 function readTimeLabel(depth: Depth, minutes: number | null): string {
-  if (depth === "Bullets") return "< 1 MIN";
-  if (depth === "Brief") return "1-2 MIN";
+  if (depth === "Bullets") return "1 MIN";
+  if (depth === "Brief") return "2 MIN";
+  if (depth === "Deep Dive") return `${(minutes ?? 5) * 3} MIN`;
   return `${minutes ?? 5} MIN`;
 }
+
 
 function toTopic(t: string | null): Topic | undefined {
   const valid: Topic[] = ["politics", "climate", "economics", "sport", "technology", "health", "culture", "local", "breaking"];
