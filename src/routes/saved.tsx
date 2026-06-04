@@ -369,7 +369,7 @@ function SwipeableCard({
             Merged · {article.sources} sources
           </p>
           <p style={{ color: "#8E8E93", fontSize: 12, marginTop: 4 }}>
-            {article.readMinutes} min read
+            {depthMinutes(depth, article.readMinutes)} min read
           </p>
         </div>
         <div
