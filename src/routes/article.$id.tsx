@@ -11,7 +11,7 @@ export const Route = createFileRoute("/article/$id")({
   component: ArticleView,
 });
 
-const READ_LENGTHS = ["Bullets", "Brief", "Standard", "Deep Dive"] as const;
+const READ_LENGTHS = ["Bullets", "Brief", "Standard"] as const;
 type ReadLength = (typeof READ_LENGTHS)[number];
 
 const FONT_SIZES = { Small: 14, Medium: 16, Large: 19 } as const;
