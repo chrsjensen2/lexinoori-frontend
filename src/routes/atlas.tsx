@@ -43,7 +43,7 @@ function readTimeLabel(depth: Depth, minutes: number | null): string {
   if (depth === "Bullets") return "1 MIN";
   if (depth === "Brief") return "2 MIN";
   if (depth === "Deep Dive") return `${(minutes ?? 5) * 3} MIN`;
-  return `${minutes ?? 5} MIN`;
+  return `${Math.max(2, minutes ?? 5)} MIN`;
 }
 
 
