@@ -368,7 +368,7 @@ function SwipeableCard({
             {article.headline}
           </h3>
           <p style={{ color: "#8E8E93", fontSize: 12, marginTop: 6 }}>
-            Merged · {article.sources} sources
+            Merged · {article.sources} {article.sources === 1 ? "source" : "sources"}
           </p>
           <p style={{ color: "#8E8E93", fontSize: 12, marginTop: 4 }}>
             {depthMinutes(depth, article.readMinutes)} min read
