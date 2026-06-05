@@ -92,7 +92,7 @@ export function BreakingNewsCard({ headline, sources, timeAgo, articleId }: Brea
             marginTop: 8,
           }}
         >
-          Merged · {sources} sources
+          Merged · {sources} {sources === 1 ? "source" : "sources"}
         </p>
 
         <div className="mt-4 flex items-center justify-end gap-2">
