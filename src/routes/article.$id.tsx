@@ -11,7 +11,7 @@ export const Route = createFileRoute("/article/$id")({
   component: ArticleView,
 });
 
-const READ_LENGTHS = ["Bullets", "Brief", "Standard", "Deep Dive"] as const;
+const READ_LENGTHS = ["Bullets", "Brief", "Standard"] as const;
 type ReadLength = (typeof READ_LENGTHS)[number];
 
 const FONT_SIZES = { Small: 14, Medium: 16, Large: 19 } as const;
@@ -185,8 +185,7 @@ function ArticleView() {
   const readMinutes =
     readLength === "Bullets" ? 1
     : readLength === "Brief" ? 2
-    : readLength === "Deep Dive" ? storedReadMinutes * 3
-    : storedReadMinutes;
+    : Math.max(2, storedReadMinutes);
   const biasScore = Number(article?.bias_score ?? 0);
   const diversityScore = Number(article?.diversity_score ?? 0);
   const biasPct = Math.max(0, Math.min(100, ((biasScore + 1) / 2) * 100));
@@ -210,8 +209,6 @@ function ArticleView() {
     ? (article?.body_bullets ?? "")
     : readLength === "Brief"
     ? (article?.body_brief ?? "")
-    : readLength === "Deep Dive"
-    ? (article?.body_deep_dive ?? "")
     : (article?.body_standard ?? "");
   const body = readLength === "Bullets" && rawBody
     ? (() => {
@@ -235,7 +232,7 @@ function ArticleView() {
         return normalized.slice(0, 5).join("\n");
       })()
     : rawBody;
-  const deepDiveDisabled = !article?.body_deep_dive;
+  
 
 
 
@@ -449,7 +446,7 @@ function ArticleView() {
       <div className="flex" style={{ gap: 8, margin: "12px 16px 0" }}>
         {READ_LENGTHS.map((rl) => {
           const active = rl === readLength;
-          const disabled = rl === "Deep Dive" && deepDiveDisabled;
+          const disabled = false;
           return (
             <button
               key={rl}

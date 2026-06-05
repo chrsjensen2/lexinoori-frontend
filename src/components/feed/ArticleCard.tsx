@@ -101,7 +101,7 @@ export function ArticleCard({
         >
           {outletInitial}
         </span>
-        <span style={{ color: "#8E8E93", fontSize: 13 }}>Merged · {sources} sources</span>
+        <span style={{ color: "#8E8E93", fontSize: 13 }}>Merged · {sources} {sources === 1 ? "source" : "sources"}</span>
         <span style={{ color: "#8E8E93", fontSize: 13, marginLeft: "auto" }}>
           {readMinutes} min
         </span>

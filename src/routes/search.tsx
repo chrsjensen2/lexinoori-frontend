@@ -50,7 +50,7 @@ function depthMinutes(depth: Depth, minutes: number): number {
   if (depth === "Bullets") return 1;
   if (depth === "Brief") return 2;
   if (depth === "Deep Dive") return minutes * 3;
-  return minutes;
+  return Math.max(2, minutes);
 }
 
 function toTopic(t: string | null): Topic | undefined {
@@ -124,7 +124,7 @@ function ResultCard({ article }: { article: ArticleResult }) {
           {outletInitial}
         </span>
         <span style={{ color: "#8E8E93", fontSize: 13 }}>
-          {article.source_count ? `Merged · ${article.source_count} sources` : "Merged"}
+          {article.source_count ? `Merged · ${article.source_count} ${article.source_count === 1 ? "source" : "sources"}` : "Merged"}
         </span>
         <span style={{ color: "#8E8E93", fontSize: 13, marginLeft: "auto" }}>
           {depthMinutes(getDepth(), article.read_time_minutes ?? 5)} min

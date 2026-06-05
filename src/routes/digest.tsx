@@ -38,7 +38,7 @@ function depthMinutes(depth: Depth, minutes: number): number {
   if (depth === "Bullets") return 1;
   if (depth === "Brief") return 2;
   if (depth === "Deep Dive") return minutes * 3;
-  return minutes;
+  return Math.max(2, minutes);
 }
 
 function todayLabel() {
@@ -245,7 +245,7 @@ function DigestArticleCard({ card, depth }: { card: DigestCard; depth: Depth }) 
         {card.headline}
       </h3>
       <p style={{ color: "#8E8E93", fontSize: 13, marginTop: 8 }}>
-        Merged · {card.sources} sources · {depthMinutes(depth, card.readMinutes)} min
+        Merged · {card.sources} {card.sources === 1 ? "source" : "sources"} · {depthMinutes(depth, card.readMinutes)} min
       </p>
       <div className="flex items-center gap-2" style={{ marginTop: 8 }}>
         <span
