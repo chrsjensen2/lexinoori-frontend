@@ -185,8 +185,7 @@ function ArticleView() {
   const readMinutes =
     readLength === "Bullets" ? 1
     : readLength === "Brief" ? 2
-    : readLength === "Deep Dive" ? storedReadMinutes * 3
-    : storedReadMinutes;
+    : Math.max(2, storedReadMinutes);
   const biasScore = Number(article?.bias_score ?? 0);
   const diversityScore = Number(article?.diversity_score ?? 0);
   const biasPct = Math.max(0, Math.min(100, ((biasScore + 1) / 2) * 100));
