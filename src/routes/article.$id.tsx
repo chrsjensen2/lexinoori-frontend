@@ -209,8 +209,6 @@ function ArticleView() {
     ? (article?.body_bullets ?? "")
     : readLength === "Brief"
     ? (article?.body_brief ?? "")
-    : readLength === "Deep Dive"
-    ? (article?.body_deep_dive ?? "")
     : (article?.body_standard ?? "");
   const body = readLength === "Bullets" && rawBody
     ? (() => {
