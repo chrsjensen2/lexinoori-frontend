@@ -232,7 +232,7 @@ function ArticleView() {
         return normalized.slice(0, 5).join("\n");
       })()
     : rawBody;
-  const deepDiveDisabled = !article?.body_deep_dive;
+  
 
 
 
