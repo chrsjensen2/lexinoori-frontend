@@ -446,7 +446,7 @@ function ArticleView() {
       <div className="flex" style={{ gap: 8, margin: "12px 16px 0" }}>
         {READ_LENGTHS.map((rl) => {
           const active = rl === readLength;
-          const disabled = rl === "Deep Dive" && deepDiveDisabled;
+          const disabled = false;
           return (
             <button
               key={rl}
