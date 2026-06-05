@@ -23,7 +23,7 @@ function depthMinutes(depth: Depth, minutes: number): number {
   if (depth === "Bullets") return 1;
   if (depth === "Brief") return 2;
   if (depth === "Deep Dive") return minutes * 3;
-  return minutes;
+  return Math.max(2, minutes);
 }
 
 const FILTERS: { label: string; topic: Topic | "all" }[] = [
