@@ -294,7 +294,9 @@ function TodayPage() {
       is_update: row.is_update,
       headline: pick<string>(row, "headline") ?? "",
       body_standard: pick<string | null>(row, "body_standard") ?? null,
+      image_url: row.image_url ?? null,
     });
+
     if (!error && data) {
       const mapped = (data as any[]).map(mapRow);
       const sortKey = (r: any, row: any) =>
