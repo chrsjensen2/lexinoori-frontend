@@ -31,7 +31,9 @@ type ArticleRow = {
   diversity_score: number | null;
   whats_missing: string | null;
   update_summary: string | null;
+  image_url: string | null;
 };
+
 
 function toTopic(t: string | null | undefined): Topic {
   const valid: Topic[] = ["politics", "climate", "economics", "sport", "technology", "health", "culture", "local", "breaking"];
