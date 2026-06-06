@@ -93,6 +93,22 @@ function SourceArticleCard({ article, depth }: { article: SourceArticle; depth: 
         textDecoration: "none",
       }}
     >
+      {article.image_url && (
+        <img
+          src={article.image_url}
+          alt=""
+          style={{
+            display: "block",
+            width: "calc(100% + 32px)",
+            margin: "-16px -16px 12px",
+            borderTopLeftRadius: 12,
+            borderTopRightRadius: 12,
+            objectFit: "cover",
+            maxHeight: 200,
+          }}
+        />
+      )}
+
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           {validTopic ? (
