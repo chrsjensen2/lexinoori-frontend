@@ -27,7 +27,9 @@ type SourceArticle = {
   created_at: string;
   is_breaking: boolean | null;
   is_update: boolean | null;
+  image_url: string | null;
 };
+
 
 function formatDate(d: Date) {
   const days = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
@@ -91,6 +93,22 @@ function SourceArticleCard({ article, depth }: { article: SourceArticle; depth: 
         textDecoration: "none",
       }}
     >
+      {article.image_url && (
+        <img
+          src={article.image_url}
+          alt=""
+          style={{
+            display: "block",
+            width: "calc(100% + 32px)",
+            margin: "-16px -16px 12px",
+            borderTopLeftRadius: 12,
+            borderTopRightRadius: 12,
+            objectFit: "cover",
+            maxHeight: 200,
+          }}
+        />
+      )}
+
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           {validTopic ? (
@@ -254,9 +272,10 @@ function TodayPage() {
       (row?.[`${base}${suffix}`] ?? row?.[base]) as T;
 
   const selectCols =
-    "id, topic, read_time_minutes, source_count, created_at, updated_at, is_breaking, is_update, " +
+    "id, topic, read_time_minutes, source_count, created_at, updated_at, is_breaking, is_update, image_url, " +
     "headline, body_standard, " +
     "headline_da, body_standard_da, headline_de, body_standard_de, headline_es, body_standard_es";
+
 
     const topicFilter = TAB_TO_TOPIC[activeTab] ?? null;
 
@@ -291,7 +310,9 @@ function TodayPage() {
       is_update: row.is_update,
       headline: pick<string>(row, "headline") ?? "",
       body_standard: pick<string | null>(row, "body_standard") ?? null,
+      image_url: row.image_url ?? null,
     });
+
     if (!error && data) {
       const mapped = (data as any[]).map(mapRow);
       const sortKey = (r: any, row: any) =>

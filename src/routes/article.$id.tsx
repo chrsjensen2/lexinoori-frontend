@@ -31,7 +31,9 @@ type ArticleRow = {
   diversity_score: number | null;
   whats_missing: string | null;
   update_summary: string | null;
+  image_url: string | null;
 };
+
 
 function toTopic(t: string | null | undefined): Topic {
   const valid: Topic[] = ["politics", "climate", "economics", "sport", "technology", "health", "culture", "local", "breaking"];
@@ -106,9 +108,11 @@ function ArticleView() {
         "source_count",
         "bias_score",
         "diversity_score",
+        "image_url",
         ...baseCols,
         ...langCols,
       ].join(", ");
+
 
       const { data, error } = await (supabase as any)
         .from("articles")
@@ -134,7 +138,9 @@ function ArticleView() {
           body_deep_dive: (data as any).body_deep_dive ?? null,
           whats_missing: pick("whats_missing"),
           update_summary: pick("update_summary"),
+          image_url: (data as any).image_url ?? null,
         } as ArticleRow);
+
       }
       setLoading(false);
     })();
@@ -307,7 +313,17 @@ function ArticleView() {
         </div>
       </div>
 
+      {/* HERO IMAGE */}
+      {article?.image_url && (
+        <img
+          src={article.image_url}
+          alt=""
+          style={{ width: "100%", display: "block", marginTop: 16 }}
+        />
+      )}
+
       {/* METADATA ROW */}
+
       <div
         className="flex items-center justify-between"
         style={{ padding: 16, marginTop: 16 }}
