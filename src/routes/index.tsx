@@ -99,8 +99,8 @@ function SourceArticleCard({ article, depth }: { article: SourceArticle; depth: 
           alt=""
           style={{
             display: "block",
-            width: "calc(100% + 32px)",
-            margin: "-16px -16px 12px",
+            width: "calc(100% + 34px)",
+            margin: "-17px -17px 12px",
             borderTopLeftRadius: 12,
             borderTopRightRadius: 12,
             objectFit: "cover",
