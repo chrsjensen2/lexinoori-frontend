@@ -313,7 +313,17 @@ function ArticleView() {
         </div>
       </div>
 
+      {/* HERO IMAGE */}
+      {article?.image_url && (
+        <img
+          src={article.image_url}
+          alt=""
+          style={{ width: "100%", display: "block", marginTop: 16 }}
+        />
+      )}
+
       {/* METADATA ROW */}
+
       <div
         className="flex items-center justify-between"
         style={{ padding: 16, marginTop: 16 }}
