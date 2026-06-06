@@ -108,9 +108,11 @@ function ArticleView() {
         "source_count",
         "bias_score",
         "diversity_score",
+        "image_url",
         ...baseCols,
         ...langCols,
       ].join(", ");
+
 
       const { data, error } = await (supabase as any)
         .from("articles")
