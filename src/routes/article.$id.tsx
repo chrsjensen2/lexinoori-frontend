@@ -138,7 +138,9 @@ function ArticleView() {
           body_deep_dive: (data as any).body_deep_dive ?? null,
           whats_missing: pick("whats_missing"),
           update_summary: pick("update_summary"),
+          image_url: (data as any).image_url ?? null,
         } as ArticleRow);
+
       }
       setLoading(false);
     })();
