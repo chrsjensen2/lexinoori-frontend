@@ -27,7 +27,9 @@ type SourceArticle = {
   created_at: string;
   is_breaking: boolean | null;
   is_update: boolean | null;
+  image_url: string | null;
 };
+
 
 function formatDate(d: Date) {
   const days = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
