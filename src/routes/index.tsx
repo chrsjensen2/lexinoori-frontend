@@ -88,9 +88,10 @@ function SourceArticleCard({ article, depth }: { article: SourceArticle; depth: 
         border: "1px solid #2C2C2E",
         borderRadius: 12,
         margin: "0 16px",
-        padding: 16,
+        padding: 0,
         color: "inherit",
         textDecoration: "none",
+        overflow: "hidden",
       }}
     >
       {article.image_url && (
@@ -99,8 +100,7 @@ function SourceArticleCard({ article, depth }: { article: SourceArticle; depth: 
           alt=""
           style={{
             display: "block",
-            width: "calc(100% + 34px)",
-            margin: "-17px -17px 12px",
+            width: "100%",
             borderTopLeftRadius: 12,
             borderTopRightRadius: 12,
             objectFit: "cover",
@@ -109,70 +109,55 @@ function SourceArticleCard({ article, depth }: { article: SourceArticle; depth: 
         />
       )}
 
-      <div className="flex items-center justify-between gap-2">
-        <div className="flex items-center gap-2">
-          {validTopic ? (
-            <TopicPill topic={validTopic} />
-          ) : article.topic && article.topic.trim() !== "" ? (
-            <span
-              style={{
-                backgroundColor: "#8E8E931F",
-                border: "1px solid #8E8E93",
-                color: "#8E8E93",
-                fontWeight: 700,
-                fontSize: 11,
-                letterSpacing: "0.08em",
-                padding: "6px 8px",
-                borderRadius: 20,
-                lineHeight: 1,
-              }}
-            >
-              {article.topic.toUpperCase()}
-            </span>
-          ) : null}
-          {article.is_update && (
-            <span
-              style={{
-                backgroundColor: "#0F6E56",
-                color: "#FFFFFF",
-                fontWeight: 700,
-                fontSize: 11,
-                letterSpacing: "0.08em",
-                padding: "6px 8px",
-                borderRadius: 20,
-                lineHeight: 1,
-              }}
-            >
-              UPDATE
-            </span>
-          )}
-          {article.is_breaking && <WhatsNewPill />}
+      <div style={{ padding: 16 }}>
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            {validTopic ? (
+              <TopicPill topic={validTopic} />
+            ) : article.topic && article.topic.trim() !== "" ? (
+              <span
+                style={{
+                  backgroundColor: "#8E8E931F",
+                  border: "1px solid #8E8E93",
+                  color: "#8E8E93",
+                  fontWeight: 700,
+                  fontSize: 11,
+                  letterSpacing: "0.08em",
+                  padding: "6px 8px",
+                  borderRadius: 20,
+                  lineHeight: 1,
+                }}
+              >
+                {article.topic.toUpperCase()}
+              </span>
+            ) : null}
+            {article.is_update && (
+              <span
+                style={{
+                  backgroundColor: "#0F6E56",
+                  color: "#FFFFFF",
+                  fontWeight: 700,
+                  fontSize: 11,
+                  letterSpacing: "0.08em",
+                  padding: "6px 8px",
+                  borderRadius: 20,
+                  lineHeight: 1,
+                }}
+              >
+                UPDATE
+              </span>
+            )}
+            {article.is_breaking && <WhatsNewPill />}
+          </div>
+          <span style={{ color: "#8E8E93", fontSize: 12 }}>{timeAgo(article.created_at)}</span>
         </div>
-        <span style={{ color: "#8E8E93", fontSize: 12 }}>{timeAgo(article.created_at)}</span>
-      </div>
 
-      <h3
-        style={{
-          color: "#FFFFFF",
-          fontWeight: 700,
-          fontSize: 18,
-          lineHeight: 1.3,
-          marginTop: 8,
-          display: "-webkit-box",
-          WebkitLineClamp: 3,
-          WebkitBoxOrient: "vertical",
-          overflow: "hidden",
-        }}
-      >
-        {article.headline}
-      </h3>
-
-      {article.body_standard && (
-        <p
+        <h3
           style={{
-            color: "#8E8E93",
-            fontSize: 14,
-            lineHeight: 1.4,
+            color: "#FFFFFF",
+            fontWeight: 700,
+            fontSize: 18,
+            lineHeight: 1.3,
             marginTop: 8,
             display: "-webkit-box",
             WebkitLineClamp: 3,
@@ -180,31 +165,48 @@ function SourceArticleCard({ article, depth }: { article: SourceArticle; depth: 
             overflow: "hidden",
           }}
         >
-          {article.body_standard}
-        </p>
-      )}
+          {article.headline}
+        </h3>
 
-      <div className="flex items-center gap-2" style={{ marginTop: 12 }}>
-        <span style={{ color: "#8E8E93", fontSize: 13 }}>{sourceLabel}</span>
-        <span style={{ color: "#8E8E93", fontSize: 13, marginLeft: "auto" }}>
-          {readTimeLabel(depth, article.read_time_minutes)}
-        </span>
+        {article.body_standard && (
+          <p
+            style={{
+              color: "#8E8E93",
+              fontSize: 14,
+              lineHeight: 1.4,
+              marginTop: 8,
+              display: "-webkit-box",
+              WebkitLineClamp: 3,
+              WebkitBoxOrient: "vertical",
+              overflow: "hidden",
+            }}
+          >
+            {article.body_standard}
+          </p>
+        )}
 
-        <button
-          aria-label={saved ? "Unsave" : "Save"}
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            toggle(article.id);
-          }}
-          style={{
-            color: saved ? "#1A7A5E" : "#8E8E93",
-            background: "transparent",
-            display: "inline-flex",
-          }}
-        >
-          <Bookmark size={24} fill={saved ? "#1A7A5E" : "none"} />
-        </button>
+        <div className="flex items-center gap-2" style={{ marginTop: 12 }}>
+          <span style={{ color: "#8E8E93", fontSize: 13 }}>{sourceLabel}</span>
+          <span style={{ color: "#8E8E93", fontSize: 13, marginLeft: "auto" }}>
+            {readTimeLabel(depth, article.read_time_minutes)}
+          </span>
+
+          <button
+            aria-label={saved ? "Unsave" : "Save"}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              toggle(article.id);
+            }}
+            style={{
+              color: saved ? "#1A7A5E" : "#8E8E93",
+              background: "transparent",
+              display: "inline-flex",
+            }}
+          >
+            <Bookmark size={24} fill={saved ? "#1A7A5E" : "none"} />
+          </button>
+        </div>
       </div>
     </Link>
   );
