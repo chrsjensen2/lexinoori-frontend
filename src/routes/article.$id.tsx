@@ -34,6 +34,7 @@ type ArticleRow = {
   whats_missing: string | null;
   update_summary: string | null;
   image_url: string | null;
+  watchdog_only: boolean | null;
 };
 
 function toTopic(t: string | null | undefined): Topic {
@@ -101,6 +102,7 @@ function ArticleView() {
         "bias_score",
         "diversity_score",
         "image_url",
+        "watchdog_only",
         ...baseCols,
         ...langCols,
       ].join(", ");
@@ -129,6 +131,7 @@ function ArticleView() {
           whats_missing: pick("whats_missing"),
           update_summary: pick("update_summary"),
           image_url: (data as any).image_url ?? null,
+          watchdog_only: (data as any).watchdog_only ?? null,
         } as ArticleRow);
       }
       setLoading(false);
@@ -231,441 +234,402 @@ function ArticleView() {
     Standard: t.readStandard,
   };
 
+  const isWatchdog = article?.watchdog_only === true;
+  const watchdogSource = sources[0] ?? null;
+  const watchdogLangItems: Array<{ phrase?: string; neutral?: string }> = Array.isArray(
+    watchdogSource?.loaded_language,
+  )
+    ? watchdogSource.loaded_language.filter((it: any) => it?.phrase || it?.neutral)
+    : [];
+
+  const fixedBtnStyle = {
+    width: 40,
+    height: 40,
+    borderRadius: 8,
+    backgroundColor: "rgba(17,17,17,0.5)",
+    backdropFilter: "blur(8px)",
+    WebkitBackdropFilter: "blur(8px)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+  } as const;
+
   return (
     <div style={{ paddingBottom: 32 }}>
+      {/* BACK - always */}
       <button
         onClick={() => router.history.back()}
         aria-label="Back"
-        style={{ position: "fixed", top: "16px", left: "16px", zIndex: 9999, width: 40, height: 40, borderRadius: 8, backgroundColor: "rgba(17,17,17,0.5)", backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)", color: "#FFFFFF", display: "flex", alignItems: "center", justifyContent: "center" }}
+        style={{ position: "fixed", top: 16, left: 16, zIndex: 9999, color: "#FFFFFF", ...fixedBtnStyle }}
       >
         <ArrowLeft size={20} />
       </button>
-      <button
-        aria-label="Reading options"
-        onClick={() => setSheet("aa")}
-        style={{ position: "fixed", top: "16px", right: "16px", zIndex: 9999, height: 40, padding: "0 12px", borderRadius: 8, backgroundColor: "rgba(17,17,17,0.5)", backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)", color: "#FFFFFF", fontSize: 16, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center" }}
-      >
-        Aa
-      </button>
 
-      {/* HERO */}
-      <div style={{ position: "relative", width: "100%", height: 240 }}>
-        <div
-          style={{
-            position: "absolute",
-            inset: 0,
-            background: `linear-gradient(180deg, ${topicColor} 0%, #111111 100%)`,
-          }}
-        />
-        <div
-          style={{
-            position: "absolute",
-            left: 0,
-            right: 0,
-            bottom: 0,
-            height: 120,
-            background: "linear-gradient(180deg, rgba(17,17,17,0) 0%, #111111 100%)",
-          }}
-        />
-        <div
-          style={{
-            position: "absolute",
-            bottom: 0,
-            left: 0,
-            right: 0,
-            padding: "0 16px 16px",
-          }}
+      {/* RIGHT TOP: save+share for watchdog, Aa for normal */}
+      {isWatchdog ? (
+        <div style={{ position: "fixed", top: 16, right: 16, zIndex: 9999, display: "flex", gap: 8 }}>
+          <button
+            aria-label={savedTop ? "Unsave" : "Save"}
+            onClick={() => toggle(id)}
+            style={{ color: savedTop ? "#1A7A5E" : "#FFFFFF", ...fixedBtnStyle }}
+          >
+            <Bookmark size={20} fill={savedTop ? "#1A7A5E" : "none"} />
+          </button>
+          <button
+            aria-label="Share"
+            onClick={() => shareArticle(HEADLINE, id)}
+            style={{ color: "#FFFFFF", ...fixedBtnStyle }}
+          >
+            <Share2 size={20} />
+          </button>
+        </div>
+      ) : (
+        <button
+          aria-label="Reading options"
+          onClick={() => setSheet("aa")}
+          style={{ position: "fixed", top: 16, right: 16, zIndex: 9999, height: 40, padding: "0 12px", borderRadius: 8, backgroundColor: "rgba(17,17,17,0.5)", backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)", color: "#FFFFFF", fontSize: 16, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center" }}
         >
+          Aa
+        </button>
+      )}
+
+      {/* HERO - always */}
+      <div style={{ position: "relative", width: "100%", height: 240 }}>
+        <div style={{ position: "absolute", inset: 0, background: `linear-gradient(180deg, ${topicColor} 0%, #111111 100%)` }} />
+        <div style={{ position: "absolute", left: 0, right: 0, bottom: 0, height: 120, background: "linear-gradient(180deg, rgba(17,17,17,0) 0%, #111111 100%)" }} />
+        <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, padding: "0 16px 16px" }}>
           <div style={{ display: "inline-block", marginBottom: 8 }}>
             <TopicPill topic={TOPIC} />
           </div>
-          <h1
-            style={{
-              color: "#FFFFFF",
-              fontWeight: 700,
-              fontSize: 24,
-              lineHeight: 1.2,
-              letterSpacing: "-0.01em",
-            }}
-          >
+          <h1 style={{ color: "#FFFFFF", fontWeight: 700, fontSize: 24, lineHeight: 1.2, letterSpacing: "-0.01em" }}>
             {HEADLINE}
           </h1>
         </div>
       </div>
 
-      {/* HERO IMAGE */}
-      {article?.image_url && (
-        <img
-          src={article.image_url}
-          alt=""
-          style={{ width: "100%", display: "block", marginTop: 16 }}
-        />
-      )}
-
-      {/* METADATA ROW */}
-      <div
-        className="flex items-center justify-between"
-        style={{ padding: 16, marginTop: 16 }}
-      >
-        <div className="flex items-center gap-2">
-          <span
-            className="flex items-center justify-center"
+      {/* ── WATCHDOG VIEW ── */}
+      {isWatchdog ? (
+        <>
+          {/* Amber warning card */}
+          <section
             style={{
-              width: 28,
-              height: 28,
-              borderRadius: 999,
-              backgroundColor: "#2C2C2E",
-              color: "#8E8E93",
-              fontSize: 12,
-              fontWeight: 700,
+              margin: "16px 16px 0",
+              padding: 16,
+              borderRadius: 12,
+              backgroundColor: "rgba(232,135,58,0.08)",
+              border: "1px solid rgba(232,135,58,0.35)",
             }}
           >
-            R
-          </span>
-          <span style={{ color: "#FFFFFF", fontSize: 14 }}>
-            {sourceCount} {sourceCount === 1 ? t.source : t.sources}
-          </span>
-        </div>
-        <div className="flex items-center" style={{ gap: 12 }}>
-          <button
-            aria-label={savedTop ? "Unsave" : "Save"}
-            onClick={() => toggle(id)}
-            style={{ color: savedTop ? "#1A7A5E" : "#8E8E93" }}
-          >
-            <Bookmark size={24} fill={savedTop ? "#1A7A5E" : "none"} />
-          </button>
-          <button
-            aria-label="Share"
-            onClick={() => shareArticle(HEADLINE, id)}
-            style={{ color: "#8E8E93" }}
-          >
-            <Share2 size={24} />
-          </button>
-        </div>
-      </div>
-
-      {/* WHAT'S NEW */}
-      {article?.update_summary && article.update_summary.trim() !== "" && (
-        <section
-          style={{
-            margin: "12px 16px 0",
-            padding: 16,
-            borderRadius: 12,
-            backgroundColor: "rgba(26,122,94,0.08)",
-            border: "1px solid rgba(26,122,94,0.25)",
-          }}
-        >
-          <div className="flex items-center justify-between" style={{ marginBottom: 8 }}>
-            <span style={{ color: "#1A7A5E", fontSize: 11, fontWeight: 700, letterSpacing: "0.08em" }}>
-              {t.whatsNew}
-            </span>
-          </div>
-          <p style={{ color: "#FFFFFF", fontSize: 14, lineHeight: 1.5 }}>
-            {article.update_summary}
-          </p>
-        </section>
-      )}
-
-      {/* BEFORE YOU READ */}
-      <section
-        style={{
-          margin: "12px 16px 0",
-          padding: 16,
-          borderRadius: 12,
-          backgroundColor: "#1C1C1E",
-          border: "1px solid #2C2C2E",
-        }}
-      >
-        <div
-          style={{
-            color: "#8E8E93",
-            fontSize: 11,
-            fontWeight: 700,
-            letterSpacing: "0.08em",
-            marginBottom: 16,
-          }}
-        >
-          {t.beforeYouRead}
-        </div>
-
-        <div className="flex" style={{ gap: 16, marginBottom: 16 }}>
-          <div className="flex-1">
-            <div style={{ color: "#8E8E93", fontSize: 11, fontWeight: 700, letterSpacing: "0.08em" }}>
-              {t.sourcesLabel}
+            <div style={{ color: "#E8873A", fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", marginBottom: 6 }}>
+              ENKELT KILDE
             </div>
-            <div style={{ color: "#FFFFFF", fontSize: 22, fontWeight: 700, marginTop: 4 }}>
-              {sourceCount} {sourceCount === 1 ? t.source : t.sources}
+            <div style={{ color: "#FFFFFF", fontSize: 17, fontWeight: 700, lineHeight: 1.3 }}>
+              Ingen uafhængig bekræftelse
             </div>
-          </div>
-          <div className="flex-1">
-            <div style={{ color: "#8E8E93", fontSize: 11, fontWeight: 700, letterSpacing: "0.08em" }}>
-              {t.readLengthLabel}
-            </div>
-            <div style={{ color: "#FFFFFF", fontSize: 22, fontWeight: 700, marginTop: 4 }}>
-              {readMinutes} min
-            </div>
-          </div>
-        </div>
+            <p style={{ color: "#8E8E93", fontSize: 13, lineHeight: 1.5, marginTop: 6 }}>
+              Denne artikel stammer fra én enkelt kilde og er ikke bekræftet af uafhængige medier.
+            </p>
+          </section>
 
-        {/* Source diversity */}
-        <div>
-          <div className="flex items-center justify-between" style={{ marginBottom: 4 }}>
-            <span style={{ color: "#8E8E93", fontSize: 11, fontWeight: 700, letterSpacing: "0.08em" }}>
-              {t.sourceDiversity}
-            </span>
-          </div>
-          <div style={{ color: "#FFFFFF", fontSize: 22, fontWeight: 700, marginBottom: 8 }}>
-            {sourceCount} {sourceCount === 1 ? t.source : t.sources}
-          </div>
-          <div style={{ position: "relative", height: 4, backgroundColor: "#2C2C2E", borderRadius: 999 }}>
+          {/* Outlet + byline */}
+          {watchdogSource && (
             <div
               style={{
-                position: "absolute",
-                left: 0,
-                top: 0,
-                bottom: 0,
-                width: `${diversityPct}%`,
-                backgroundColor: diversityColor,
-                borderRadius: 999,
-              }}
-            />
-          </div>
-        </div>
-      </section>
-
-      {/* READ LENGTH SELECTOR */}
-      <div className="flex" style={{ gap: 8, margin: "12px 16px 0" }}>
-        {READ_LENGTHS.map((rl) => {
-          const active = rl === readLength;
-          return (
-            <button
-              key={rl}
-              onClick={() => {
-                setReadLength(rl);
-                try {
-                  window.localStorage.setItem("lex:depth", rl);
-                  window.dispatchEvent(new Event("lex:depth-changed"));
-                } catch {}
-              }}
-              className="flex-1"
-              style={{
-                padding: "10px 12px",
-                borderRadius: 20,
-                fontSize: 13,
-                fontWeight: 700,
-                backgroundColor: active ? "#FFFFFF" : "#1C1C1E",
-                color: active ? "#111111" : "rgba(255,255,255,0.5)",
-                border: active ? "1px solid #FFFFFF" : "1px solid #2C2C2E",
-                whiteSpace: "nowrap",
-                cursor: "pointer",
+                margin: "12px 16px 0",
+                padding: 16,
+                borderRadius: 12,
+                backgroundColor: "#1C1C1E",
+                border: "1px solid #2C2C2E",
               }}
             >
-              {READ_LENGTH_LABELS[rl]}
-            </button>
-          );
-        })}
-      </div>
+              <div style={{ color: "#8E8E93", fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", marginBottom: 8 }}>
+                KILDE
+              </div>
+              <div style={{ color: "#FFFFFF", fontWeight: 700, fontSize: 16 }}>{watchdogSource.name}</div>
+              {watchdogSource.author && (
+                <div style={{ color: "#8E8E93", fontSize: 14, marginTop: 4 }}>{watchdogSource.author}</div>
+              )}
+            </div>
+          )}
 
-      {/* ARTICLE BODY */}
-      <article
-        style={{
-          padding: "0 16px",
-          marginTop: 20,
-          color: "#FFFFFF",
-          fontSize: FONT_SIZES[fontSize],
-          lineHeight: 1.65,
-        }}
-      >
-        {body ? (
-          <p style={{ marginBottom: 20, whiteSpace: "pre-wrap" }}>{body}</p>
-        ) : (
-          <p style={{ marginBottom: 20, color: "#8E8E93" }}>
-            {loading ? t.loadingArticle : t.noContent}
-          </p>
-        )}
-      </article>
-
-      {/* AFTER YOU READ */}
-      <section
-        style={{
-          margin: "24px 16px 0",
-          padding: "4px 16px 16px",
-          borderRadius: 12,
-          backgroundColor: "#1C1C1E",
-          border: "1px solid #2C2C2E",
-        }}
-      >
-        {/* What's missing */}
-        <div
-          style={{
-            color: "#8E8E93",
-            fontSize: 11,
-            fontWeight: 700,
-            letterSpacing: "0.08em",
-            marginTop: 16,
-            marginBottom: 8,
-          }}
-        >
-          {t.whatsMissing}
-        </div>
-        <div
-          style={{
-            borderLeft: "2px solid #E8873A",
-            paddingLeft: 16,
-            color: "#FFFFFF",
-            fontSize: 14,
-            lineHeight: 1.5,
-          }}
-        >
-          {article?.whats_missing ?? t.noGaps}
-        </div>
-
-        {/* Sources */}
-        {sources.length === 0 ? (
-          <div
-            style={{
-              color: "#8E8E93",
-              fontSize: 11,
-              fontWeight: 700,
-              letterSpacing: "0.08em",
-              marginTop: 16,
-              marginBottom: 4,
-            }}
-          >
-            {t.sourceArticlesUnavailable}
-          </div>
-        ) : (
-          <>
+          {/* Loaded language flags */}
+          {watchdogLangItems.length > 0 && (
             <div
               style={{
-                color: "#8E8E93",
-                fontSize: 11,
-                fontWeight: 700,
-                letterSpacing: "0.08em",
-                marginTop: 16,
-                marginBottom: 4,
+                margin: "12px 16px 0",
+                padding: 16,
+                borderRadius: 12,
+                backgroundColor: "#1C1C1E",
+                border: "1px solid #2C2C2E",
               }}
             >
-              {t.sourcesLabel} · {sources.length} {sources.length === 1 ? t.source.toUpperCase() : t.sources.toUpperCase()}
-            </div>
-            {sources.map((s, i) => (
-              <SourceRow
-                key={`${s.url}-${i}`}
-                name={s.name}
-                headline={s.headline}
-                url={s.url}
-                loadedLanguage={s.loaded_language}
-                journalistId={s.journalist_id}
-                author={s.author}
-                last={i === sources.length - 1}
-              />
-            ))}
-          </>
-        )}
-
-        {/* Bottom action */}
-        <Link
-          to="/timeline/$id"
-          params={{ id: "1" }}
-          style={{
-            display: "block",
-            width: "100%",
-            textAlign: "center",
-            color: "#1A7A5E",
-            fontSize: 14,
-            marginTop: 20,
-          }}
-        >
-          {t.viewTimeline}
-        </Link>
-      </section>
-
-      {/* Share button */}
-      <button
-        onClick={() => shareArticle(HEADLINE, id)}
-        style={{
-          display: "block",
-          margin: "20px 16px 0",
-          width: "calc(100% - 32px)",
-          height: 52,
-          border: "1px solid #2C2C2E",
-          borderRadius: 12,
-          background: "transparent",
-          appearance: "none",
-          WebkitAppearance: "none",
-          color: "#FFFFFF",
-          fontSize: 15,
-          fontWeight: 700,
-        }}
-      >
-        {t.share}
-      </button>
-
-      {/* Bottom sheets */}
-      {sheet !== null && (
-        <div
-          onClick={() => setSheet(null)}
-          style={{
-            position: "fixed",
-            inset: 0,
-            backgroundColor: "rgba(0,0,0,0.5)",
-            zIndex: 50,
-            display: "flex",
-            alignItems: "flex-end",
-            justifyContent: "center",
-          }}
-        >
-          <div
-            onClick={(e) => e.stopPropagation()}
-            style={{
-              width: "100%",
-              backgroundColor: "#1C1C1E",
-              borderTopLeftRadius: 20,
-              borderTopRightRadius: 20,
-              padding: 24,
-              paddingBottom: "calc(24px + env(safe-area-inset-bottom))",
-            }}
-          >
-            {sheet === "aa" && (
-              <>
+              <div style={{ color: "#8E8E93", fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", marginBottom: 8 }}>
+                {t.loadedLanguageLabel} · {watchdogLangItems.length}{" "}
+                {watchdogLangItems.length === 1 ? t.loadedPhrase : t.loadedPhrases}
+              </div>
+              {watchdogLangItems.map((it, idx) => (
                 <div
+                  key={idx}
                   style={{
-                    color: "#8E8E93",
-                    fontSize: 11,
-                    fontWeight: 700,
-                    letterSpacing: "0.08em",
-                    marginBottom: 16,
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 8,
+                    padding: "7px 0",
+                    fontSize: 13,
+                    flexWrap: "wrap",
+                    borderTop: idx > 0 ? "1px solid #2C2C2E" : "none",
                   }}
                 >
-                  {t.textSize}
+                  <span style={{ color: "#FFFFFF", textDecoration: "underline", textDecorationColor: "#FF4500", textDecorationThickness: 2, textUnderlineOffset: 3 }}>
+                    {it.phrase}
+                  </span>
+                  <span style={{ color: "#8E8E93" }}>→</span>
+                  <span style={{ color: "#1A7A5E" }}>{it.neutral}</span>
                 </div>
-                <div className="flex" style={{ gap: 8 }}>
-                  {(Object.keys(FONT_SIZES) as FontSizeKey[]).map((key) => {
-                    const active = key === fontSize;
-                    return (
-                      <button
-                        key={key}
-                        onClick={() => setFontSize(key)}
-                        style={{
-                          flex: 1,
-                          padding: "10px 12px",
-                          borderRadius: 20,
-                          fontSize: 13,
-                          fontWeight: 700,
-                          backgroundColor: active ? "#FFFFFF" : "#1C1C1E",
-                          color: active ? "#111111" : "rgba(255,255,255,0.5)",
-                          border: active ? "1px solid #FFFFFF" : "1px solid #2C2C2E",
-                        }}
-                      >
-                        {key}
-                      </button>
-                    );
-                  })}
+              ))}
+            </div>
+          )}
+
+          {/* Bias score */}
+          <div
+            style={{
+              margin: "12px 16px 0",
+              padding: 16,
+              borderRadius: 12,
+              backgroundColor: "#1C1C1E",
+              border: "1px solid #2C2C2E",
+            }}
+          >
+            <div style={{ color: "#8E8E93", fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", marginBottom: 8 }}>
+              {t.biasScoreBar}
+            </div>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 6 }}>
+              <span style={{ color: "#FFFFFF", fontSize: 14, fontWeight: 700 }}>{poolLeanLabel}</span>
+              <span style={{ color: "#8E8E93", fontSize: 13 }}>
+                {biasScore > 0 ? "+" : ""}{biasScore.toFixed(2)}
+              </span>
+            </div>
+            <div style={{ position: "relative", height: 4, backgroundColor: "#2C2C2E", borderRadius: 999 }}>
+              <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: `${biasPct}%`, backgroundColor: "#1A7A5E", borderRadius: 999 }} />
+            </div>
+          </div>
+
+          {/* Read original button */}
+          {watchdogSource?.url && (
+            <a
+              href={watchdogSource.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 8,
+                margin: "20px 16px 0",
+                height: 56,
+                borderRadius: 14,
+                backgroundColor: "#E8873A",
+                color: "#FFFFFF",
+                fontSize: 16,
+                fontWeight: 700,
+                textDecoration: "none",
+              }}
+            >
+              Læs original artikel
+              <ExternalLink size={18} />
+            </a>
+          )}
+        </>
+      ) : (
+        /* ── NORMAL MERGED VIEW ── */
+        <>
+          {/* HERO IMAGE */}
+          {article?.image_url && (
+            <img src={article.image_url} alt="" style={{ width: "100%", display: "block", marginTop: 16 }} />
+          )}
+
+          {/* METADATA ROW */}
+          <div className="flex items-center justify-between" style={{ padding: 16, marginTop: 16 }}>
+            <div className="flex items-center gap-2">
+              <span
+                className="flex items-center justify-center"
+                style={{ width: 28, height: 28, borderRadius: 999, backgroundColor: "#2C2C2E", color: "#8E8E93", fontSize: 12, fontWeight: 700 }}
+              >
+                R
+              </span>
+              <span style={{ color: "#FFFFFF", fontSize: 14 }}>
+                {sourceCount} {sourceCount === 1 ? t.source : t.sources}
+              </span>
+            </div>
+            <div className="flex items-center" style={{ gap: 12 }}>
+              <button
+                aria-label={savedTop ? "Unsave" : "Save"}
+                onClick={() => toggle(id)}
+                style={{ color: savedTop ? "#1A7A5E" : "#8E8E93" }}
+              >
+                <Bookmark size={24} fill={savedTop ? "#1A7A5E" : "none"} />
+              </button>
+              <button aria-label="Share" onClick={() => shareArticle(HEADLINE, id)} style={{ color: "#8E8E93" }}>
+                <Share2 size={24} />
+              </button>
+            </div>
+          </div>
+
+          {/* WHAT'S NEW */}
+          {article?.update_summary && article.update_summary.trim() !== "" && (
+            <section
+              style={{ margin: "12px 16px 0", padding: 16, borderRadius: 12, backgroundColor: "rgba(26,122,94,0.08)", border: "1px solid rgba(26,122,94,0.25)" }}
+            >
+              <div className="flex items-center justify-between" style={{ marginBottom: 8 }}>
+                <span style={{ color: "#1A7A5E", fontSize: 11, fontWeight: 700, letterSpacing: "0.08em" }}>
+                  {t.whatsNew}
+                </span>
+              </div>
+              <p style={{ color: "#FFFFFF", fontSize: 14, lineHeight: 1.5 }}>{article.update_summary}</p>
+            </section>
+          )}
+
+          {/* BEFORE YOU READ */}
+          <section style={{ margin: "12px 16px 0", padding: 16, borderRadius: 12, backgroundColor: "#1C1C1E", border: "1px solid #2C2C2E" }}>
+            <div style={{ color: "#8E8E93", fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", marginBottom: 16 }}>
+              {t.beforeYouRead}
+            </div>
+            <div className="flex" style={{ gap: 16, marginBottom: 16 }}>
+              <div className="flex-1">
+                <div style={{ color: "#8E8E93", fontSize: 11, fontWeight: 700, letterSpacing: "0.08em" }}>{t.sourcesLabel}</div>
+                <div style={{ color: "#FFFFFF", fontSize: 22, fontWeight: 700, marginTop: 4 }}>
+                  {sourceCount} {sourceCount === 1 ? t.source : t.sources}
                 </div>
+              </div>
+              <div className="flex-1">
+                <div style={{ color: "#8E8E93", fontSize: 11, fontWeight: 700, letterSpacing: "0.08em" }}>{t.readLengthLabel}</div>
+                <div style={{ color: "#FFFFFF", fontSize: 22, fontWeight: 700, marginTop: 4 }}>{readMinutes} min</div>
+              </div>
+            </div>
+            <div>
+              <div className="flex items-center justify-between" style={{ marginBottom: 4 }}>
+                <span style={{ color: "#8E8E93", fontSize: 11, fontWeight: 700, letterSpacing: "0.08em" }}>{t.sourceDiversity}</span>
+              </div>
+              <div style={{ color: "#FFFFFF", fontSize: 22, fontWeight: 700, marginBottom: 8 }}>
+                {sourceCount} {sourceCount === 1 ? t.source : t.sources}
+              </div>
+              <div style={{ position: "relative", height: 4, backgroundColor: "#2C2C2E", borderRadius: 999 }}>
+                <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: `${diversityPct}%`, backgroundColor: diversityColor, borderRadius: 999 }} />
+              </div>
+            </div>
+          </section>
+
+          {/* READ LENGTH SELECTOR */}
+          <div className="flex" style={{ gap: 8, margin: "12px 16px 0" }}>
+            {READ_LENGTHS.map((rl) => {
+              const active = rl === readLength;
+              return (
+                <button
+                  key={rl}
+                  onClick={() => {
+                    setReadLength(rl);
+                    try {
+                      window.localStorage.setItem("lex:depth", rl);
+                      window.dispatchEvent(new Event("lex:depth-changed"));
+                    } catch {}
+                  }}
+                  className="flex-1"
+                  style={{ padding: "10px 12px", borderRadius: 20, fontSize: 13, fontWeight: 700, backgroundColor: active ? "#FFFFFF" : "#1C1C1E", color: active ? "#111111" : "rgba(255,255,255,0.5)", border: active ? "1px solid #FFFFFF" : "1px solid #2C2C2E", whiteSpace: "nowrap", cursor: "pointer" }}
+                >
+                  {READ_LENGTH_LABELS[rl]}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* ARTICLE BODY */}
+          <article style={{ padding: "0 16px", marginTop: 20, color: "#FFFFFF", fontSize: FONT_SIZES[fontSize], lineHeight: 1.65 }}>
+            {body ? (
+              <p style={{ marginBottom: 20, whiteSpace: "pre-wrap" }}>{body}</p>
+            ) : (
+              <p style={{ marginBottom: 20, color: "#8E8E93" }}>
+                {loading ? t.loadingArticle : t.noContent}
+              </p>
+            )}
+          </article>
+
+          {/* AFTER YOU READ */}
+          <section style={{ margin: "24px 16px 0", padding: "4px 16px 16px", borderRadius: 12, backgroundColor: "#1C1C1E", border: "1px solid #2C2C2E" }}>
+            <div style={{ color: "#8E8E93", fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", marginTop: 16, marginBottom: 8 }}>
+              {t.whatsMissing}
+            </div>
+            <div style={{ borderLeft: "2px solid #E8873A", paddingLeft: 16, color: "#FFFFFF", fontSize: 14, lineHeight: 1.5 }}>
+              {article?.whats_missing ?? t.noGaps}
+            </div>
+            {sources.length === 0 ? (
+              <div style={{ color: "#8E8E93", fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", marginTop: 16, marginBottom: 4 }}>
+                {t.sourceArticlesUnavailable}
+              </div>
+            ) : (
+              <>
+                <div style={{ color: "#8E8E93", fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", marginTop: 16, marginBottom: 4 }}>
+                  {t.sourcesLabel} · {sources.length} {sources.length === 1 ? t.source.toUpperCase() : t.sources.toUpperCase()}
+                </div>
+                {sources.map((s, i) => (
+                  <SourceRow
+                    key={`${s.url}-${i}`}
+                    name={s.name}
+                    headline={s.headline}
+                    url={s.url}
+                    loadedLanguage={s.loaded_language}
+                    journalistId={s.journalist_id}
+                    author={s.author}
+                    last={i === sources.length - 1}
+                  />
+                ))}
               </>
             )}
-          </div>
-        </div>
+            <Link
+              to="/timeline/$id"
+              params={{ id: "1" }}
+              style={{ display: "block", width: "100%", textAlign: "center", color: "#1A7A5E", fontSize: 14, marginTop: 20 }}
+            >
+              {t.viewTimeline}
+            </Link>
+          </section>
+
+          {/* SHARE BUTTON */}
+          <button
+            onClick={() => shareArticle(HEADLINE, id)}
+            style={{ display: "block", margin: "20px 16px 0", width: "calc(100% - 32px)", height: 52, border: "1px solid #2C2C2E", borderRadius: 12, background: "transparent", appearance: "none", WebkitAppearance: "none", color: "#FFFFFF", fontSize: 15, fontWeight: 700 }}
+          >
+            {t.share}
+          </button>
+
+          {/* BOTTOM SHEET */}
+          {sheet !== null && (
+            <div onClick={() => setSheet(null)} style={{ position: "fixed", inset: 0, backgroundColor: "rgba(0,0,0,0.5)", zIndex: 50, display: "flex", alignItems: "flex-end", justifyContent: "center" }}>
+              <div onClick={(e) => e.stopPropagation()} style={{ width: "100%", backgroundColor: "#1C1C1E", borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 24, paddingBottom: "calc(24px + env(safe-area-inset-bottom))" }}>
+                {sheet === "aa" && (
+                  <>
+                    <div style={{ color: "#8E8E93", fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", marginBottom: 16 }}>
+                      {t.textSize}
+                    </div>
+                    <div className="flex" style={{ gap: 8 }}>
+                      {(Object.keys(FONT_SIZES) as FontSizeKey[]).map((key) => {
+                        const active = key === fontSize;
+                        return (
+                          <button
+                            key={key}
+                            onClick={() => setFontSize(key)}
+                            style={{ flex: 1, padding: "10px 12px", borderRadius: 20, fontSize: 13, fontWeight: 700, backgroundColor: active ? "#FFFFFF" : "#1C1C1E", color: active ? "#111111" : "rgba(255,255,255,0.5)", border: active ? "1px solid #FFFFFF" : "1px solid #2C2C2E" }}
+                          >
+                            {key}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+          )}
+        </>
       )}
     </div>
   );
