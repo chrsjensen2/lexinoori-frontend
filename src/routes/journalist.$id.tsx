@@ -35,7 +35,7 @@ function JournalistPage() {
       const { data, error } = await supabase
         .from("journalists")
         .select(
-          "id, name, source_id, article_count, loaded_language_score, source_diversity_score, bias_score, confidence_level, created_at, sources(name)",
+       "id, name, current_source_id, article_count, loaded_language_score, bias_score, confidence_level, created_at, sources:current_source_id(name)",
         )
         .eq("id", id)
         .maybeSingle();
