@@ -1,6 +1,6 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
 import { ArrowLeft } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useLanguage } from "@/lib/lang";
 import { translations } from "@/lib/i18n";
@@ -29,20 +29,27 @@ function JournalistPage() {
   const lang = useLanguage();
   const t = translations[lang];
 
-  const { data, isLoading } = useQuery({
-    queryKey: ["journalist", id],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("journalists")
-        .select(
-       "id, name, current_source_id, article_count, loaded_language_score, bias_score, confidence_level, created_at, sources:current_source_id(name)",
-        )
-        .eq("id", id)
-        .maybeSingle();
-      if (error) throw error;
-      return data as JournalistRow | null;
-    },
-  });
+  const [data, setData] = useState<JournalistRow | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    setIsLoading(true);
+    supabase
+      .from("journalists")
+      .select(
+        "id, name, current_source_id, article_count, loaded_language_score, bias_score, confidence_level, created_at, sources:current_source_id(name)",
+      )
+      .eq("id", id)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (!cancelled) {
+          setData(data as JournalistRow | null);
+          setIsLoading(false);
+        }
+      });
+    return () => { cancelled = true; };
+  }, [id]);
 
   return (
     <div style={{ paddingTop: "env(safe-area-inset-top)" }}>
