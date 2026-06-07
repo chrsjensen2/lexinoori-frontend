@@ -4,6 +4,8 @@ import { ArrowLeft, Search, Trash2, Bookmark } from "lucide-react";
 import { TopicPill, TOPIC_COLORS, type Topic } from "@/components/feed/TopicPill";
 import { useSavedArticles } from "@/hooks/useSavedArticles";
 import { supabase } from "@/integrations/supabase/client";
+import { useLanguage, getLang } from "@/lib/lang";
+import { translations } from "@/lib/i18n";
 
 type SavedArticle = {
   id: string;
@@ -26,32 +28,6 @@ function depthMinutes(depth: Depth, minutes: number): number {
   return Math.max(2, minutes);
 }
 
-const FILTERS: { label: string; topic: Topic | "all" }[] = [
-  { label: "All", topic: "all" },
-  { label: "Politics", topic: "politics" },
-  { label: "World", topic: "world" },
-  { label: "Climate", topic: "climate" },
-  { label: "Tech", topic: "technology" },
-  { label: "Economy", topic: "economics" },
-  { label: "Sport", topic: "sport" },
-  { label: "Health", topic: "health" },
-  { label: "Culture", topic: "culture" },
-  { label: "Local", topic: "local" },
-];
-
-const TOPIC_LABELS: Record<Topic, string> = {
-  politics: "POLITICS",
-  world: "WORLD",
-  climate: "CLIMATE",
-  economics: "ECONOMICS",
-  sport: "SPORT",
-  technology: "TECHNOLOGY",
-  health: "HEALTH",
-  culture: "CULTURE",
-  local: "LOCAL",
-  breaking: "BREAKING",
-};
-
 const DARK_TEXT: Topic[] = ["economics", "technology", "health"];
 
 export const Route = createFileRoute("/saved")({
@@ -67,10 +43,13 @@ function toTopic(t: string | null | undefined): Topic {
 
 function SavedPage() {
   const router = useRouter();
+  const lang = useLanguage();
+  const t = translations[lang];
   const [filter, setFilter] = useState<Topic | "all">("all");
   const [articles, setArticles] = useState<SavedArticle[]>([]);
   const { toggle, userId } = useSavedArticles();
   const [depth, setDepth] = useState<Depth>(getDepth());
+
   useEffect(() => {
     const onDepth = () => setDepth(getDepth());
     window.addEventListener("lex:depth-changed", onDepth);
@@ -91,13 +70,7 @@ function SavedPage() {
         return;
       }
 
-      let language = "en";
-      const { data: profile } = await (supabase as any)
-        .from("profiles")
-        .select("primary_language")
-        .eq("user_id", uid)
-        .maybeSingle();
-      if (profile?.primary_language) language = profile.primary_language;
+      const language = getLang();
       const suffix = language === "en" ? "" : `_${language}`;
 
       const { data: savedRows } = await supabase
@@ -131,19 +104,28 @@ function SavedPage() {
       setArticles(mapped);
     }
     load();
-    return () => {
-      cancelled = true;
-    };
+    return () => { cancelled = true; };
   }, [userId]);
 
-  const filtered =
-    filter === "all" ? articles : articles.filter((a) => a.topic === filter);
+  const FILTERS: { label: string; topic: Topic | "all" }[] = [
+    { label: t.allTopics, topic: "all" },
+    { label: t.tabPolitics, topic: "politics" },
+    { label: t.tabWorld, topic: "world" },
+    { label: t.tabClimate, topic: "climate" },
+    { label: t.tabTech, topic: "technology" },
+    { label: t.tabEconomics, topic: "economics" },
+    { label: t.tabSport, topic: "sport" },
+    { label: t.tabHealth, topic: "health" },
+    { label: t.tabCulture, topic: "culture" },
+    { label: t.tabLocal, topic: "local" },
+  ];
+
+  const filtered = filter === "all" ? articles : articles.filter((a) => a.topic === filter);
 
   const handleRemove = async (id: string) => {
     setArticles((prev) => prev.filter((a) => a.id !== id));
     await toggle(id);
   };
-
 
   return (
     <div style={{ fontFamily: "Heebo, system-ui, sans-serif", paddingTop: 16 }}>
@@ -161,28 +143,17 @@ function SavedPage() {
             <Search size={24} />
           </Link>
         </div>
-        <h1
-          style={{
-            color: "#FFFFFF",
-            fontWeight: 700,
-            fontSize: 32,
-            lineHeight: 1.1,
-            marginTop: 8,
-          }}
-        >
-          Saved.
+        <h1 style={{ color: "#FFFFFF", fontWeight: 700, fontSize: 32, lineHeight: 1.1, marginTop: 8 }}>
+          {t.savedHeading}
         </h1>
         <p style={{ color: "#8E8E93", fontSize: 14, marginTop: 4 }}>
-          {articles.length} {articles.length === 1 ? "article" : "articles"} saved
+          {articles.length} {articles.length === 1 ? t.article : t.articles} {t.saved}
         </p>
       </div>
 
       {/* Filter pills */}
       <div style={{ position: "relative", marginTop: 16 }}>
-        <div
-          className="overflow-x-auto"
-          style={{ scrollbarWidth: "none" }}
-        >
+        <div className="overflow-x-auto" style={{ scrollbarWidth: "none" }}>
           <style>{`.lex-saved-filters::-webkit-scrollbar{display:none}`}</style>
           <div
             className="lex-saved-filters flex"
@@ -206,7 +177,7 @@ function SavedPage() {
                     : "#8E8E93";
               return (
                 <button
-                  key={f.label}
+                  key={f.topic}
                   onClick={() => setFilter(f.topic)}
                   style={{
                     backgroundColor: bg,
@@ -242,19 +213,10 @@ function SavedPage() {
         />
       </div>
 
-      {/* List or empty state */}
       {filtered.length === 0 ? (
         <EmptyState />
       ) : (
-        <div
-          style={{
-            marginTop: 16,
-            padding: "0 16px",
-            display: "flex",
-            flexDirection: "column",
-            gap: 12,
-          }}
-        >
+        <div style={{ marginTop: 16, padding: "0 16px", display: "flex", flexDirection: "column", gap: 12 }}>
           {filtered.map((a) => (
             <SwipeableCard key={a.id} article={a} depth={depth} onRemove={() => handleRemove(a.id)} />
           ))}
@@ -273,6 +235,8 @@ function SwipeableCard({
   onRemove: () => void;
   depth: Depth;
 }) {
+  const lang = useLanguage();
+  const t = translations[lang];
   const [offset, setOffset] = useState(0);
   const startX = useRef<number | null>(null);
   const moved = useRef(false);
@@ -299,7 +263,6 @@ function SwipeableCard({
 
   return (
     <div style={{ position: "relative", borderRadius: 12, overflow: "hidden" }}>
-      {/* Delete area */}
       <button
         onClick={onRemove}
         style={{
@@ -320,10 +283,9 @@ function SwipeableCard({
         aria-label="Remove"
       >
         <Trash2 size={22} />
-        <span style={{ fontSize: 13, color: "#FFFFFF" }}>Remove</span>
+        <span style={{ fontSize: 13, color: "#FFFFFF" }}>{t.remove}</span>
       </button>
 
-      {/* Card */}
       <Link
         to="/article/$id"
         params={{ id: article.id }}
@@ -332,9 +294,7 @@ function SwipeableCard({
         onPointerUp={onPointerUp}
         onPointerCancel={onPointerUp}
         onClick={(e) => {
-          if (moved.current || offset !== 0) {
-            e.preventDefault();
-          }
+          if (moved.current || offset !== 0) e.preventDefault();
         }}
         style={{
           backgroundColor: "#1C1C1E",
@@ -368,10 +328,10 @@ function SwipeableCard({
             {article.headline}
           </h3>
           <p style={{ color: "#8E8E93", fontSize: 12, marginTop: 6 }}>
-            Merged · {article.sources} {article.sources === 1 ? "source" : "sources"}
+            {t.merged} · {article.sources} {article.sources === 1 ? t.source : t.sources}
           </p>
           <p style={{ color: "#8E8E93", fontSize: 12, marginTop: 4 }}>
-            {depthMinutes(depth, article.readMinutes)} min read
+            {depthMinutes(depth, article.readMinutes)} {t.minRead}
           </p>
         </div>
         <div
@@ -390,12 +350,7 @@ function SwipeableCard({
               e.stopPropagation();
               onRemove();
             }}
-            style={{
-              color: "#1A7A5E",
-              background: "transparent",
-              display: "inline-flex",
-              padding: 0,
-            }}
+            style={{ color: "#1A7A5E", background: "transparent", display: "inline-flex", padding: 0 }}
           >
             <Bookmark size={22} fill="#1A7A5E" />
           </button>
@@ -414,24 +369,19 @@ function SwipeableCard({
 }
 
 function EmptyState() {
+  const lang = useLanguage();
+  const t = translations[lang];
   return (
     <div
       className="flex flex-col items-center justify-center text-center"
       style={{ padding: "0 32px", minHeight: "50vh", marginTop: 32 }}
     >
       <Bookmark size={48} color="#2C2C2E" strokeWidth={1.5} />
-      <h2
-        style={{
-          color: "#FFFFFF",
-          fontWeight: 700,
-          fontSize: 20,
-          marginTop: 16,
-        }}
-      >
-        No saved articles yet.
+      <h2 style={{ color: "#FFFFFF", fontWeight: 700, fontSize: 20, marginTop: 16 }}>
+        {t.noSavedArticles}
       </h2>
       <p style={{ color: "#8E8E93", fontSize: 14, marginTop: 8 }}>
-        Tap the bookmark icon on any article to save it.
+        {t.tapToSave}
       </p>
     </div>
   );

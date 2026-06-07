@@ -1,5 +1,7 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { ArrowLeft } from "lucide-react";
+import { useLanguage } from "@/lib/lang";
+import { translations } from "@/lib/i18n";
 
 export const Route = createFileRoute("/timeline/$id")({
   head: () => ({ meta: [{ title: "Story Timeline — lexinoori." }] }),
@@ -8,6 +10,8 @@ export const Route = createFileRoute("/timeline/$id")({
 
 function TimelinePage() {
   const router = useRouter();
+  const lang = useLanguage();
+  const t = translations[lang];
 
   return (
     <div style={{ paddingBottom: 24 }}>
@@ -41,7 +45,7 @@ function TimelinePage() {
             pointerEvents: "none",
           }}
         >
-          STORY TIMELINE
+          {t.timelineHeader}
         </div>
       </div>
 
@@ -55,7 +59,7 @@ function TimelinePage() {
             letterSpacing: "0.08em",
           }}
         >
-          POLITICS · BRUSSELS
+          POLITIK · BRUXELLES
         </div>
         <h1
           style={{
@@ -66,7 +70,7 @@ function TimelinePage() {
             marginTop: 8,
           }}
         >
-          Brussels fast-tracks digital sovereignty bill
+          Bruxelles fremskynder lov om digital suverænitet
         </h1>
 
         {/* STATUS ROW */}
@@ -80,10 +84,10 @@ function TimelinePage() {
             padding: 16,
           }}
         >
-          <StatusCol label="STATUS" value="ACTIVE" valueColor="#00C864" />
-          <StatusCol label="UPDATES" value="4" />
-          <StatusCol label="SOURCES" value="9" />
-          <StatusCol label="LIFESPAN" value="48H" />
+          <StatusCol label="STATUS" value="AKTIV" valueColor="#00C864" />
+          <StatusCol label="OPDATERINGER" value="4" />
+          <StatusCol label="KILDER" value="9" />
+          <StatusCol label="LEVETID" value="48T" />
         </div>
       </div>
 
@@ -98,7 +102,7 @@ function TimelinePage() {
           padding: "0 16px",
         }}
       >
-        REVISIONS · NEWEST FIRST
+        {t.revisionsLabel}
       </div>
 
       {/* TIMELINE */}
@@ -121,11 +125,11 @@ function TimelinePage() {
           cardBorder="#1A7A5E40"
           pillBg="#1A7A5E"
           pillColor="#FFFFFF"
-          pillLabel="WHAT'S NEW"
-          time="3H AGO"
-          title="Council legal service objects to 72-hour window"
-          body="A formal objection from the Council's own legal service now appears in the article. Two new sources added (Le Monde, NOS)."
-          footer="+2 SOURCES · FRAMING TIGHTENED"
+          pillLabel="NYT"
+          time="3T SIDEN"
+          title="Rådets juridiske tjeneste gør indsigelse mod 72-timers vindue"
+          body="En formel indsigelse fra Rådets egen juridiske tjeneste fremgår nu af artiklen. To nye kilder tilføjet (Le Monde, NOS)."
+          footer="+2 KILDER · FRAMING STRAMMET"
         />
         <Entry
           dotFill="#2C2C2E"
@@ -133,11 +137,11 @@ function TimelinePage() {
           cardBorder="#2C2C2E"
           pillBg="#2C2C2E"
           pillColor="#8E8E93"
-          pillLabel="UPDATE"
-          time="YESTERDAY · 18:40"
-          title="Israeli foreign minister responds, calling sanctions unacceptable"
-          body="Two new perspectives added to the source pool."
-          footer="+3 SOURCES · ADDED ISRAELI RESPONSE SECTION"
+          pillLabel="OPDATERING"
+          time="I GÅR · 18:40"
+          title="Israels udenrigsminister svarer og kalder sanktionerne uacceptable"
+          body="To nye perspektiver tilføjet til kildebanken."
+          footer="+3 KILDER · TILFØJET ISRAELS SVAR"
         />
         <Entry
           dotFill="#E8873A40"
@@ -145,11 +149,11 @@ function TimelinePage() {
           cardBorder="#E8873A40"
           pillBg="#E8873A20"
           pillColor="#E8873A"
-          pillLabel="WIRE COPY"
-          time="YESTERDAY · 09:12"
-          title="Ritzau wire rewire detected; TV2 + BT collapsed to one source"
-          body="Two new sources arrived but both >70% Ritzau wire. Counted as one in diversity score."
-          footer="DIVERSITY SCORE PROTECTED"
+          pillLabel="TELEGRAMBUREAUKOPI"
+          time="I GÅR · 09:12"
+          title="Ritzau-telegram genanvendelse opdaget; TV2 + BT talt som én kilde"
+          body="To nye kilder ankom, men begge >70% Ritzau-telegram. Talt som én i diversitetsscore."
+          footer="DIVERSITETSSCORE BESKYTTET"
         />
         <Entry
           dotFill="#2C2C2E"
@@ -158,10 +162,10 @@ function TimelinePage() {
           pillBg="#2C2C2E"
           pillColor="#8E8E93"
           pillLabel="ORIGINAL"
-          time="2 DAYS AGO · 14:30"
-          title="Story created from 4 sources"
-          body="Initial merge from Reuters, AP, BBC, DR. Diversity 6.8."
-          footer="4 SOURCES · STORY OPENED"
+          time="FOR 2 DAGE SIDEN · 14:30"
+          title="Artikel oprettet fra 4 kilder"
+          body="Første samling fra Reuters, AP, BBC, DR. Diversitet 6.8."
+          footer="4 KILDER · ARTIKEL ÅBNET"
           last
         />
       </div>

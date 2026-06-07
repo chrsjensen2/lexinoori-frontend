@@ -1,9 +1,13 @@
 import { useEffect, useState } from "react";
 import { SerifLogo } from "./SerifLogo";
+import { useLanguage } from "@/lib/lang";
+import { translations } from "@/lib/i18n";
 
 export function SplashScreen() {
   const [show, setShow] = useState(true);
   const [fading, setFading] = useState(false);
+  const lang = useLanguage();
+  const t = translations[lang];
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -50,7 +54,7 @@ export function SplashScreen() {
           fontFamily: "Heebo, sans-serif",
         }}
       >
-        Every angle. One story.
+        {t.tagline}
       </p>
     </div>
   );

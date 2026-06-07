@@ -11,6 +11,8 @@ import {
   GoogleButton,
 } from "@/components/auth/AuthShell";
 import { supabase } from "@/integrations/supabase/client";
+import { useLanguage } from "@/lib/lang";
+import { translations } from "@/lib/i18n";
 
 export const Route = createFileRoute("/auth/login")({
   head: () => ({ meta: [{ title: "Log in — lexinoori." }] }),
@@ -23,6 +25,8 @@ function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const lang = useLanguage();
+  const t = translations[lang];
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,17 +45,17 @@ function LoginPage() {
     <AuthScreen>
       <AuthHeader />
       <form onSubmit={onSubmit} style={{ padding: "0 32px", marginTop: 32 }}>
-        <AuthHeading title="Welcome back." subtitle="Good to have you back." />
+        <AuthHeading title={t.loginTitle} subtitle={t.loginSubtitle} />
         <div style={{ display: "flex", flexDirection: "column", gap: 12, marginTop: 20 }}>
           <AuthInput
             type="email"
-            placeholder="Email address"
+            placeholder={t.emailPlaceholder}
             autoComplete="email"
             value={email}
             onChange={(e) => setEmail(e.currentTarget.value)}
           />
           <PasswordInput
-            placeholder="Password"
+            placeholder={t.passwordPlaceholder}
             autoComplete="current-password"
             value={password}
             onChange={(e) => setPassword(e.currentTarget.value)}
@@ -65,12 +69,12 @@ function LoginPage() {
             to="/auth/forgot"
             style={{ color: "#1A7A5E", fontSize: 13, textDecoration: "none" }}
           >
-            Forgot password?
+            {t.forgotPassword}
           </Link>
         </div>
         <div style={{ marginTop: 20 }}>
           <PrimaryButton type="submit" disabled={loading}>
-            {loading ? "Signing in…" : "Log in"}
+            {loading ? t.signingIn : t.signInButton}
           </PrimaryButton>
         </div>
         <OrDivider />
@@ -78,10 +82,8 @@ function LoginPage() {
           onClick={async () => {
             setError(null);
             const { error } = await supabase.auth.signInWithOAuth({
-              provider: 'google',
-              options: {
-                redirectTo: window.location.origin,
-              },
+              provider: "google",
+              options: { redirectTo: window.location.origin },
             });
             if (error) setError(error.message);
           }}
@@ -98,12 +100,12 @@ function LoginPage() {
           color: "#8E8E93",
         }}
       >
-        Don't have an account?{" "}
+        {t.noAccount}{" "}
         <Link
           to="/auth/signup"
           style={{ color: "#1A7A5E", fontWeight: 700, textDecoration: "none" }}
         >
-          Sign up
+          {t.signUpLink}
         </Link>
       </div>
     </AuthScreen>

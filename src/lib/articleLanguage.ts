@@ -1,17 +1,18 @@
 import { supabase } from "@/integrations/supabase/client";
+import { getLang } from "./lang";
 
 export async function getUserLanguage(): Promise<string> {
   try {
     const { data: userData } = await supabase.auth.getUser();
-    if (!userData?.user) return "en";
+    if (!userData?.user) return getLang();
     const { data: profile } = await (supabase as any)
       .from("profiles")
       .select("primary_language")
       .eq("user_id", userData.user.id)
       .maybeSingle();
-    return profile?.primary_language || "en";
+    return profile?.primary_language || getLang();
   } catch {
-    return "en";
+    return getLang();
   }
 }
 

@@ -5,6 +5,8 @@ import { TopicPill, TOPIC_COLORS, type Topic } from "@/components/feed/TopicPill
 import { supabase } from "@/integrations/supabase/client";
 import { useSavedArticles } from "@/hooks/useSavedArticles";
 import { toast } from "sonner";
+import { useLanguage, getLang } from "@/lib/lang";
+import { translations } from "@/lib/i18n";
 
 export const Route = createFileRoute("/article/$id")({
   head: () => ({ meta: [{ title: "Article — lexinoori." }] }),
@@ -33,7 +35,6 @@ type ArticleRow = {
   update_summary: string | null;
   image_url: string | null;
 };
-
 
 function toTopic(t: string | null | undefined): Topic {
   const valid: Topic[] = ["politics", "climate", "economics", "sport", "technology", "health", "culture", "local", "breaking"];
@@ -70,22 +71,13 @@ function ArticleView() {
   const savedTop = isSaved(id);
   const [fontSize, setFontSize] = useState<FontSizeKey>("Medium");
   const [sources, setSources] = useState<{ url: string; headline: string; name: string; loaded_language: any; journalist_id: string | null; author: string | null }[]>([]);
+  const lang = useLanguage();
+  const t = translations[lang];
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      // Resolve user's primary language
-      let language = "en";
-      const { data: userData } = await supabase.auth.getUser();
-      if (userData?.user) {
-        const { data: profile } = await (supabase as any)
-          .from("profiles")
-          .select("primary_language")
-          .eq("id", userData.user.id)
-          .maybeSingle();
-        if (profile?.primary_language) language = profile.primary_language;
-      }
-      console.log("Article language:", language);
+      const language = getLang();
       const suffix = language === "en" ? "" : `_${language}`;
 
       const baseCols = [
@@ -113,13 +105,11 @@ function ArticleView() {
         ...langCols,
       ].join(", ");
 
-
       const { data, error } = await (supabase as any)
         .from("articles")
         .select(selectCols)
         .eq("id", id)
         .maybeSingle();
-      console.log("Article fetch:", { data, error });
       if (cancelled) return;
       if (!error && data) {
         const pick = (base: string) =>
@@ -140,7 +130,6 @@ function ArticleView() {
           update_summary: pick("update_summary"),
           image_url: (data as any).image_url ?? null,
         } as ArticleRow);
-
       }
       setLoading(false);
     })();
@@ -164,7 +153,6 @@ function ArticleView() {
         .from("source_articles")
         .select("id, url, headline, author, journalist_id, loaded_language, sources:source_id(name)")
         .eq("cluster_id", clusterId);
-      console.log("Sources fetch:", { data, error });
       if (cancelled) return;
       const rows = (data ?? [])
         .map((r: any) => ({
@@ -176,12 +164,10 @@ function ArticleView() {
           author: r?.author ?? null,
         }))
         .filter((r: any) => r.url);
-
       setSources(rows);
     })();
     return () => { cancelled = true; };
   }, [id]);
-
 
   const TOPIC = toTopic(article?.topic);
   const topicColor = TOPIC_COLORS[TOPIC];
@@ -198,15 +184,15 @@ function ArticleView() {
   const diversityPct = Math.max(0, Math.min(100, diversityScore * 100));
   const diversityDisplay = Math.round(diversityScore * 10);
   const poolLeanLabel =
-    biasScore <= -0.6 ? "LEFT"
-    : biasScore <= -0.2 ? "CENTRE-LEFT"
-    : biasScore <= 0.1 ? "CENTRE"
-    : biasScore <= 0.5 ? "CENTRE-RIGHT"
-    : "RIGHT";
+    biasScore <= -0.6 ? t.biasLeft
+    : biasScore <= -0.2 ? t.biasCenterLeft
+    : biasScore <= 0.1 ? t.biasCenter
+    : biasScore <= 0.5 ? t.biasCenterRight
+    : t.biasRight;
   const diversityLabel =
-    diversityDisplay <= 3 ? "WEAK"
-    : diversityDisplay <= 6 ? "MODERATE"
-    : "STRONG";
+    diversityDisplay <= 3 ? t.diversityWeak
+    : diversityDisplay <= 6 ? t.diversityModerate
+    : t.diversityStrong;
   const diversityColor =
     diversityDisplay <= 3 ? "#FF3B30"
     : diversityDisplay <= 6 ? "#FF9500"
@@ -238,32 +224,32 @@ function ArticleView() {
         return normalized.slice(0, 5).join("\n");
       })()
     : rawBody;
-  
 
-
-
+  const READ_LENGTH_LABELS: Record<ReadLength, string> = {
+    Bullets: t.readBullets,
+    Brief: t.readBrief,
+    Standard: t.readStandard,
+  };
 
   return (
     <div style={{ paddingBottom: 32 }}>
-      {/* Fixed top controls — placed at root to escape any containing block */}
       <button
         onClick={() => router.history.back()}
         aria-label="Back"
-        style={{ position: 'fixed', top: '16px', left: '16px', zIndex: 9999, width: 40, height: 40, borderRadius: 8, backgroundColor: "rgba(17,17,17,0.5)", backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)", color: "#FFFFFF", display: "flex", alignItems: "center", justifyContent: "center" }}
+        style={{ position: "fixed", top: "16px", left: "16px", zIndex: 9999, width: 40, height: 40, borderRadius: 8, backgroundColor: "rgba(17,17,17,0.5)", backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)", color: "#FFFFFF", display: "flex", alignItems: "center", justifyContent: "center" }}
       >
         <ArrowLeft size={20} />
       </button>
       <button
         aria-label="Reading options"
         onClick={() => setSheet("aa")}
-        style={{ position: 'fixed', top: '16px', right: '16px', zIndex: 9999, height: 40, padding: "0 12px", borderRadius: 8, backgroundColor: "rgba(17,17,17,0.5)", backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)", color: "#FFFFFF", fontSize: 16, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center" }}
+        style={{ position: "fixed", top: "16px", right: "16px", zIndex: 9999, height: 40, padding: "0 12px", borderRadius: 8, backgroundColor: "rgba(17,17,17,0.5)", backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)", color: "#FFFFFF", fontSize: 16, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center" }}
       >
         Aa
       </button>
 
       {/* HERO */}
       <div style={{ position: "relative", width: "100%", height: 240 }}>
-
         <div
           style={{
             position: "absolute",
@@ -271,7 +257,6 @@ function ArticleView() {
             background: `linear-gradient(180deg, ${topicColor} 0%, #111111 100%)`,
           }}
         />
-        {/* Bottom darken overlay */}
         <div
           style={{
             position: "absolute",
@@ -282,11 +267,6 @@ function ArticleView() {
             background: "linear-gradient(180deg, rgba(17,17,17,0) 0%, #111111 100%)",
           }}
         />
-
-        {/* Top floating controls moved outside hero — see below */}
-
-
-        {/* Bottom overlay content */}
         <div
           style={{
             position: "absolute",
@@ -323,7 +303,6 @@ function ArticleView() {
       )}
 
       {/* METADATA ROW */}
-
       <div
         className="flex items-center justify-between"
         style={{ padding: 16, marginTop: 16 }}
@@ -343,7 +322,9 @@ function ArticleView() {
           >
             R
           </span>
-          <span style={{ color: "#FFFFFF", fontSize: 14 }}>{sourceCount} {sourceCount === 1 ? "source" : "sources"}</span>
+          <span style={{ color: "#FFFFFF", fontSize: 14 }}>
+            {sourceCount} {sourceCount === 1 ? t.source : t.sources}
+          </span>
         </div>
         <div className="flex items-center" style={{ gap: 12 }}>
           <button
@@ -376,7 +357,7 @@ function ArticleView() {
         >
           <div className="flex items-center justify-between" style={{ marginBottom: 8 }}>
             <span style={{ color: "#1A7A5E", fontSize: 11, fontWeight: 700, letterSpacing: "0.08em" }}>
-              WHAT'S NEW
+              {t.whatsNew}
             </span>
           </div>
           <p style={{ color: "#FFFFFF", fontSize: 14, lineHeight: 1.5 }}>
@@ -384,7 +365,6 @@ function ArticleView() {
           </p>
         </section>
       )}
-
 
       {/* BEFORE YOU READ */}
       <section
@@ -405,41 +385,37 @@ function ArticleView() {
             marginBottom: 16,
           }}
         >
-          BEFORE YOU READ
+          {t.beforeYouRead}
         </div>
 
         <div className="flex" style={{ gap: 16, marginBottom: 16 }}>
           <div className="flex-1">
             <div style={{ color: "#8E8E93", fontSize: 11, fontWeight: 700, letterSpacing: "0.08em" }}>
-              SOURCES
+              {t.sourcesLabel}
             </div>
             <div style={{ color: "#FFFFFF", fontSize: 22, fontWeight: 700, marginTop: 4 }}>
-              {sourceCount} {sourceCount === 1 ? "source" : "sources"}
+              {sourceCount} {sourceCount === 1 ? t.source : t.sources}
             </div>
           </div>
           <div className="flex-1">
             <div style={{ color: "#8E8E93", fontSize: 11, fontWeight: 700, letterSpacing: "0.08em" }}>
-              READ LENGTH
+              {t.readLengthLabel}
             </div>
             <div style={{ color: "#FFFFFF", fontSize: 22, fontWeight: 700, marginTop: 4 }}>
               {readMinutes} min
             </div>
-
           </div>
         </div>
-
-        {/* Pool lean slider hidden */}
-
 
         {/* Source diversity */}
         <div>
           <div className="flex items-center justify-between" style={{ marginBottom: 4 }}>
             <span style={{ color: "#8E8E93", fontSize: 11, fontWeight: 700, letterSpacing: "0.08em" }}>
-              SOURCE DIVERSITY
+              {t.sourceDiversity}
             </span>
           </div>
           <div style={{ color: "#FFFFFF", fontSize: 22, fontWeight: 700, marginBottom: 8 }}>
-            {sourceCount} {sourceCount === 1 ? "source" : "sources"}
+            {sourceCount} {sourceCount === 1 ? t.source : t.sources}
           </div>
           <div style={{ position: "relative", height: 4, backgroundColor: "#2C2C2E", borderRadius: 999 }}>
             <div
@@ -453,7 +429,6 @@ function ArticleView() {
                 borderRadius: 999,
               }}
             />
-
           </div>
         </div>
       </section>
@@ -462,21 +437,16 @@ function ArticleView() {
       <div className="flex" style={{ gap: 8, margin: "12px 16px 0" }}>
         {READ_LENGTHS.map((rl) => {
           const active = rl === readLength;
-          const disabled = false;
           return (
             <button
               key={rl}
               onClick={() => {
-                if (disabled) return;
                 setReadLength(rl);
                 try {
                   window.localStorage.setItem("lex:depth", rl);
                   window.dispatchEvent(new Event("lex:depth-changed"));
                 } catch {}
               }}
-
-              disabled={disabled}
-              title={disabled ? "Not enough source material" : undefined}
               className="flex-1"
               style={{
                 padding: "10px 12px",
@@ -484,14 +454,13 @@ function ArticleView() {
                 fontSize: 13,
                 fontWeight: 700,
                 backgroundColor: active ? "#FFFFFF" : "#1C1C1E",
-                color: disabled ? "rgba(255,255,255,0.2)" : active ? "#111111" : "rgba(255,255,255,0.5)",
+                color: active ? "#111111" : "rgba(255,255,255,0.5)",
                 border: active ? "1px solid #FFFFFF" : "1px solid #2C2C2E",
                 whiteSpace: "nowrap",
-                cursor: disabled ? "not-allowed" : "pointer",
-                opacity: disabled ? 0.5 : 1,
+                cursor: "pointer",
               }}
             >
-              {rl}
+              {READ_LENGTH_LABELS[rl]}
             </button>
           );
         })}
@@ -511,10 +480,9 @@ function ArticleView() {
           <p style={{ marginBottom: 20, whiteSpace: "pre-wrap" }}>{body}</p>
         ) : (
           <p style={{ marginBottom: 20, color: "#8E8E93" }}>
-            {loading ? "Loading article…" : "No content available."}
+            {loading ? t.loadingArticle : t.noContent}
           </p>
         )}
-
       </article>
 
       {/* AFTER YOU READ */}
@@ -527,9 +495,6 @@ function ArticleView() {
           border: "1px solid #2C2C2E",
         }}
       >
-
-
-
         {/* What's missing */}
         <div
           style={{
@@ -541,7 +506,7 @@ function ArticleView() {
             marginBottom: 8,
           }}
         >
-          WHAT'S MISSING
+          {t.whatsMissing}
         </div>
         <div
           style={{
@@ -552,7 +517,7 @@ function ArticleView() {
             lineHeight: 1.5,
           }}
         >
-          {article?.whats_missing ?? "No gaps identified."}
+          {article?.whats_missing ?? t.noGaps}
         </div>
 
         {/* Sources */}
@@ -567,7 +532,7 @@ function ArticleView() {
               marginBottom: 4,
             }}
           >
-            Source articles not available
+            {t.sourceArticlesUnavailable}
           </div>
         ) : (
           <>
@@ -581,7 +546,7 @@ function ArticleView() {
                 marginBottom: 4,
               }}
             >
-              SOURCES · {sources.length} {sources.length === 1 ? "SOURCE" : "SOURCES"}
+              {t.sourcesLabel} · {sources.length} {sources.length === 1 ? t.source.toUpperCase() : t.sources.toUpperCase()}
             </div>
             {sources.map((s, i) => (
               <SourceRow
@@ -611,7 +576,7 @@ function ArticleView() {
             marginTop: 20,
           }}
         >
-          View story timeline →
+          {t.viewTimeline}
         </Link>
       </section>
 
@@ -633,7 +598,7 @@ function ArticleView() {
           fontWeight: 700,
         }}
       >
-        Share
+        {t.share}
       </button>
 
       {/* Bottom sheets */}
@@ -672,7 +637,7 @@ function ArticleView() {
                     marginBottom: 16,
                   }}
                 >
-                  TEXT SIZE
+                  {t.textSize}
                 </div>
                 <div className="flex" style={{ gap: 8 }}>
                   {(Object.keys(FONT_SIZES) as FontSizeKey[]).map((key) => {
@@ -706,86 +671,6 @@ function ArticleView() {
   );
 }
 
-
-
-function InlineTag({
-  kind,
-  children,
-}: {
-  kind: "fact" | "opinion" | "contested";
-  children: React.ReactNode;
-}) {
-  const config = {
-    fact: { bg: "rgba(26,122,94,0.08)", pillBg: "#1A7A5E", label: "FACT" },
-    opinion: { bg: "rgba(232,135,58,0.08)", pillBg: "#E8873A", label: "OPINION" },
-    contested: { bg: "rgba(255,69,0,0.08)", pillBg: "#FF4500", label: "CONTESTED" },
-  }[kind];
-
-  return (
-    <span
-      style={{
-        backgroundColor: config.bg,
-        padding: "0 4px",
-        borderRadius: 4,
-      }}
-    >
-      {children}
-      <span
-        style={{
-          backgroundColor: config.pillBg,
-          color: "#FFFFFF",
-          fontSize: 9,
-          fontWeight: 700,
-          letterSpacing: "0.08em",
-          padding: "2px 4px",
-          borderRadius: 4,
-          marginLeft: 4,
-          verticalAlign: "middle",
-          display: "inline-block",
-        }}
-      >
-        {config.label}
-      </span>
-    </span>
-  );
-}
-
-function LoadedRow({
-  original,
-  neutral,
-  last,
-}: {
-  original: string;
-  neutral: string;
-  last?: boolean;
-}) {
-  return (
-    <div
-      className="flex items-center"
-      style={{
-        gap: 8,
-        padding: "12px 0",
-        borderBottom: last ? "none" : "1px solid #2C2C2E",
-        fontSize: 14,
-      }}
-    >
-      <span
-        style={{
-          color: "#FFFFFF",
-          textDecoration: "underline",
-          textDecorationColor: "#FF4500",
-          textDecorationThickness: 2,
-          textUnderlineOffset: 3,
-        }}
-      >
-        {original}
-      </span>
-      <span style={{ color: "#8E8E93" }}>→</span>
-      <span style={{ color: "#1A7A5E" }}>{neutral}</span>
-    </div>
-  );
-}
-
 function SourceRow({
   name,
   headline,
@@ -804,6 +689,8 @@ function SourceRow({
   last?: boolean;
 }) {
   const navigate = useNavigate();
+  const lang = useLanguage();
+  const t = translations[lang];
   const [expanded, setExpanded] = useState(false);
   const truncated = headline.length > 60 ? `${headline.slice(0, 60)}…` : headline;
   const items: Array<{ phrase?: string; neutral?: string; reason?: string }> = Array.isArray(loadedLanguage)
@@ -839,7 +726,7 @@ function SourceRow({
             <span style={{ color: "#FFFFFF", fontSize: 14, fontWeight: 700 }}>{name}</span>
             {count > 0 && (
               <span style={{ color: "#E8873A", fontSize: 12 }}>
-                · {count} loaded {count === 1 ? "phrase" : "phrases"}
+                · {count} {count === 1 ? t.loadedPhrase : t.loadedPhrases}
               </span>
             )}
           </div>
@@ -886,7 +773,7 @@ function SourceRow({
       {expanded && (
         <div style={{ padding: "4px 0 12px 28px" }}>
           {items.length === 0 ? (
-            <div style={{ color: "#8E8E93", fontSize: 13 }}>No loaded language detected</div>
+            <div style={{ color: "#8E8E93", fontSize: 13 }}>{t.noLoadedLanguage}</div>
           ) : (
             <>
               <div
@@ -898,7 +785,7 @@ function SourceRow({
                   marginBottom: 4,
                 }}
               >
-                LOADED LANGUAGE
+                {t.loadedLanguageLabel}
               </div>
               {items.map((it, idx) => (
                 <div

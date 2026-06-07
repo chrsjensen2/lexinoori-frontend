@@ -5,15 +5,14 @@ import { SerifLogo } from "@/components/SerifLogo";
 import { supabase } from "@/integrations/supabase/client";
 import { getUserLanguage, pickLang, TRANSLATED_COLS } from "@/lib/articleLanguage";
 import { TOPIC_COLORS, type Topic } from "@/components/feed/TopicPill";
+import { useLanguage } from "@/lib/lang";
+import { translations, type T } from "@/lib/i18n";
 
 export const Route = createFileRoute("/stories")({
   head: () => ({
     meta: [
       { title: "Stories — lexinoori." },
-      {
-        name: "description",
-        content: "Swipeable full-screen story cards from lexinoori.",
-      },
+      { name: "description", content: "Swipeable full-screen story cards from lexinoori." },
     ],
   }),
   component: StoriesPage,
@@ -24,29 +23,30 @@ type Story = {
   topic: string;
   topicColor: string;
   gradientFrom: string;
-  timestamp: string;
+  created_at: string;
   headline: string;
-  sources: string;
-  bias: string;
+  source_count: number;
+  diversity_score: number;
   biasDotColor: string;
   variant?: "default" | "breaking";
 };
 
-function timeAgo(iso: string) {
+function timeAgo(iso: string, t: T) {
   const diff = Date.now() - new Date(iso).getTime();
   const m = Math.floor(diff / 60000);
-  if (m < 1) return "JUST NOW";
-  if (m < 60) return `${m} MIN AGO`;
+  if (m < 1) return t.justNow;
+  if (m < 60) return `${m}${t.minAgo}`;
   const h = Math.floor(m / 60);
-  if (h < 24) return `${h}H AGO`;
-  return `${Math.floor(h / 24)}D AGO`;
+  if (h < 24) return `${h}${t.hrAgo}`;
+  return `${Math.floor(h / 24)}${t.dayAgo}`;
 }
 
 const STORY_DURATION_MS = 6000;
 
-
 function StoriesPage() {
   const navigate = useNavigate();
+  const lang = useLanguage();
+  const t = translations[lang];
   const [stories, setStories] = useState<Story[]>([]);
   const [index, setIndex] = useState(0);
   const [paused, setPaused] = useState(false);
@@ -77,10 +77,10 @@ function StoriesPage() {
           topic: (r.topic || "").toUpperCase(),
           topicColor: color,
           gradientFrom: isBreaking ? "#FF0000" : color,
-          timestamp: timeAgo(r.created_at),
+          created_at: r.created_at,
           headline: pickLang<string>(r, "headline", language) ?? "",
-          sources: r.source_count ? `Merged · ${r.source_count} sources` : "Merged",
-          bias: r.diversity_score ? `${Number(r.diversity_score).toFixed(1)} diversity` : "",
+          source_count: r.source_count ?? 0,
+          diversity_score: Number(r.diversity_score ?? 0),
           biasDotColor: "#1A7A5E",
           variant: isBreaking ? "breaking" : "default",
         };
@@ -88,8 +88,7 @@ function StoriesPage() {
       setStories(mapped);
     })();
     return () => { cancelled = true; };
-  }, []);
-
+  }, [lang]);
 
   const goNext = useCallback(() => {
     setIndex((i) => Math.min(i + 1, END_INDEX));
@@ -101,14 +100,13 @@ function StoriesPage() {
     navigate({ to: "/" });
   }, [navigate]);
 
-  // Auto-advance
   useEffect(() => {
     if (paused || index >= END_INDEX) return;
-    const t = window.setTimeout(() => {
+    const timer = window.setTimeout(() => {
       setIndex((i) => Math.min(i + 1, END_INDEX));
     }, STORY_DURATION_MS);
-    return () => window.clearTimeout(t);
-  }, [index, paused]);
+    return () => window.clearTimeout(timer);
+  }, [index, paused, END_INDEX]);
 
   const onPointerDown = (e: React.PointerEvent) => {
     startRef.current = { x: e.clientX, y: e.clientY, t: Date.now() };
@@ -131,19 +129,16 @@ function StoriesPage() {
     const absX = Math.abs(dx);
     const absY = Math.abs(dy);
 
-    // Swipe down → close
     if (dy > 80 && absY > absX) {
       close();
       return;
     }
-    // Horizontal swipe
     if (absX > 50 && absX > absY) {
       if (dx < 0) goNext();
       else goPrev();
       return;
     }
 
-    // Tap: left half = previous, right half = next
     if (!movedRef.current) {
       const target = e.currentTarget as HTMLElement;
       const rect = target.getBoundingClientRect();
@@ -153,7 +148,6 @@ function StoriesPage() {
     }
   };
 
-  // End-state card
   if (index >= END_INDEX) {
     return (
       <div
@@ -185,7 +179,6 @@ function StoriesPage() {
         >
           <X size={20} />
         </button>
-
         <div style={{ textAlign: "center" }}>
           <SerifLogo height={32} color="#1A7A5E" />
         </div>
@@ -199,7 +192,7 @@ function StoriesPage() {
             letterSpacing: "-0.01em",
           }}
         >
-          You're all caught up.
+          {t.upToDate}
         </h2>
         <button
           onClick={close}
@@ -217,7 +210,7 @@ function StoriesPage() {
             cursor: "pointer",
           }}
         >
-          Back to Today
+          {t.backToToday}
         </button>
       </div>
     );
@@ -227,11 +220,17 @@ function StoriesPage() {
   if (!story) {
     return (
       <div style={{ position: "fixed", inset: 0, backgroundColor: "#111111", zIndex: 50, display: "flex", alignItems: "center", justifyContent: "center", color: "#8E8E93", fontSize: 14 }}>
-        Loading…
+        {t.loading}
       </div>
     );
   }
   const isBreaking = story.variant === "breaking";
+  const sourcesText = story.source_count
+    ? `${t.merged} · ${story.source_count} ${story.source_count === 1 ? t.source : t.sources}`
+    : t.merged;
+  const biasText = story.diversity_score
+    ? `${story.diversity_score.toFixed(1)} ${t.diversity}`
+    : "";
 
   return (
     <div
@@ -259,7 +258,6 @@ function StoriesPage() {
         }
       `}</style>
 
-      {/* Background */}
       <div
         style={{
           position: "absolute",
@@ -270,7 +268,6 @@ function StoriesPage() {
         }}
       />
 
-      {/* Gradient overlay for readability */}
       {!isBreaking && (
         <div
           style={{
@@ -283,7 +280,6 @@ function StoriesPage() {
         />
       )}
 
-      {/* Progress indicators */}
       <div
         style={{
           position: "absolute",
@@ -311,7 +307,7 @@ function StoriesPage() {
               style={{
                 height: "100%",
                 backgroundColor: "#1A7A5E",
-                width: i < index ? "100%" : i === index ? "0%" : "0%",
+                width: i < index ? "100%" : "0%",
                 animation:
                   i === index
                     ? `lex-progress-fill ${STORY_DURATION_MS}ms linear forwards`
@@ -323,7 +319,6 @@ function StoriesPage() {
         ))}
       </div>
 
-      {/* Close button */}
       <button
         onClick={(e) => {
           e.stopPropagation();
@@ -347,7 +342,6 @@ function StoriesPage() {
         <X size={20} />
       </button>
 
-      {/* Top-left header */}
       <div
         style={{
           position: "absolute",
@@ -392,11 +386,9 @@ function StoriesPage() {
             )}
             {story.topic}
           </span>
-
         </div>
       </div>
 
-      {/* Bottom content */}
       <div
         style={{
           position: "absolute",
@@ -415,7 +407,7 @@ function StoriesPage() {
             textTransform: "uppercase",
           }}
         >
-          {story.timestamp}
+          {timeAgo(story.created_at, t)}
         </div>
         <h2
           style={{
@@ -433,23 +425,10 @@ function StoriesPage() {
         >
           {story.headline}
         </h2>
-        <div
-          style={{
-            color: "rgba(255,255,255,0.5)",
-            fontSize: 13,
-            marginTop: 8,
-          }}
-        >
-          {story.sources}
+        <div style={{ color: "rgba(255,255,255,0.5)", fontSize: 13, marginTop: 8 }}>
+          {sourcesText}
         </div>
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 8,
-            marginTop: 12,
-          }}
-        >
+        <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 12 }}>
           <span
             style={{
               width: 8,
@@ -459,9 +438,7 @@ function StoriesPage() {
               display: "inline-block",
             }}
           />
-          <span style={{ color: "rgba(255,255,255,0.5)", fontSize: 13 }}>
-            {story.bias}
-          </span>
+          <span style={{ color: "rgba(255,255,255,0.5)", fontSize: 13 }}>{biasText}</span>
         </div>
         <div style={{ marginTop: 16 }}>
           <button
@@ -487,7 +464,7 @@ function StoriesPage() {
               width: "fit-content",
             }}
           >
-            Read full article →
+            {t.readFullArticle}
           </button>
         </div>
       </div>

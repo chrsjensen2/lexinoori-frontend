@@ -11,6 +11,8 @@ import {
   GoogleButton,
 } from "@/components/auth/AuthShell";
 import { supabase } from "@/integrations/supabase/client";
+import { useLanguage } from "@/lib/lang";
+import { translations } from "@/lib/i18n";
 
 export const Route = createFileRoute("/auth/signup")({
   head: () => ({ meta: [{ title: "Create account — lexinoori." }] }),
@@ -23,6 +25,8 @@ function SignupPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const lang = useLanguage();
+  const t = translations[lang];
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -48,20 +52,17 @@ function SignupPage() {
     <AuthScreen>
       <AuthHeader />
       <form onSubmit={onSubmit} style={{ padding: "0 32px", marginTop: 32 }}>
-        <AuthHeading
-          title="Create your account"
-          subtitle="Free to start. No card required."
-        />
+        <AuthHeading title={t.signupTitle} subtitle={t.signupSubtitle} />
         <div style={{ display: "flex", flexDirection: "column", gap: 12, marginTop: 20 }}>
           <AuthInput
             type="email"
-            placeholder="Email address"
+            placeholder={t.emailPlaceholder}
             autoComplete="email"
             value={email}
             onChange={(e) => setEmail(e.currentTarget.value)}
           />
           <PasswordInput
-            placeholder="Password"
+            placeholder={t.passwordPlaceholder}
             autoComplete="new-password"
             value={password}
             onChange={(e) => setPassword(e.currentTarget.value)}
@@ -72,7 +73,7 @@ function SignupPage() {
         )}
         <div style={{ marginTop: 20 }}>
           <PrimaryButton type="submit" disabled={loading}>
-            {loading ? "Creating…" : "Create account"}
+            {loading ? t.creating : t.createAccountLink}
           </PrimaryButton>
         </div>
         <OrDivider />
@@ -80,10 +81,8 @@ function SignupPage() {
           onClick={async () => {
             setError(null);
             const { error } = await supabase.auth.signInWithOAuth({
-              provider: 'google',
-              options: {
-                redirectTo: window.location.origin,
-              },
+              provider: "google",
+              options: { redirectTo: window.location.origin },
             });
             if (error) setError(error.message);
           }}
@@ -100,12 +99,12 @@ function SignupPage() {
           color: "#8E8E93",
         }}
       >
-        Already have an account?{" "}
+        {t.alreadyAccount}{" "}
         <Link
           to="/auth/login"
           style={{ color: "#1A7A5E", fontWeight: 700, textDecoration: "none" }}
         >
-          Log in
+          {t.signInLink}
         </Link>
       </div>
     </AuthScreen>

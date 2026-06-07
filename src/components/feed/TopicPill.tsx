@@ -1,3 +1,6 @@
+import { useLanguage } from "@/lib/lang";
+import { translations } from "@/lib/i18n";
+
 type Topic =
   | "politics"
   | "world"
@@ -23,23 +26,21 @@ const TOPIC_COLORS: Record<Topic, string> = {
   breaking: "#FF0000",
 };
 
-const TOPIC_LABELS: Record<Topic, string> = {
-  politics: "POLITICS",
-  world: "WORLD",
-  climate: "CLIMATE",
-  economics: "ECONOMICS",
-  sport: "SPORT",
-  technology: "TECHNOLOGY",
-  health: "HEALTH",
-  culture: "CULTURE",
-  local: "LOCAL",
-  breaking: "BREAKING",
-};
-
-// Topics with light backgrounds need dark text for contrast
-const DARK_TEXT_TOPICS: Topic[] = ["economics", "technology", "health"];
-
 export function TopicPill({ topic }: { topic: Topic }) {
+  const lang = useLanguage();
+  const t = translations[lang];
+  const LABELS: Record<Topic, string> = {
+    politics: t.pillPolitics,
+    world: t.pillWorld,
+    climate: t.pillClimate,
+    economics: t.pillEconomics,
+    sport: t.pillSport,
+    technology: t.pillTech,
+    health: t.pillHealth,
+    culture: t.pillCulture,
+    local: t.pillLocal,
+    breaking: t.pillBreaking,
+  };
   const bg = TOPIC_COLORS[topic];
   return (
     <span
@@ -55,13 +56,14 @@ export function TopicPill({ topic }: { topic: Topic }) {
         lineHeight: 1,
       }}
     >
-      {TOPIC_LABELS[topic]}
+      {LABELS[topic]}
     </span>
   );
 }
 
-
 export function WhatsNewPill() {
+  const lang = useLanguage();
+  const t = translations[lang];
   return (
     <span
       style={{
@@ -75,7 +77,7 @@ export function WhatsNewPill() {
         lineHeight: 1,
       }}
     >
-      WHAT'S NEW
+      {t.pillNew}
     </span>
   );
 }

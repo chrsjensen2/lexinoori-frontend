@@ -8,6 +8,8 @@ import {
   PrimaryButton,
 } from "@/components/auth/AuthShell";
 import { supabase } from "@/integrations/supabase/client";
+import { useLanguage } from "@/lib/lang";
+import { translations } from "@/lib/i18n";
 
 export const Route = createFileRoute("/auth/forgot")({
   head: () => ({ meta: [{ title: "Reset password — lexinoori." }] }),
@@ -19,6 +21,8 @@ function ForgotPage() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
+  const lang = useLanguage();
+  const t = translations[lang];
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -43,14 +47,11 @@ function ForgotPage() {
     <AuthScreen>
       <AuthHeader />
       <form onSubmit={onSubmit} style={{ padding: "0 32px", marginTop: 32 }}>
-        <AuthHeading
-          title="Reset your password"
-          subtitle="We'll send a reset link to your email."
-        />
+        <AuthHeading title={t.forgotTitle} subtitle={t.forgotSubtitle} />
         <div style={{ marginTop: 20 }}>
           <AuthInput
             type="email"
-            placeholder="Email address"
+            placeholder={t.emailPlaceholder}
             autoComplete="email"
             value={email}
             onChange={(e) => setEmail(e.currentTarget.value)}
@@ -58,12 +59,12 @@ function ForgotPage() {
         </div>
         <div style={{ marginTop: 20 }}>
           <PrimaryButton type="submit" disabled={loading}>
-            {loading ? "Sending…" : "Send reset link"}
+            {loading ? t.sending : t.sendResetLink}
           </PrimaryButton>
         </div>
         {success && (
           <div style={{ color: "#1A7A5E", fontSize: 13, marginTop: 12, textAlign: "center" }}>
-            Check your email for a reset link.
+            {t.resetEmailSent}
           </div>
         )}
         {error && (
@@ -76,7 +77,7 @@ function ForgotPage() {
             to="/auth/login"
             style={{ color: "#1A7A5E", fontSize: 14, textDecoration: "none" }}
           >
-            ← Back to log in
+            {t.backToLogin}
           </Link>
         </div>
       </form>

@@ -2,6 +2,8 @@ import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { ArrowLeft } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useLanguage } from "@/lib/lang";
+import { translations } from "@/lib/i18n";
 
 export const Route = createFileRoute("/journalist/$id")({
   head: () => ({ meta: [{ title: "Journalist — lexinoori." }] }),
@@ -24,6 +26,8 @@ type JournalistRow = {
 function JournalistPage() {
   const router = useRouter();
   const { id } = Route.useParams();
+  const lang = useLanguage();
+  const t = translations[lang];
 
   const { data, isLoading } = useQuery({
     queryKey: ["journalist", id],
@@ -42,7 +46,6 @@ function JournalistPage() {
 
   return (
     <div style={{ paddingTop: "env(safe-area-inset-top)" }}>
-      {/* Header */}
       <div
         style={{
           height: 52,
@@ -80,9 +83,9 @@ function JournalistPage() {
       </div>
 
       {isLoading ? (
-        <div style={{ padding: 24, color: "#8E8E93", fontSize: 14 }}>Loading…</div>
+        <div style={{ padding: 24, color: "#8E8E93", fontSize: 14 }}>{t.loading}</div>
       ) : !data ? (
-        <div style={{ padding: 24, color: "#FFFFFF", fontSize: 16 }}>Journalist not found.</div>
+        <div style={{ padding: 24, color: "#FFFFFF", fontSize: 16 }}>{t.journalistNotFound}</div>
       ) : (
         <JournalistContent j={data} />
       )}
@@ -91,14 +94,22 @@ function JournalistPage() {
 }
 
 function JournalistContent({ j }: { j: JournalistRow }) {
+  const lang = useLanguage();
+  const t = translations[lang];
+
   const articleCount = j.article_count ?? 0;
-  const outlet = j.sources?.name ?? "Independent";
+  const outlet = j.sources?.name ?? t.independent;
 
   const derivedConfidence: "LOW" | "MODERATE" | "HIGH" =
     articleCount >= 500 ? "HIGH" : articleCount >= 100 ? "MODERATE" : "LOW";
   const confidence =
     (j.confidence_level?.toUpperCase() as "LOW" | "MODERATE" | "HIGH" | undefined) ??
     derivedConfidence;
+
+  const confidenceLabel =
+    confidence === "LOW" ? t.confidenceLow
+    : confidence === "HIGH" ? t.confidenceHigh
+    : t.confidenceModerate;
 
   const isInsufficient = confidence === "LOW" || articleCount < 100;
   const needed = Math.max(0, 100 - articleCount);
@@ -108,7 +119,6 @@ function JournalistContent({ j }: { j: JournalistRow }) {
 
   return (
     <>
-      {/* Identity card */}
       <div
         style={{
           margin: "20px 16px 0",
@@ -117,19 +127,12 @@ function JournalistContent({ j }: { j: JournalistRow }) {
           padding: 16,
         }}
       >
-        <div
-          style={{
-            color: "#FFFFFF",
-            fontWeight: 700,
-            fontSize: 28,
-            lineHeight: 1.1,
-          }}
-        >
+        <div style={{ color: "#FFFFFF", fontWeight: 700, fontSize: 28, lineHeight: 1.1 }}>
           {j.name}
         </div>
         <div style={{ color: "#FFFFFFCC", fontSize: 14, marginTop: 6 }}>{outlet}</div>
         <div style={{ color: "#FFFFFF99", fontSize: 13, marginTop: 4 }}>
-          {articleCount} {articleCount === 1 ? "article" : "articles"} analysed
+          {articleCount} {articleCount === 1 ? t.article : t.articles} {t.analysed}
         </div>
         <div style={{ marginTop: 12, display: "flex", alignItems: "center", gap: 8 }}>
           <span
@@ -143,7 +146,7 @@ function JournalistContent({ j }: { j: JournalistRow }) {
               borderRadius: 6,
             }}
           >
-            {confidence} CONFIDENCE
+            {confidenceLabel} {t.confidenceSuffix}
           </span>
         </div>
       </div>
@@ -161,8 +164,8 @@ function JournalistContent({ j }: { j: JournalistRow }) {
             lineHeight: 1.5,
           }}
         >
-          Insufficient data for reliable scores. {needed} more{" "}
-          {needed === 1 ? "article" : "articles"} needed.
+          {t.insufficientDataMsg} {needed}{" "}
+          {needed === 1 ? t.moreArticleNeeded : t.moreArticlesNeeded}
         </div>
       )}
 
@@ -180,18 +183,18 @@ function JournalistContent({ j }: { j: JournalistRow }) {
           }}
         >
           <ScoreBar
-            label="LOADED LANGUAGE"
+            label={t.loadedLanguageBar}
             value={Number(j.loaded_language_score ?? 0)}
             max={1}
             tone="inverse"
           />
           <ScoreBar
-            label="SOURCE DIVERSITY"
+            label={t.sourceDiversityBar}
             value={Number(j.source_diversity_score ?? 0)}
             max={10}
           />
           <ScoreBar
-            label="BIAS SCORE"
+            label={t.biasScoreBar}
             value={Number(j.bias_score ?? 0)}
             max={1}
             signed
@@ -220,7 +223,6 @@ function ScoreBar({
   const pct = signed
     ? Math.min(100, Math.max(0, ((value + max) / (max * 2)) * 100))
     : Math.min(100, Math.max(0, (value / max) * 100));
-  // For loaded language, lower is better — invert color logic
   const good = tone === "inverse" ? pct < 30 : pct > 60;
   const color = good ? "#00C864" : pct > 80 || pct < 20 ? "#E8873A" : "#1A7A5E";
 
@@ -234,22 +236,14 @@ function ScoreBar({
           marginBottom: 6,
         }}
       >
-        <span
-          style={{
-            color: "#8E8E93",
-            fontSize: 11,
-            fontWeight: 700,
-            letterSpacing: "0.08em",
-          }}
-        >
+        <span style={{ color: "#8E8E93", fontSize: 11, fontWeight: 700, letterSpacing: "0.08em" }}>
           {label}
         </span>
         <span style={{ color: "#FFFFFF", fontSize: 14, fontWeight: 700 }}>
           {signed && value > 0 ? "+" : ""}
           {value.toFixed(2)}
           <span style={{ color: "#8E8E93", fontWeight: 400 }}>
-            {" "}
-            / {signed ? `±${max}` : max}
+            {" "}/ {signed ? `±${max}` : max}
           </span>
         </span>
       </div>

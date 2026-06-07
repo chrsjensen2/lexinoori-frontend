@@ -1,6 +1,8 @@
 import { Bookmark, ArrowUpRight } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { useSavedArticles } from "@/hooks/useSavedArticles";
+import { useLanguage } from "@/lib/lang";
+import { translations } from "@/lib/i18n";
 
 interface BreakingNewsCardProps {
   headline: string;
@@ -14,6 +16,8 @@ const BREAKING_ID = "breaking";
 export function BreakingNewsCard({ headline, sources, timeAgo, articleId }: BreakingNewsCardProps) {
   const { isSaved, toggle } = useSavedArticles();
   const saved = isSaved(articleId ?? BREAKING_ID);
+  const lang = useLanguage();
+  const t = translations[lang];
 
   return (
     <Link
@@ -92,7 +96,7 @@ export function BreakingNewsCard({ headline, sources, timeAgo, articleId }: Brea
             marginTop: 8,
           }}
         >
-          Merged · {sources} {sources === 1 ? "source" : "sources"}
+          {t.merged} · {sources} {sources === 1 ? t.source : t.sources}
         </p>
 
         <div className="mt-4 flex items-center justify-end gap-2">

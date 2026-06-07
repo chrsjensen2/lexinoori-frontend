@@ -1,9 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { TOPIC_COLORS, type Topic } from "@/components/feed/TopicPill";
+import { TopicPill, type Topic } from "@/components/feed/TopicPill";
 import { supabase } from "@/integrations/supabase/client";
 import { getUserLanguage, pickLang, TRANSLATED_COLS } from "@/lib/articleLanguage";
-
+import { useLanguage } from "@/lib/lang";
+import { translations, type T } from "@/lib/i18n";
 
 type DigestCard = {
   id: string;
@@ -14,26 +15,14 @@ type DigestCard = {
   diversity: number;
 };
 
-const TOPIC_LABELS: Record<Topic, string> = {
-  politics: "POLITICS",
-  world: "WORLD",
-  climate: "CLIMATE",
-  economics: "ECONOMICS",
-  sport: "SPORT",
-  technology: "TECHNOLOGY",
-  health: "HEALTH",
-  culture: "CULTURE",
-  local: "LOCAL",
-  breaking: "BREAKING",
-};
-const DARK_TEXT: Topic[] = ["economics", "technology", "health"];
-
 type Depth = "Bullets" | "Brief" | "Standard" | "Deep Dive";
+
 function getDepth(): Depth {
   if (typeof window === "undefined") return "Standard";
   const v = window.localStorage.getItem("lex:depth");
   return v === "Bullets" || v === "Brief" || v === "Deep Dive" ? v : "Standard";
 }
+
 function depthMinutes(depth: Depth, minutes: number): number {
   if (depth === "Bullets") return 1;
   if (depth === "Brief") return 2;
@@ -41,10 +30,10 @@ function depthMinutes(depth: Depth, minutes: number): number {
   return Math.max(2, minutes);
 }
 
-function todayLabel() {
+function todayLabel(t: T) {
   const d = new Date();
-  const days = ["SUN","MON","TUE","WED","THU","FRI","SAT"];
-  const months = ["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"];
+  const days = [t.daySun, t.dayMon, t.dayTue, t.dayWed, t.dayThu, t.dayFri, t.daySat];
+  const months = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
   return `${days[d.getDay()]} · ${d.getDate()} ${months[d.getMonth()]}`;
 }
 
@@ -54,6 +43,8 @@ export const Route = createFileRoute("/digest")({
 });
 
 function DigestPage() {
+  const lang = useLanguage();
+  const t = translations[lang];
   const [cards, setCards] = useState<DigestCard[]>([]);
   const [depth, setDepth] = useState<Depth>(getDepth());
 
@@ -81,11 +72,11 @@ function DigestPage() {
         .order("created_at", { ascending: false })
         .limit(5);
       if (cancelled) return;
-      const valid: Topic[] = ["politics","world","climate","economics","sport","technology","health","culture","local","breaking"];
+      const valid: Topic[] = ["politics", "world", "climate", "economics", "sport", "technology", "health", "culture", "local", "breaking"];
       setCards(
         ((data as any[]) || []).map((r) => {
-          const t = (r.topic || "").toLowerCase();
-          const topic = (valid.includes(t as Topic) ? t : "politics") as Topic;
+          const topicStr = (r.topic || "").toLowerCase();
+          const topic = (valid.includes(topicStr as Topic) ? topicStr : "politics") as Topic;
           return {
             id: r.id,
             topic,
@@ -98,20 +89,21 @@ function DigestPage() {
       );
     })();
     return () => { cancelled = true; };
-  }, []);
+  }, [lang]);
 
+  const dateStr = todayLabel(t);
   const groups = [
-    { brief: "MORNING BRIEF", date: todayLabel(), cards: cards.slice(0, 3) },
-    { brief: "EVENING BRIEF", date: todayLabel(), cards: cards.slice(3, 5) },
+    { brief: t.morningBriefing, date: dateStr, cards: cards.slice(0, 3) },
+    { brief: t.eveningBriefing, date: dateStr, cards: cards.slice(3, 5) },
   ];
 
   return (
     <div style={{ fontFamily: "Heebo, system-ui, sans-serif", padding: "16px 16px 24px" }}>
       <h1 style={{ color: "#FFFFFF", fontWeight: 700, fontSize: 32, lineHeight: 1.1 }}>
-        Digest.
+        {t.digestHeading}
       </h1>
       <p style={{ color: "#8E8E93", fontSize: 14, marginTop: 4 }}>
-        Your personalised daily brief.
+        {t.digestSubtitle}
       </p>
 
       <div
@@ -133,7 +125,7 @@ function DigestPage() {
             fontWeight: 700,
           }}
         >
-          Delivery · 07:00 · Daily
+          {t.deliverySchedule}
         </span>
         <button
           style={{
@@ -145,7 +137,7 @@ function DigestPage() {
             background: "transparent",
           }}
         >
-          Change →
+          {t.changeDelivery}
         </button>
       </div>
 
@@ -189,7 +181,7 @@ function DigestPage() {
                 <DigestArticleCard key={c.id} card={c} depth={depth} />
               ))}
               {group.cards.length === 0 && (
-                <p style={{ color: "#8E8E93", fontSize: 13 }}>No articles yet.</p>
+                <p style={{ color: "#8E8E93", fontSize: 13 }}>{t.noArticlesYet}</p>
               )}
             </div>
           </div>
@@ -199,9 +191,9 @@ function DigestPage() {
   );
 }
 
-
 function DigestArticleCard({ card, depth }: { card: DigestCard; depth: Depth }) {
-  const topicColor = TOPIC_COLORS[card.topic];
+  const lang = useLanguage();
+  const t = translations[lang];
   return (
     <Link
       to="/article/$id"
@@ -216,22 +208,7 @@ function DigestArticleCard({ card, depth }: { card: DigestCard; depth: Depth }) 
         display: "block",
       }}
     >
-      <span
-        style={{
-          display: "inline-block",
-          backgroundColor: `${topicColor}1F`,
-          border: `1px solid ${topicColor}`,
-          color: topicColor,
-          fontWeight: 700,
-          fontSize: 11,
-          letterSpacing: "0.08em",
-          padding: "6px 8px",
-          borderRadius: 20,
-          lineHeight: 1,
-        }}
-      >
-        {TOPIC_LABELS[card.topic]}
-      </span>
+      <TopicPill topic={card.topic} />
 
       <h3
         style={{
@@ -245,7 +222,7 @@ function DigestArticleCard({ card, depth }: { card: DigestCard; depth: Depth }) 
         {card.headline}
       </h3>
       <p style={{ color: "#8E8E93", fontSize: 13, marginTop: 8 }}>
-        Merged · {card.sources} {card.sources === 1 ? "source" : "sources"} · {depthMinutes(depth, card.readMinutes)} min
+        {t.merged} · {card.sources} {card.sources === 1 ? t.source : t.sources} · {depthMinutes(depth, card.readMinutes)} {t.min}
       </p>
       <div className="flex items-center gap-2" style={{ marginTop: 8 }}>
         <span
@@ -258,7 +235,7 @@ function DigestArticleCard({ card, depth }: { card: DigestCard; depth: Depth }) 
           }}
         />
         <span style={{ color: "#8E8E93", fontSize: 12 }}>
-          {card.diversity.toFixed(1)} diversity
+          {card.diversity.toFixed(1)} {t.diversity}
         </span>
       </div>
     </Link>

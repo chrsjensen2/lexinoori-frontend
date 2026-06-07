@@ -3,6 +3,8 @@ import { useEffect, useState } from "react";
 import { Bookmark, User as UserIcon, ChevronRight } from "lucide-react";
 import { SerifLogo } from "@/components/SerifLogo";
 import { supabase } from "@/integrations/supabase/client";
+import { useLanguage, setLang, getLang, type Lang } from "@/lib/lang";
+import { translations, type T } from "@/lib/i18n";
 
 export const Route = createFileRoute("/profile")({
   head: () => ({ meta: [{ title: "Settings — lexinoori." }] }),
@@ -25,6 +27,8 @@ function ProfileGate() {
 }
 
 function PreAuthScreen() {
+  const lang = useLanguage();
+  const t = translations[lang];
   return (
     <div
       style={{
@@ -42,15 +46,8 @@ function PreAuthScreen() {
         <div style={{ display: "flex", justifyContent: "center" }}>
           <SerifLogo height={32} color="#1A7A5E" />
         </div>
-        <div
-          style={{
-            color: "#8E8E93",
-            fontSize: 14,
-            textAlign: "center",
-            marginTop: 8,
-          }}
-        >
-          Your personal news profile.
+        <div style={{ color: "#8E8E93", fontSize: 14, textAlign: "center", marginTop: 8 }}>
+          {t.personalProfile}
         </div>
 
         <div style={{ height: 48 }} />
@@ -71,7 +68,7 @@ function PreAuthScreen() {
             textDecoration: "none",
           }}
         >
-          Sign in
+          {t.signInButton}
         </Link>
 
         <div style={{ height: 12 }} />
@@ -93,7 +90,7 @@ function PreAuthScreen() {
             textDecoration: "none",
           }}
         >
-          Create account
+          {t.createAccountButton}
         </Link>
 
         <div style={{ height: 32 }} />
@@ -107,52 +104,38 @@ function PreAuthScreen() {
             lineHeight: 1.4,
           }}
         >
-          Read up to 3 articles per day without an account. Sign up free for unlimited access.
+          {t.guestLimit}
         </div>
       </div>
     </div>
   );
 }
 
-const READING_STOPS = [
-  {
-    key: "kids",
-    label: "KIDS",
-    title: "Kids",
-    desc: "Simple vocabulary. Concepts explained. No assumed context.",
-  },
-  {
-    key: "young",
-    label: "YOUNG",
-    title: "Young",
-    desc: "Accessible language. Jargon explained.",
-  },
-  {
-    key: "adult",
-    label: "ADULT",
-    title: "Adult",
-    desc: "Standard news language. Context assumed.",
-  },
-  {
-    key: "expert",
-    label: "EXPERT",
-    title: "Expert",
-    desc: "Specialist vocabulary. Deep background assumed.",
-  },
-] as const;
+function buildReadingStops(t: T) {
+  return [
+    { key: "kids", label: t.readLevelKidsLabel, title: t.readLevelKidsTitle, desc: t.readLevelKidsDesc },
+    { key: "young", label: t.readLevelYoungLabel, title: t.readLevelYoungTitle, desc: t.readLevelYoungDesc },
+    { key: "adult", label: t.readLevelAdultLabel, title: t.readLevelAdultTitle, desc: t.readLevelAdultDesc },
+    { key: "expert", label: t.readLevelExpertLabel, title: t.readLevelExpertTitle, desc: t.readLevelExpertDesc },
+  ] as const;
+}
 
-const ZOOM_STOPS = ["WORLD", "CONTINENT", "COUNTRY", "LOCAL"] as const;
+function buildZoomStops(t: T) {
+  return [t.zoomWorld, t.zoomContinent, t.zoomCountry, t.zoomLocal] as const;
+}
 
-const TOPICS = [
-  { key: "breaking", label: "Breaking news", color: "#FF0000" },
-  { key: "politics", label: "Politics", color: "#4D6EFF" },
-  { key: "climate", label: "Climate", color: "#00C864" },
-  { key: "economics", label: "Economics", color: "#FFD000" },
-  { key: "technology", label: "Technology", color: "#00E5CC" },
-  { key: "health", label: "Health", color: "#00BFFF" },
-  { key: "culture", label: "Culture", color: "#CC44FF" },
-  { key: "sport", label: "Sport", color: "#FF4500" },
-] as const;
+function buildTopics(t: T) {
+  return [
+    { key: "breaking", label: t.topicBreakingNews, color: "#FF0000" },
+    { key: "politics", label: t.topicPoliticsNotify, color: "#4D6EFF" },
+    { key: "climate", label: t.topicClimateNotify, color: "#00C864" },
+    { key: "economics", label: t.topicEconomicsNotify, color: "#FFD000" },
+    { key: "technology", label: t.topicTechNotify, color: "#00E5CC" },
+    { key: "health", label: t.topicHealthNotify, color: "#00BFFF" },
+    { key: "culture", label: t.topicCultureNotify, color: "#CC44FF" },
+    { key: "sport", label: t.topicSportNotify, color: "#FF4500" },
+  ] as const;
+}
 
 function StopSlider({
   stops,
@@ -187,39 +170,9 @@ function StopSlider({
         ))}
       </div>
       <div style={{ position: "relative", height: 14, marginTop: 12 }}>
-        <div
-          style={{
-            position: "absolute",
-            top: 5,
-            left: 0,
-            right: 0,
-            height: 4,
-            background: "#2C2C2E",
-            borderRadius: 2,
-          }}
-        />
-        <div
-          style={{
-            position: "absolute",
-            top: 5,
-            left: 0,
-            width: `${pct}%`,
-            height: 4,
-            background: "#1A7A5E",
-            borderRadius: 2,
-          }}
-        />
-        <div
-          style={{
-            position: "absolute",
-            top: 0,
-            left: `calc(${pct}% - 7px)`,
-            width: 14,
-            height: 14,
-            background: "#1A7A5E",
-            borderRadius: "50%",
-          }}
-        />
+        <div style={{ position: "absolute", top: 5, left: 0, right: 0, height: 4, background: "#2C2C2E", borderRadius: 2 }} />
+        <div style={{ position: "absolute", top: 5, left: 0, width: `${pct}%`, height: 4, background: "#1A7A5E", borderRadius: 2 }} />
+        <div style={{ position: "absolute", top: 0, left: `calc(${pct}% - 7px)`, width: 14, height: 14, background: "#1A7A5E", borderRadius: "50%" }} />
       </div>
     </div>
   );
@@ -311,11 +264,7 @@ function LanguagePicker({
       onClick={onClose}
     >
       <div
-        style={{
-          background: "#1C1C1E",
-          borderRadius: "16px 16px 0 0",
-          padding: "20px 0 32px",
-        }}
+        style={{ background: "#1C1C1E", borderRadius: "16px 16px 0 0", padding: "20px 0 32px" }}
         onClick={(e) => e.stopPropagation()}
       >
         <div
@@ -357,13 +306,19 @@ function LanguagePicker({
 }
 
 function SettingsPage() {
+  const lang = useLanguage();
+  const t = translations[lang];
+  const READING_STOPS = buildReadingStops(t);
+  const ZOOM_STOPS = buildZoomStops(t);
+  const TOPICS = buildTopics(t);
+
   const [readingIdx, setReadingIdx] = useState(2);
   const [zoomIdx, setZoomIdx] = useState(2);
   const [user, setUser] = useState<{ email: string | null; createdAt: string | null }>({
     email: null,
     createdAt: null,
   });
-  const [primaryLanguage, setPrimaryLanguage] = useState("en");
+  const [primaryLanguage, setPrimaryLanguage] = useState<string>(() => getLang());
   const [secondaryLanguage, setSecondaryLanguage] = useState("en");
   const [languagePicker, setLanguagePicker] = useState<"primary" | "secondary" | null>(null);
   const [topics, setTopics] = useState<Record<string, boolean>>({
@@ -386,10 +341,12 @@ function SettingsPage() {
           .select("primary_language")
           .eq("id", data.user.id)
           .maybeSingle()
-          .then(({ data: profile, error }) => {
-            console.log("Profile language read:", { profile, error });
+          .then(({ data: profile }) => {
             if (profile?.primary_language) {
               setPrimaryLanguage(profile.primary_language);
+              if (profile.primary_language === "en" || profile.primary_language === "da") {
+                setLang(profile.primary_language as Lang);
+              }
             }
           });
       }
@@ -398,21 +355,30 @@ function SettingsPage() {
 
   const saveLanguage = async (field: "primary_language" | "secondary_language", code: string) => {
     const { data: userData } = await supabase.auth.getUser();
-    if (!userData?.user) return;
+    if (!userData?.user) {
+      // Guest: only update local store
+      if (field === "primary_language" && (code === "en" || code === "da")) {
+        setLang(code as Lang);
+        setPrimaryLanguage(code);
+        window.dispatchEvent(new CustomEvent("lex:language-changed", { detail: { code } }));
+      }
+      setLanguagePicker(null);
+      return;
+    }
     const payload: { id: string; primary_language?: string; secondary_language?: string } = {
       id: userData.user.id,
       [field]: code,
     };
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from("profiles")
       .upsert(payload as never, { onConflict: "id" })
       .select()
       .maybeSingle();
 
-    console.log("Language save:", { field, code, data, error });
     if (!error) {
       if (field === "primary_language") {
         setPrimaryLanguage(code);
+        if (code === "en" || code === "da") setLang(code as Lang);
         window.dispatchEvent(new CustomEvent("lex:language-changed", { detail: { code } }));
       } else {
         setSecondaryLanguage(code);
@@ -421,28 +387,18 @@ function SettingsPage() {
     setLanguagePicker(null);
   };
 
-
   const langLabel = (code: string) => LANGUAGE_OPTIONS.find((l) => l.code === code)?.label ?? code;
-
   const current = READING_STOPS[readingIdx];
   const memberSince = user.createdAt
-    ? `Member since ${new Date(user.createdAt).toLocaleDateString(undefined, { month: "long", year: "numeric" })}`
+    ? `${t.memberSince} ${new Date(user.createdAt).toLocaleDateString(lang === "da" ? "da-DK" : "en-US", { month: "long", year: "numeric" })}`
     : "";
 
   return (
     <div style={{ paddingTop: "env(safe-area-inset-top)" }}>
       {/* Header */}
       <div style={{ padding: "20px 16px 0" }}>
-        <h1
-          style={{
-            color: "#FFFFFF",
-            fontSize: 32,
-            fontWeight: 700,
-            margin: 0,
-            lineHeight: 1.1,
-          }}
-        >
-          Profile.
+        <h1 style={{ color: "#FFFFFF", fontSize: 32, fontWeight: 700, margin: 0, lineHeight: 1.1 }}>
+          {t.profileHeading}
         </h1>
         {user.email && (
           <div style={{ color: "#FFFFFF", fontSize: 15, marginTop: 12 }}>{user.email}</div>
@@ -453,14 +409,12 @@ function SettingsPage() {
       </div>
 
       {/* Account */}
-      <SectionHeader top={24}>ACCOUNT</SectionHeader>
+      <SectionHeader top={24}>{t.accountSection}</SectionHeader>
       <div style={{ background: "#1C1C1E" }}>
-        <AccountRow to="/saved" Icon={Bookmark} label="Saved articles" />
-        <AccountRow to="/following" Icon={UserIcon} label="Following" />
+        <AccountRow to="/saved" Icon={Bookmark} label={t.savedArticlesRow} />
+        <AccountRow to="/following" Icon={UserIcon} label={t.followingRow} />
         <button
-          onClick={async () => {
-            await supabase.auth.signOut();
-          }}
+          onClick={async () => { await supabase.auth.signOut(); }}
           style={{
             width: "100%",
             height: 44,
@@ -479,12 +433,12 @@ function SettingsPage() {
             alignItems: "center",
           }}
         >
-          Sign out
+          {t.signOut}
         </button>
       </div>
 
       {/* Reading level card */}
-      <SectionHeader top={24}>READING LEVEL · APPLIES EVERYWHERE</SectionHeader>
+      <SectionHeader top={24}>{t.readingLevelSection}</SectionHeader>
       <div
         style={{
           margin: "0 16px",
@@ -494,15 +448,7 @@ function SettingsPage() {
           padding: 16,
         }}
       >
-        <div
-          style={{
-            color: "#FFFFFF",
-            fontSize: 28,
-            fontWeight: 700,
-            lineHeight: 1.1,
-            marginTop: 4,
-          }}
-        >
+        <div style={{ color: "#FFFFFF", fontSize: 28, fontWeight: 700, lineHeight: 1.1, marginTop: 4 }}>
           {current.title}
         </div>
         <div style={{ color: "#8E8E93", fontSize: 14, marginTop: 4, lineHeight: 1.4 }}>
@@ -517,10 +463,8 @@ function SettingsPage() {
         </div>
       </div>
 
-
-
       {/* Region section */}
-      <SectionHeader>REGION · LANGUAGE · GEOGRAPHY</SectionHeader>
+      <SectionHeader>{t.regionSection}</SectionHeader>
       <div style={{ background: "#1C1C1E" }}>
         <button
           onClick={() => setLanguagePicker("primary")}
@@ -541,10 +485,9 @@ function SettingsPage() {
             cursor: "pointer",
           }}
         >
-          <span style={{ color: "#FFFFFF", fontSize: 15 }}>Reading language</span>
+          <span style={{ color: "#FFFFFF", fontSize: 15 }}>{t.readingLanguage}</span>
           <span style={{ color: "#8E8E93", fontSize: 15 }}>{langLabel(primaryLanguage)} ›</span>
         </button>
-
 
         <div
           style={{
@@ -558,19 +501,10 @@ function SettingsPage() {
           }}
         >
           <div>
-            <div style={{ color: "#FFFFFF", fontSize: 15 }}>Geographic zoom · default</div>
-            <div style={{ color: "#8E8E93", fontSize: 13, marginTop: 2 }}>
-              How far to zoom in by default
-            </div>
+            <div style={{ color: "#FFFFFF", fontSize: 15 }}>{t.geographicZoom}</div>
+            <div style={{ color: "#8E8E93", fontSize: 13, marginTop: 2 }}>{t.geographicZoomDesc}</div>
           </div>
-          <div
-            style={{
-              color: "#1A7A5E",
-              fontSize: 13,
-              fontWeight: 700,
-              letterSpacing: "0.08em",
-            }}
-          >
+          <div style={{ color: "#1A7A5E", fontSize: 13, fontWeight: 700, letterSpacing: "0.08em" }}>
             {ZOOM_STOPS[zoomIdx]}
           </div>
         </div>
@@ -580,11 +514,11 @@ function SettingsPage() {
       </div>
 
       {/* Breaking news */}
-      <SectionHeader>BREAKING NEWS · NOTIFY ME FOR</SectionHeader>
+      <SectionHeader>{t.breakingSection}</SectionHeader>
       <div style={{ background: "#1C1C1E" }}>
-        {TOPICS.map((t) => (
+        {TOPICS.map((topic) => (
           <div
-            key={t.key}
+            key={topic.key}
             style={{
               height: 52,
               padding: "0 16px",
@@ -596,20 +530,12 @@ function SettingsPage() {
             }}
           >
             <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-              <span
-                style={{
-                  width: 8,
-                  height: 8,
-                  borderRadius: "50%",
-                  background: t.color,
-                  flexShrink: 0,
-                }}
-              />
-              <span style={{ color: "#FFFFFF", fontSize: 15 }}>{t.label}</span>
+              <span style={{ width: 8, height: 8, borderRadius: "50%", background: topic.color, flexShrink: 0 }} />
+              <span style={{ color: "#FFFFFF", fontSize: 15 }}>{topic.label}</span>
             </div>
             <Toggle
-              on={topics[t.key]}
-              onChange={(v) => setTopics((p) => ({ ...p, [t.key]: v }))}
+              on={topics[topic.key]}
+              onChange={(v) => setTopics((p) => ({ ...p, [topic.key]: v }))}
             />
           </div>
         ))}
@@ -617,7 +543,7 @@ function SettingsPage() {
 
       {languagePicker && (
         <LanguagePicker
-          title={languagePicker === "primary" ? "Reading language" : "Secondary language"}
+          title={languagePicker === "primary" ? t.languagePickerTitle : t.secondaryLanguageTitle}
           value={languagePicker === "primary" ? primaryLanguage : secondaryLanguage}
           options={LANGUAGE_OPTIONS}
           onSelect={(code) =>
@@ -631,25 +557,6 @@ function SettingsPage() {
       )}
 
       <div style={{ height: 24 }} />
-    </div>
-  );
-}
-
-function SettingRow({ label, value }: { label: string; value: string }) {
-  return (
-    <div
-      style={{
-        height: 56,
-        padding: "0 16px",
-        borderBottom: "1px solid #2C2C2E",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-        gap: 12,
-      }}
-    >
-      <span style={{ color: "#FFFFFF", fontSize: 15 }}>{label}</span>
-      <span style={{ color: "#8E8E93", fontSize: 15 }}>{value}</span>
     </div>
   );
 }

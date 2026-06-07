@@ -5,21 +5,12 @@ import { TOPIC_COLORS, TopicPill, type Topic } from "@/components/feed/TopicPill
 import { supabase } from "@/integrations/supabase/client";
 import { getUserLanguage, pickLang, TRANSLATED_COLS } from "@/lib/articleLanguage";
 import { useSavedArticles } from "@/hooks/useSavedArticles";
+import { useLanguage } from "@/lib/lang";
+import { translations } from "@/lib/i18n";
 
 export const Route = createFileRoute("/search")({
   component: SearchPage,
 });
-
-const TOPICS: { id: Topic; label: string }[] = [
-  { id: "politics", label: "POLITICS" },
-  { id: "climate", label: "CLIMATE" },
-  { id: "technology", label: "TECH" },
-  { id: "economics", label: "ECONOMY" },
-  { id: "sport", label: "SPORT" },
-  { id: "health", label: "HEALTH" },
-  { id: "culture", label: "CULTURE" },
-  { id: "local", label: "LOCAL" },
-];
 
 const DARK_TEXT: Topic[] = ["economics", "technology", "health"];
 
@@ -54,18 +45,9 @@ function depthMinutes(depth: Depth, minutes: number): number {
 }
 
 function toTopic(t: string | null): Topic | undefined {
-  const valid: Topic[] = ["politics","climate","economics","sport","technology","health","culture","local","breaking"];
+  const valid: Topic[] = ["politics", "climate", "economics", "sport", "technology", "health", "culture", "local", "breaking"];
   const n = t?.toLowerCase() ?? "";
   return valid.includes(n as Topic) ? (n as Topic) : undefined;
-}
-
-function timeAgo(iso: string) {
-  const diff = Date.now() - new Date(iso).getTime();
-  const m = Math.floor(diff / 60000);
-  if (m < 60) return `${Math.max(m, 1)}M AGO`;
-  const h = Math.floor(m / 60);
-  if (h < 24) return `${h}H AGO`;
-  return `${Math.floor(h / 24)}D AGO`;
 }
 
 function SectionLabel({ children, mt = 16 }: { children: React.ReactNode; mt?: number }) {
@@ -89,8 +71,20 @@ function SectionLabel({ children, mt = 16 }: { children: React.ReactNode; mt?: n
 function ResultCard({ article }: { article: ArticleResult }) {
   const { isSaved, toggle } = useSavedArticles();
   const saved = isSaved(article.id);
+  const lang = useLanguage();
+  const t = translations[lang];
   const validTopic = toTopic(article.topic);
   const outletInitial = (article.headline || "?").trim().charAt(0).toUpperCase();
+
+  function timeAgo(iso: string) {
+    const diff = Date.now() - new Date(iso).getTime();
+    const m = Math.floor(diff / 60000);
+    if (m < 60) return `${Math.max(m, 1)}${t.minAgo}`;
+    const h = Math.floor(m / 60);
+    if (h < 24) return `${h}${t.hrAgo}`;
+    return `${Math.floor(h / 24)}${t.dayAgo}`;
+  }
+
   return (
     <Link
       to="/article/$id"
@@ -124,10 +118,12 @@ function ResultCard({ article }: { article: ArticleResult }) {
           {outletInitial}
         </span>
         <span style={{ color: "#8E8E93", fontSize: 13 }}>
-          {article.source_count ? `Merged · ${article.source_count} ${article.source_count === 1 ? "source" : "sources"}` : "Merged"}
+          {article.source_count
+            ? `${t.merged} · ${article.source_count} ${article.source_count === 1 ? t.source : t.sources}`
+            : t.merged}
         </span>
         <span style={{ color: "#8E8E93", fontSize: 13, marginLeft: "auto" }}>
-          {depthMinutes(getDepth(), article.read_time_minutes ?? 5)} min
+          {depthMinutes(getDepth(), article.read_time_minutes ?? 5)} {t.min}
         </span>
         <button
           aria-label={saved ? "Unsave" : "Save"}
@@ -143,12 +139,25 @@ function ResultCard({ article }: { article: ArticleResult }) {
 
 function SearchPage() {
   const router = useRouter();
+  const lang = useLanguage();
+  const t = translations[lang];
   const inputRef = useRef<HTMLInputElement>(null);
   const [query, setQuery] = useState("");
   const [recent, setRecent] = useState(RECENT_DEFAULT);
   const [activeTopic, setActiveTopic] = useState<Topic | null>(null);
   const [results, setResults] = useState<ArticleResult[]>([]);
   const [loading, setLoading] = useState(false);
+
+  const TOPICS: { id: Topic; label: string }[] = [
+    { id: "politics", label: t.pillPolitics },
+    { id: "climate", label: t.pillClimate },
+    { id: "technology", label: t.pillTech },
+    { id: "economics", label: t.pillEconomics },
+    { id: "sport", label: t.pillSport },
+    { id: "health", label: t.pillHealth },
+    { id: "culture", label: t.pillCulture },
+    { id: "local", label: t.pillLocal },
+  ];
 
   useEffect(() => {
     inputRef.current?.focus();
@@ -164,7 +173,7 @@ function SearchPage() {
     }
     let cancelled = false;
     setLoading(true);
-    const t = window.setTimeout(async () => {
+    const timer = window.setTimeout(async () => {
       const language = await getUserLanguage();
       const selectCols =
         "id, topic, read_time_minutes, source_count, created_at, is_breaking, " + TRANSLATED_COLS;
@@ -191,11 +200,11 @@ function SearchPage() {
     }, 300);
     return () => {
       cancelled = true;
-      window.clearTimeout(t);
+      window.clearTimeout(timer);
     };
   }, [trimmed]);
 
-  const removeRecent = (term: string) => setRecent((r) => r.filter((t) => t !== term));
+  const removeRecent = (term: string) => setRecent((r) => r.filter((i) => i !== term));
 
   return (
     <div style={{ minHeight: "100vh", backgroundColor: "#000000", paddingTop: "env(safe-area-inset-top)" }}>
@@ -207,7 +216,7 @@ function SearchPage() {
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search stories, topics, journalists..."
+            placeholder={t.searchPlaceholder}
             style={{ flex: 1, marginLeft: 12, background: "transparent", border: "none", outline: "none", color: "#FFFFFF", caretColor: "#FFFFFF", fontSize: 14, fontFamily: "inherit" }}
           />
         </div>
@@ -215,23 +224,23 @@ function SearchPage() {
           onClick={() => router.history.back()}
           style={{ background: "transparent", border: "none", color: "#1A7A5E", fontSize: 15, fontWeight: 400, padding: 0, cursor: "pointer" }}
         >
-          Cancel
+          {t.cancel}
         </button>
       </div>
 
-      <SectionLabel mt={8}>TOPICS</SectionLabel>
+      <SectionLabel mt={8}>{t.topicsSection}</SectionLabel>
       <div style={{ marginTop: 8, display: "flex", gap: 8, overflowX: "auto", padding: "0 16px 4px", scrollbarWidth: "none" }}>
-        {TOPICS.map((t) => {
-          const active = activeTopic === t.id;
-          const bg = active ? TOPIC_COLORS[t.id] : "#1C1C1E";
-          const color = active ? (DARK_TEXT.includes(t.id) ? "#111111" : "#FFFFFF") : "#8E8E93";
+        {TOPICS.map((topic) => {
+          const active = activeTopic === topic.id;
+          const bg = active ? TOPIC_COLORS[topic.id] : "#1C1C1E";
+          const color = active ? (DARK_TEXT.includes(topic.id) ? "#111111" : "#FFFFFF") : "#8E8E93";
           return (
             <button
-              key={t.id}
-              onClick={() => setActiveTopic(active ? null : t.id)}
+              key={topic.id}
+              onClick={() => setActiveTopic(active ? null : topic.id)}
               style={{ backgroundColor: bg, color, border: active ? "none" : "1px solid #2C2C2E", fontWeight: 700, fontSize: 11, letterSpacing: "0.08em", padding: "6px 8px", borderRadius: 20, whiteSpace: "nowrap", cursor: "pointer" }}
             >
-              {t.label}
+              {topic.label}
             </button>
           );
         })}
@@ -239,7 +248,7 @@ function SearchPage() {
 
       {showRecent ? (
         <>
-          <SectionLabel>RECENT</SectionLabel>
+          <SectionLabel>{t.recentSection}</SectionLabel>
           <div style={{ marginTop: 8 }}>
             {recent.map((term, idx) => (
               <div key={term} style={{ height: 48, display: "flex", alignItems: "center", padding: "0 16px", borderBottom: idx < recent.length - 1 ? "1px solid #2C2C2E" : "none", gap: 12 }}>
@@ -263,7 +272,7 @@ function SearchPage() {
         </>
       ) : results.length > 0 ? (
         <>
-          <SectionLabel>STORIES</SectionLabel>
+          <SectionLabel>{t.storiesSection}</SectionLabel>
           <div style={{ marginTop: 12, padding: "0 16px", display: "flex", flexDirection: "column", gap: 12 }}>
             {results.map((a) => (
               <ResultCard key={a.id} article={a} />
@@ -271,12 +280,12 @@ function SearchPage() {
           </div>
         </>
       ) : loading ? (
-        <div style={{ color: "#8E8E93", fontSize: 14, padding: "24px 16px" }}>Searching…</div>
+        <div style={{ color: "#8E8E93", fontSize: 14, padding: "24px 16px" }}>{t.searching}</div>
       ) : (
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", textAlign: "center", padding: "0 24px", marginTop: "30vh" }}>
-          <div style={{ color: "#8E8E93", fontSize: 16 }}>No results for</div>
+          <div style={{ color: "#8E8E93", fontSize: 16 }}>{t.noResultsFor}</div>
           <div style={{ color: "#FFFFFF", fontSize: 20, fontWeight: 700, marginTop: 4 }}>{trimmed}</div>
-          <div style={{ color: "#8E8E93", fontSize: 14, marginTop: 8 }}>Try a different keyword or topic.</div>
+          <div style={{ color: "#8E8E93", fontSize: 14, marginTop: 8 }}>{t.tryDifferent}</div>
         </div>
       )}
     </div>

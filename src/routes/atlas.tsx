@@ -3,16 +3,15 @@ import { Search, ArrowRight } from "lucide-react";
 import { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { TopicPill, TOPIC_COLORS, type Topic } from "@/components/feed/TopicPill";
+import { useLanguage, getLang } from "@/lib/lang";
+import { translations, type T } from "@/lib/i18n";
 import "leaflet/dist/leaflet.css";
 
 export const Route = createFileRoute("/atlas")({
   head: () => ({
     meta: [
       { title: "Atlas — lexinoori." },
-      {
-        name: "description",
-        content: "Stories around the world, mapped by region and topic.",
-      },
+      { name: "description", content: "Stories around the world, mapped by region and topic." },
     ],
   }),
   component: AtlasPage,
@@ -34,11 +33,13 @@ type Article = {
 type SnapKey = "collapsed" | "default" | "expanded";
 
 type Depth = "Bullets" | "Brief" | "Standard" | "Deep Dive";
+
 function getDepth(): Depth {
   if (typeof window === "undefined") return "Standard";
   const v = window.localStorage.getItem("lex:depth");
   return v === "Bullets" || v === "Brief" || v === "Deep Dive" ? v : "Standard";
 }
+
 function readTimeLabel(depth: Depth, minutes: number | null): string {
   if (depth === "Bullets") return "1 MIN";
   if (depth === "Brief") return "2 MIN";
@@ -46,25 +47,25 @@ function readTimeLabel(depth: Depth, minutes: number | null): string {
   return `${Math.max(2, minutes ?? 5)} MIN`;
 }
 
-
 function toTopic(t: string | null): Topic | undefined {
   const valid: Topic[] = ["politics", "climate", "economics", "sport", "technology", "health", "culture", "local", "breaking"];
   const normalized = t?.toLowerCase() ?? "";
   return valid.includes(normalized as Topic) ? (normalized as Topic) : undefined;
 }
 
-function timeAgo(iso: string) {
+function timeAgo(iso: string, t: T) {
   const diff = Date.now() - new Date(iso).getTime();
   const mins = Math.floor(diff / 60000);
-  if (mins < 1) return "NOW";
-  if (mins < 60) return `${mins}M AGO`;
+  if (mins < 1) return t.now;
+  if (mins < 60) return `${mins}${t.minAgo}`;
   const hrs = Math.floor(mins / 60);
-  if (hrs < 24) return `${hrs}H AGO`;
-  return `${Math.floor(hrs / 24)}D AGO`;
+  if (hrs < 24) return `${hrs}${t.hrAgo}`;
+  return `${Math.floor(hrs / 24)}${t.dayAgo}`;
 }
 
-
 function AtlasPage() {
+  const lang = useLanguage();
+  const t = translations[lang];
   const containerRef = useRef<HTMLDivElement>(null);
   const [containerH, setContainerH] = useState(700);
   const [snap, setSnap] = useState<SnapKey>("collapsed");
@@ -89,7 +90,7 @@ function AtlasPage() {
   }, []);
 
   const handleMapMoved = useCallback(() => {
-    setMapTick((t) => t + 1);
+    setMapTick((tick) => tick + 1);
   }, []);
 
   useEffect(() => {
@@ -115,16 +116,7 @@ function AtlasPage() {
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      let language = "en";
-      const { data: userData } = await supabase.auth.getUser();
-      if (userData?.user) {
-        const { data: profile } = await (supabase as any)
-          .from("profiles")
-          .select("primary_language")
-          .eq("user_id", userData.user.id)
-          .maybeSingle();
-        if (profile?.primary_language) language = profile.primary_language;
-      }
+      const language = getLang();
       const suffix = language === "en" ? "" : `_${language}`;
       const pick = <T,>(row: any, base: string): T =>
         (row?.[`${base}${suffix}`] ?? row?.[base]) as T;
@@ -133,7 +125,7 @@ function AtlasPage() {
       const { data, error } = await (supabase as any)
         .from("articles")
         .select(
-          "id, topic, source_count, read_time_minutes, created_at, is_breaking, lat, lng, headline, location_name"
+          "id, topic, source_count, read_time_minutes, created_at, is_breaking, lat, lng, location_name, headline, headline_da, headline_de, headline_es"
         )
         .gte("created_at", since)
         .not("lat", "is", null)
@@ -156,12 +148,9 @@ function AtlasPage() {
       }));
       setArticles(mapped);
     })();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+    return () => { cancelled = true; };
+  }, [lang]);
 
-  // displayCount is computed below; reference forward via a closure-safe value.
   const displayCount = useMemo(() => {
     if (!clusterIds) return null;
     return clusterIds.length;
@@ -228,13 +217,11 @@ function AtlasPage() {
     [dragOffset, snap, snapHeights],
   );
 
-  // Filter articles to those within the current map viewport bounds.
   const filteredArticles = useMemo(() => {
     if (!mapBounds) return articles;
     const { north, south, east, west } = mapBounds;
     const lngInBounds = (lng: number) => {
       if (west <= east) return lng >= west && lng <= east;
-      // Bounds cross antimeridian
       return lng >= west || lng <= east;
     };
     return articles.filter(
@@ -278,7 +265,6 @@ function AtlasPage() {
     [articles, selectedId],
   );
 
-  // Compute popup viewport position when a single marker is selected.
   const popupPos = useMemo(() => {
     void mapTick;
     const m = leafletMapRef.current;
@@ -334,7 +320,7 @@ function AtlasPage() {
                   textTransform: "uppercase",
                 }}
               >
-                {filteredArticles.length} {filteredArticles.length === 1 ? "STORY" : "STORIES"} IN VIEW
+                {filteredArticles.length} {filteredArticles.length === 1 ? t.story : t.stories} {t.storiesInFrame}
               </p>
             </div>
             <Link to="/search" aria-label="Search" style={{ color: "#8E8E93", paddingTop: 6, display: "inline-flex" }}>
@@ -411,14 +397,7 @@ function AtlasPage() {
             touchAction: "none",
           }}
         >
-          <div
-            style={{
-              width: 32,
-              height: 4,
-              backgroundColor: "#2C2C2E",
-              borderRadius: 999,
-            }}
-          />
+          <div style={{ width: 32, height: 4, backgroundColor: "#2C2C2E", borderRadius: 999 }} />
         </div>
 
         {snap === "collapsed" && !dragging ? (
@@ -446,7 +425,7 @@ function AtlasPage() {
           >
             {displayArticles.length === 0 ? (
               <p style={{ color: "#8E8E93", fontSize: 14, padding: "16px 0" }}>
-                No stories with location data in the last 24 hours.
+                <EmptyText />
               </p>
             ) : (
               displayArticles.map((a, i) => (
@@ -488,14 +467,7 @@ function AtlasPage() {
           }}
         >
           {selectedArticle.location_name && (
-            <div
-              style={{
-                color: "#8E8E93",
-                fontSize: 10,
-                lineHeight: 1.2,
-                marginBottom: 4,
-              }}
-            >
+            <div style={{ color: "#8E8E93", fontSize: 10, lineHeight: 1.2, marginBottom: 4 }}>
               {selectedArticle.location_name}
             </div>
           )}
@@ -518,7 +490,15 @@ function AtlasPage() {
   );
 }
 
+function EmptyText() {
+  const lang = useLanguage();
+  const t = translations[lang];
+  return <>{t.noStoriesWithLocation}</>;
+}
+
 function CollapsedPeek({ article }: { article: Article }) {
+  const lang = useLanguage();
+  const t = translations[lang];
   const topic = toTopic(article.topic);
   return (
     <div
@@ -544,17 +524,10 @@ function CollapsedPeek({ article }: { article: Article }) {
             textOverflow: "ellipsis",
           }}
         >
-          {timeAgo(article.created_at)}
+          {timeAgo(article.created_at, t)}
         </span>
       </div>
-      <div
-        style={{
-          position: "relative",
-          marginTop: 8,
-          maxHeight: 35,
-          overflow: "hidden",
-        }}
-      >
+      <div style={{ position: "relative", marginTop: 8, maxHeight: 35, overflow: "hidden" }}>
         <h3
           style={{
             color: "#FFFFFF",
@@ -583,11 +556,11 @@ function CollapsedPeek({ article }: { article: Article }) {
 }
 
 function EmptyPeek() {
+  const lang = useLanguage();
+  const t = translations[lang];
   return (
     <div style={{ padding: "0 20px" }}>
-      <p style={{ color: "#8E8E93", fontSize: 14 }}>
-        No stories with location data in the last 24 hours.
-      </p>
+      <p style={{ color: "#8E8E93", fontSize: 14 }}>{t.noStoriesWithLocation}</p>
     </div>
   );
 }
@@ -603,10 +576,13 @@ function ArticleRow({
   selected: boolean;
   last?: boolean;
 }) {
+  const lang = useLanguage();
+  const t = translations[lang];
   const topic = toTopic(article.topic);
   const sourceCount = article.source_count ?? 0;
-  const sourceLabel =
-    sourceCount > 0 ? `${sourceCount} ${sourceCount === 1 ? "source" : "sources"}` : "";
+  const sourceLabel = sourceCount > 0
+    ? `${sourceCount} ${sourceCount === 1 ? t.source : t.sources}`
+    : "";
   const rowRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -651,7 +627,7 @@ function ArticleRow({
               textTransform: "uppercase",
             }}
           >
-            {timeAgo(article.created_at)}
+            {timeAgo(article.created_at, t)}
           </span>
         </div>
         <div className="flex items-end justify-between gap-3" style={{ marginTop: 8 }}>
@@ -713,27 +689,12 @@ function LeafletMap({
   const onBoundsRef = useRef(onBoundsChange);
   const [mapReady, setMapReady] = useState(false);
 
-  useEffect(() => {
-    onTapRef.current = onMarkerTap;
-  }, [onMarkerTap]);
+  useEffect(() => { onTapRef.current = onMarkerTap; }, [onMarkerTap]);
+  useEffect(() => { onClusterRef.current = onClusterTap; }, [onClusterTap]);
+  useEffect(() => { onZoomRef.current = onZoomChange; }, [onZoomChange]);
+  useEffect(() => { onBoundsRef.current = onBoundsChange; }, [onBoundsChange]);
+  useEffect(() => { onMapTapRef.current = onMapTap; }, [onMapTap]);
 
-  useEffect(() => {
-    onClusterRef.current = onClusterTap;
-  }, [onClusterTap]);
-
-  useEffect(() => {
-    onZoomRef.current = onZoomChange;
-  }, [onZoomChange]);
-
-  useEffect(() => {
-    onBoundsRef.current = onBoundsChange;
-  }, [onBoundsChange]);
-
-  useEffect(() => {
-    onMapTapRef.current = onMapTap;
-  }, [onMapTap]);
-
-  // Initialise map once.
   useEffect(() => {
     let cancelled = false;
     (async () => {
@@ -750,10 +711,7 @@ function LeafletMap({
       });
       L.tileLayer(
         "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
-        {
-          maxZoom: 19,
-          attribution: "© OpenStreetMap contributors © CARTO",
-        },
+        { maxZoom: 19, attribution: "© OpenStreetMap contributors © CARTO" },
       ).addTo(map);
       const emitBounds = () => {
         const b = map.getBounds();
@@ -772,9 +730,7 @@ function LeafletMap({
       markerLayerRef.current = L.layerGroup().addTo(map);
       mapRef.current = map;
       if (externalMapRef) externalMapRef.current = map;
-      map.on("click", () => {
-        onMapTapRef.current?.();
-      });
+      map.on("click", () => { onMapTapRef.current?.(); });
       onZoomRef.current?.(map.getZoom());
       const b = map.getBounds();
       onBoundsRef.current?.({
@@ -783,7 +739,6 @@ function LeafletMap({
         east: b.getEast(),
         west: b.getWest(),
       });
-      // Ensure correct sizing after layout.
       setTimeout(() => {
         map.invalidateSize();
         if (!cancelled) setMapReady(true);
@@ -801,7 +756,6 @@ function LeafletMap({
     };
   }, []);
 
-  // Sync markers — cluster articles within ~0.5° buckets.
   useEffect(() => {
     const L = LRef.current;
     const map = mapRef.current;
@@ -810,7 +764,6 @@ function LeafletMap({
 
     layer.clearLayers();
 
-    // Bucket articles into 0.5° cells.
     const buckets = new Map<string, Article[]>();
     for (const a of articles) {
       const key = `${Math.floor(a.lat / 0.5)}_${Math.floor(a.lng / 0.5)}`;
@@ -818,7 +771,6 @@ function LeafletMap({
       if (arr) arr.push(a);
       else buckets.set(key, [a]);
     }
-
 
     for (const group of buckets.values()) {
       if (group.length === 1) {
@@ -840,24 +792,19 @@ function LeafletMap({
         });
         layer.addLayer(m);
       } else {
-        // Cluster marker with count badge.
         const count = group.length;
         const meanLat = group.reduce((s, a) => s + a.lat, 0) / count;
         const meanLng = group.reduce((s, a) => s + a.lng, 0) / count;
-        // Dominant topic colour in the cluster.
         const tally = new Map<string, number>();
         for (const a of group) {
-          const t = toTopic(a.topic);
-          const c = t ? TOPIC_COLORS[t] : "#FFFFFF";
+          const topic = toTopic(a.topic);
+          const c = topic ? TOPIC_COLORS[topic] : "#FFFFFF";
           tally.set(c, (tally.get(c) ?? 0) + 1);
         }
         let color = "#FFFFFF";
         let best = 0;
         for (const [c, n] of tally.entries()) {
-          if (n > best) {
-            best = n;
-            color = c;
-          }
+          if (n > best) { best = n; color = c; }
         }
         const size = count >= 10 ? 32 : 26;
         const html = `
@@ -889,15 +836,10 @@ function LeafletMap({
   return (
     <div
       ref={containerRef}
-      style={{
-        position: "absolute",
-        inset: 0,
-        backgroundColor: "#0A0A0F",
-      }}
+      style={{ position: "absolute", inset: 0, backgroundColor: "#0A0A0F" }}
     />
   );
 }
-
 
 function ZoomControl({
   zoom,
@@ -906,19 +848,23 @@ function ZoomControl({
   zoom: number;
   onSelect: (z: number) => void;
 }) {
+  const lang = useLanguage();
+  const t = translations[lang];
+
   const levels = [
-    { key: "WORLD", top: 0, zoom: 2 },
-    { key: "CONTINENT", top: 40, zoom: 4 },
-    { key: "COUNTRY", top: 80, zoom: 6 },
-    { key: "LOCAL", top: 120, zoom: 10 },
+    { key: t.zoomWorld, top: 0, zoom: 2 },
+    { key: t.zoomContinent, top: 40, zoom: 4 },
+    { key: t.zoomCountry, top: 80, zoom: 6 },
+    { key: t.zoomLocal, top: 120, zoom: 10 },
   ];
-  // Find the closest level for the current map zoom.
+
   const activeIdx = levels.reduce(
     (best, l, i) =>
       Math.abs(l.zoom - zoom) < Math.abs(levels[best].zoom - zoom) ? i : best,
     0,
   );
   const indicatorTop = levels[activeIdx].top;
+
   return (
     <div
       style={{

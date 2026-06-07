@@ -1,8 +1,12 @@
 import { Link } from "@tanstack/react-router";
 import { useSavedArticles } from "@/hooks/useSavedArticles";
+import { useLanguage } from "@/lib/lang";
+import { translations } from "@/lib/i18n";
 
 export function SignInPrompt() {
   const { promptOpen, closePrompt } = useSavedArticles();
+  const lang = useLanguage();
+  const t = translations[lang];
   if (!promptOpen) return null;
   return (
     <div
@@ -30,7 +34,7 @@ export function SignInPrompt() {
         }}
       >
         <div style={{ color: "#FFFFFF", fontSize: 18, fontWeight: 700 }}>
-          Sign in to save articles
+          {t.signInToSave}
         </div>
         <div style={{ marginTop: 16, display: "flex", flexDirection: "column", gap: 8 }}>
           <Link
@@ -44,7 +48,7 @@ export function SignInPrompt() {
               padding: "12px 0",
             }}
           >
-            Sign in
+            {t.signInLink}
           </Link>
           <button
             onClick={closePrompt}
@@ -56,7 +60,7 @@ export function SignInPrompt() {
               padding: "8px 0",
             }}
           >
-            Cancel
+            {t.cancelButton}
           </button>
         </div>
       </div>

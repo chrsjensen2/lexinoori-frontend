@@ -1,11 +1,14 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Search, Bookmark } from "lucide-react";
-import { TopicTabs } from "@/components/feed/TopicTabs";
+import { TopicTabs, type TabKey } from "@/components/feed/TopicTabs";
 import { BreakingNewsCard } from "@/components/feed/BreakingNewsCard";
 import { TopicPill, WhatsNewPill, type Topic } from "@/components/feed/TopicPill";
 import { supabase } from "@/integrations/supabase/client";
 import { useSavedArticles } from "@/hooks/useSavedArticles";
+import { useLanguage } from "@/lib/lang";
+import { getLang } from "@/lib/lang";
+import { translations, type T } from "@/lib/i18n";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -30,29 +33,6 @@ type SourceArticle = {
   image_url: string | null;
 };
 
-
-function formatDate(d: Date) {
-  const days = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
-  const months = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
-  return `${days[d.getDay()]} · ${d.getDate()} ${months[d.getMonth()]}`;
-}
-
-function timeAgo(iso: string) {
-  const diff = Date.now() - new Date(iso).getTime();
-  const mins = Math.floor(diff / 60000);
-  if (mins < 60) return `${Math.max(mins, 1)}M AGO`;
-  const hrs = Math.floor(mins / 60);
-  if (hrs < 24) return `${hrs}H AGO`;
-  const days = Math.floor(hrs / 24);
-  return `${days}D AGO`;
-}
-
-function toTopic(t: string | null): Topic | undefined {
-  const valid: Topic[] = ["politics", "world", "climate", "economics", "sport", "technology", "health", "culture", "local", "breaking"];
-  const normalized = t?.toLowerCase() ?? "";
-  return valid.includes(normalized as Topic) ? (normalized as Topic) : undefined;
-}
-
 type Depth = "Bullets" | "Brief" | "Standard" | "Deep Dive";
 function getDepth(): Depth {
   if (typeof window === "undefined") return "Standard";
@@ -66,17 +46,38 @@ function readTimeLabel(depth: Depth, minutes: number | null): string {
   return `${Math.max(2, minutes ?? 5)} min`;
 }
 
+function formatDate(d: Date, t: T) {
+  const days = [t.daySun, t.dayMon, t.dayTue, t.dayWed, t.dayThu, t.dayFri, t.daySat];
+  const months = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
+  return `${days[d.getDay()]} · ${d.getDate()} ${months[d.getMonth()]}`;
+}
+
+function timeAgo(iso: string, t: T) {
+  const diff = Date.now() - new Date(iso).getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 60) return `${Math.max(mins, 1)}${t.minAgo}`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs}${t.hrAgo}`;
+  const days = Math.floor(hrs / 24);
+  return `${days}${t.dayAgo}`;
+}
+
+function toTopic(t: string | null): Topic | undefined {
+  const valid: Topic[] = ["politics", "world", "climate", "economics", "sport", "technology", "health", "culture", "local", "breaking"];
+  const normalized = t?.toLowerCase() ?? "";
+  return valid.includes(normalized as Topic) ? (normalized as Topic) : undefined;
+}
 
 function SourceArticleCard({ article, depth }: { article: SourceArticle; depth: Depth }) {
   const { isSaved, toggle } = useSavedArticles();
   const saved = isSaved(article.id);
   const validTopic = toTopic(article.topic);
   const sourceCount = article.source_count ?? 0;
+  const lang = useLanguage();
+  const t = translations[lang];
   const sourceLabel = sourceCount > 0
-    ? `${sourceCount} ${sourceCount === 1 ? "source" : "sources"}`
+    ? `${sourceCount} ${sourceCount === 1 ? t.source : t.sources}`
     : "";
-
-
 
   return (
     <Link
@@ -149,7 +150,7 @@ function SourceArticleCard({ article, depth }: { article: SourceArticle; depth: 
             )}
             {article.is_breaking && <WhatsNewPill />}
           </div>
-          <span style={{ color: "#8E8E93", fontSize: 12 }}>{timeAgo(article.created_at)}</span>
+          <span style={{ color: "#8E8E93", fontSize: 12 }}>{timeAgo(article.created_at, t)}</span>
         </div>
 
         <h3
@@ -190,7 +191,6 @@ function SourceArticleCard({ article, depth }: { article: SourceArticle; depth: 
           <span style={{ color: "#8E8E93", fontSize: 13, marginLeft: "auto" }}>
             {readTimeLabel(depth, article.read_time_minutes)}
           </span>
-
           <button
             aria-label={saved ? "Unsave" : "Save"}
             onClick={(e) => {
@@ -213,37 +213,26 @@ function SourceArticleCard({ article, depth }: { article: SourceArticle; depth: 
 }
 
 function TodayPage() {
-  const [dateLabel, setDateLabel] = useState("");
-  const [activeTab, setActiveTab] = useState("Today");
+  const lang = useLanguage();
+  const t = translations[lang];
 
+  const [dateLabel, setDateLabel] = useState("");
+  const [activeTab, setActiveTab] = useState<TabKey>("today");
   const [articles, setArticles] = useState<SourceArticle[]>([]);
   const [breakingArticle, setBreakingArticle] = useState<SourceArticle | null>(null);
   const [loading, setLoading] = useState(true);
   const [depth, setDepth] = useState<Depth>("Standard");
   const [sourceCount, setSourceCount] = useState(0);
   const [todayStoryCount, setTodayStoryCount] = useState(0);
-  
+
   const [pullDistance, setPullDistance] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
   const touchStartY = useRef<number | null>(null);
   const fetchSeq = useRef(0);
   const PULL_THRESHOLD = 70;
 
-  const TAB_TO_TOPIC: Record<string, string | null> = {
-    Today: null,
-    Politics: "politics",
-    World: "world",
-    Climate: "climate",
-    Tech: "technology",
-    Economy: "economics",
-    Sport: "sport",
-    Culture: "culture",
-    Health: "health",
-    Local: "local",
-  };
-
   useEffect(() => {
-    setDateLabel(formatDate(new Date()));
+    setDateLabel(formatDate(new Date(), t));
     setDepth(getDepth());
     const onDepth = () => setDepth(getDepth());
     window.addEventListener("lex:depth-changed", onDepth);
@@ -252,34 +241,23 @@ function TodayPage() {
       window.removeEventListener("lex:depth-changed", onDepth);
       window.removeEventListener("storage", onDepth);
     };
-  }, []);
+  }, [lang]);
 
   const fetchArticles = useCallback(async (opts?: { isRefresh?: boolean }) => {
     const seq = ++fetchSeq.current;
     if (!opts?.isRefresh) setLoading(true);
 
-    let language = "en";
-    const { data: userData } = await supabase.auth.getUser();
-    if (userData?.user) {
-      const { data: profile } = await (supabase as any)
-        .from("profiles")
-        .select("primary_language")
-        .eq("user_id", userData.user.id)
-        .maybeSingle();
-      if (profile?.primary_language) language = profile.primary_language;
-    }
-
+    const language = getLang();
     const suffix = language === "en" ? "" : `_${language}`;
     const pick = <T,>(row: any, base: string): T =>
       (row?.[`${base}${suffix}`] ?? row?.[base]) as T;
 
-  const selectCols =
-    "id, topic, read_time_minutes, source_count, created_at, updated_at, is_breaking, is_update, image_url, " +
-    "headline, body_standard, " +
-    "headline_da, body_standard_da, headline_de, body_standard_de, headline_es, body_standard_es";
+    const selectCols =
+      "id, topic, read_time_minutes, source_count, created_at, updated_at, is_breaking, is_update, image_url, " +
+      "headline, body_standard, " +
+      "headline_da, body_standard_da, headline_de, body_standard_de, headline_es, body_standard_es";
 
-
-    const topicFilter = TAB_TO_TOPIC[activeTab] ?? null;
+    const topicFilter = activeTab === "today" ? null : activeTab;
 
     let query = (supabase as any)
       .from("articles")
@@ -299,7 +277,6 @@ function TodayPage() {
         .maybeSingle(),
     ]);
 
-    // Discard stale responses if a newer fetch started
     if (seq !== fetchSeq.current) return;
 
     const mapRow = (row: any): SourceArticle => ({
@@ -324,8 +301,8 @@ function TodayPage() {
       const rowsById = new Map<string, any>((data as any[]).map((r) => [r.id, r]));
       mapped.sort((a, b) => sortKey(b, rowsById.get(b.id)) - sortKey(a, rowsById.get(a.id)));
       setArticles(mapped);
-      const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
 
+      const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
       const { data: saData } = await (supabase as any)
         .from("source_articles")
         .select("journalists:journalist_id(source_id)")
@@ -358,15 +335,10 @@ function TodayPage() {
 
   useEffect(() => {
     fetchArticles();
-
-    const { data: sub } = supabase.auth.onAuthStateChange(() => {
-      fetchArticles();
-    });
-
+    const { data: sub } = supabase.auth.onAuthStateChange(() => { fetchArticles(); });
     const onFocus = () => fetchArticles();
     window.addEventListener("focus", onFocus);
     window.addEventListener("lex:language-changed", onFocus);
-
     return () => {
       sub.subscription.unsubscribe();
       window.removeEventListener("focus", onFocus);
@@ -384,16 +356,13 @@ function TodayPage() {
   const onTouchMove = (e: React.TouchEvent) => {
     if (touchStartY.current == null) return;
     const dy = e.touches[0].clientY - touchStartY.current;
-    if (dy > 0) {
-      setPullDistance(Math.min(dy * 0.5, 100));
-    }
+    if (dy > 0) setPullDistance(Math.min(dy * 0.5, 100));
   };
   const onTouchEnd = () => {
     if (touchStartY.current == null) return;
     if (pullDistance >= PULL_THRESHOLD) {
       setRefreshing(true);
       setPullDistance(50);
-      // Force a fresh fetch from Supabase, bypassing any in-flight stale state
       void fetchArticles({ isRefresh: true });
     } else {
       setPullDistance(0);
@@ -401,8 +370,9 @@ function TodayPage() {
     touchStartY.current = null;
   };
 
-
-
+  const statsText = loading
+    ? t.loadingNews
+    : `${t.todayPrefix} ${todayStoryCount} ${t.newStoriesLabel} · ${sourceCount} ${sourceCount === 1 ? t.source : t.sources}`;
 
   return (
     <div
@@ -431,10 +401,10 @@ function TodayPage() {
           }}
         >
           {refreshing
-            ? "REFRESHING…"
+            ? t.refreshing
             : pullDistance >= PULL_THRESHOLD
-              ? "RELEASE TO REFRESH"
-              : "PULL TO REFRESH"}
+              ? t.releaseToRefresh
+              : t.pullToRefresh}
         </div>
       )}
       <header
@@ -469,7 +439,6 @@ function TodayPage() {
                   }}
                 />
               )}
-
             </h1>
             <div style={{ display: "flex", alignItems: "center", gap: 12, paddingTop: 12 }}>
               <span
@@ -492,11 +461,8 @@ function TodayPage() {
             </div>
           </div>
 
-          <p style={{ color: "#8E8E93", fontSize: 13, marginTop: 8 }}>
-            {loading ? "Loading latest stories…" : `Today: ${todayStoryCount} new stories · ${sourceCount} outlets`}
-          </p>
+          <p style={{ color: "#8E8E93", fontSize: 13, marginTop: 8 }}>{statsText}</p>
         </div>
-
 
         <div style={{ paddingBottom: 4 }}>
           <TopicTabs active={activeTab} onChange={setActiveTab} />
@@ -509,19 +475,18 @@ function TodayPage() {
           <BreakingNewsCard
             headline={breakingArticle.headline}
             sources={breakingArticle.source_count ?? 0}
-            timeAgo={timeAgo(breakingArticle.created_at)}
+            timeAgo={timeAgo(breakingArticle.created_at, t)}
             articleId={breakingArticle.id}
           />
         </div>
       )}
-
 
       <div
         className="flex items-center justify-between"
         style={{ padding: "0 24px", marginTop: 20, marginBottom: 12 }}
       >
         <span style={{ color: "#8E8E93", fontSize: 11, letterSpacing: "0.08em", fontWeight: 700 }}>
-          FOR YOU · {articles.length} STORIES
+          {t.forYouLabel} · {articles.length} {t.storiesSection}
         </span>
       </div>
 
@@ -529,10 +494,9 @@ function TodayPage() {
         {articles.map((a) => (
           <SourceArticleCard key={a.id} article={a} depth={depth} />
         ))}
-
         {!loading && articles.length === 0 && (
           <p style={{ color: "#8E8E93", fontSize: 13, padding: "0 24px" }}>
-            No articles yet. Check back soon.
+            {t.noArticles}
           </p>
         )}
       </div>

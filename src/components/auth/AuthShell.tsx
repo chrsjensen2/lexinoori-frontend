@@ -1,6 +1,8 @@
 import { useState, type InputHTMLAttributes } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import { SerifLogo } from "@/components/SerifLogo";
+import { useLanguage } from "@/lib/lang";
+import { translations } from "@/lib/i18n";
 
 export function AuthScreen({ children }: { children: React.ReactNode }) {
   return (
@@ -18,11 +20,13 @@ export function AuthScreen({ children }: { children: React.ReactNode }) {
 }
 
 export function AuthHeader() {
+  const lang = useLanguage();
+  const t = translations[lang];
   return (
     <div style={{ padding: "48px 24px 0" }}>
       <SerifLogo height={32} />
       <div style={{ color: "#8E8E93", fontSize: 14, marginTop: 6 }}>
-        Every angle. One story.
+        {t.tagline}
       </div>
     </div>
   );
@@ -159,6 +163,8 @@ export function PrimaryButton({
 }
 
 export function OrDivider() {
+  const lang = useLanguage();
+  const t = translations[lang];
   return (
     <div
       style={{
@@ -169,13 +175,15 @@ export function OrDivider() {
       }}
     >
       <div style={{ flex: 1, height: 1, background: "#2C2C2E" }} />
-      <span style={{ color: "#8E8E93", fontSize: 13 }}>or</span>
+      <span style={{ color: "#8E8E93", fontSize: 13 }}>{t.or}</span>
       <div style={{ flex: 1, height: 1, background: "#2C2C2E" }} />
     </div>
   );
 }
 
 export function GoogleButton({ onClick }: { onClick?: () => void }) {
+  const lang = useLanguage();
+  const t = translations[lang];
   return (
     <button
       type="button"
@@ -201,7 +209,7 @@ export function GoogleButton({ onClick }: { onClick?: () => void }) {
         <path fill="#4CAF50" d="M24 43.5c5 0 9.6-1.9 13.1-5l-6-5.1c-2 1.4-4.4 2.1-7.1 2.1-5.3 0-9.7-3.1-11.3-7.5l-6.5 5C9.6 39 16.2 43.5 24 43.5z" />
         <path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.1-4.2 5.4l6 5.1c-.4.4 6.4-4.7 6.4-14.5 0-1.2-.1-2.3-.3-3.5z" />
       </svg>
-      <span>Continue with Google</span>
+      <span>{t.continueWithGoogle}</span>
     </button>
   );
 }
