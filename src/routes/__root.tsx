@@ -1,14 +1,11 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
-  Outlet,
   Link,
   createRootRouteWithContext,
   useRouter,
   HeadContent,
-  Scripts,
 } from "@tanstack/react-router";
 
-import appCss from "../styles.css?url";
 import { AppShell } from "@/components/AppShell";
 
 function NotFoundComponent() {
@@ -69,67 +66,17 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
 }
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
-  head: () => ({
-    meta: [
-      { charSet: "utf-8" },
-      { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { name: "theme-color", content: "#111111" },
-      { name: "apple-mobile-web-app-capable", content: "yes" },
-      { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
-      { name: "apple-mobile-web-app-title", content: "Lexinoori" },
-      { title: "Lexinoori - Every angle. One story." },
-      { name: "description", content: "Lexinoori - Every angle. One story." },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lexinoori - Every angle. One story." },
-      { property: "og:description", content: "Lexinoori - Every angle. One story." },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
-      { name: "twitter:site", content: "@Lovable" },
-      { name: "twitter:title", content: "Lexinoori - Every angle. One story." },
-      { name: "twitter:description", content: "Lexinoori - Every angle. One story." },
-      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/KH4LcKgGvKREGkrJZNBsGsazlOi2/social-images/social-1779371089023-SoMe_cover-image.webp" },
-      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/KH4LcKgGvKREGkrJZNBsGsazlOi2/social-images/social-1779371089023-SoMe_cover-image.webp" },
-    ],
-    links: [
-      {
-        rel: "stylesheet",
-        href: appCss,
-      },
-      { rel: "preconnect", href: "https://fonts.googleapis.com" },
-      { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
-      { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Heebo:wght@400;700&display=swap" },
-      { rel: "manifest", href: "/manifest.json" },
-      { rel: "icon", type: "image/svg+xml", href: "/favicon.svg" },
-      { rel: "apple-touch-icon", sizes: "192x192", href: "/icon_192px.png" },
-      { rel: "icon", type: "image/png", sizes: "192x192", href: "/icon_192px.png" },
-      { rel: "icon", type: "image/png", sizes: "512x512", href: "/icon_512px.png" },
-    ],
-  }),
-  shellComponent: RootShell,
   component: RootComponent,
   notFoundComponent: NotFoundComponent,
   errorComponent: ErrorComponent,
 });
-
-function RootShell({ children }: { children: React.ReactNode }) {
-  return (
-    <html lang="en">
-      <head>
-        <HeadContent />
-      </head>
-      <body>
-        {children}
-        <Scripts />
-      </body>
-    </html>
-  );
-}
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
 
   return (
     <QueryClientProvider client={queryClient}>
+      <HeadContent />
       <AppShell />
     </QueryClientProvider>
   );
