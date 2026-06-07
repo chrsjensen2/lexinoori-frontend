@@ -20,6 +20,8 @@ export const Route = createFileRoute("/")({
   component: TodayPage,
 });
 
+type ContentFilter = "all" | "articles" | "watchdog";
+
 type SourceArticle = {
   id: string;
   headline: string;
@@ -30,6 +32,7 @@ type SourceArticle = {
   created_at: string;
   is_breaking: boolean | null;
   is_update: boolean | null;
+  watchdog_only: boolean | null;
   image_url: string | null;
 };
 
@@ -148,6 +151,23 @@ function SourceArticleCard({ article, depth }: { article: SourceArticle; depth: 
                 UPDATE
               </span>
             )}
+            {article.watchdog_only && (
+              <span
+                style={{
+                  backgroundColor: "#E8873A1F",
+                  border: "1px solid #E8873A",
+                  color: "#E8873A",
+                  fontWeight: 700,
+                  fontSize: 11,
+                  letterSpacing: "0.08em",
+                  padding: "6px 8px",
+                  borderRadius: 20,
+                  lineHeight: 1,
+                }}
+              >
+                ENKELT KILDE
+              </span>
+            )}
             {article.is_breaking && <WhatsNewPill />}
           </div>
           <span style={{ color: "#8E8E93", fontSize: 12 }}>{timeAgo(article.created_at, t)}</span>
@@ -212,12 +232,52 @@ function SourceArticleCard({ article, depth }: { article: SourceArticle; depth: 
   );
 }
 
+function FeedFilterBar({
+  active,
+  onChange,
+}: {
+  active: ContentFilter;
+  onChange: (f: ContentFilter) => void;
+}) {
+  const options: { key: ContentFilter; label: string }[] = [
+    { key: "all", label: "Alt" },
+    { key: "articles", label: "Artikler" },
+    { key: "watchdog", label: "Vagthund" },
+  ];
+  return (
+    <div style={{ display: "flex", gap: 16, padding: "6px 24px 0" }}>
+      {options.map(({ key, label }) => {
+        const isActive = key === active;
+        return (
+          <button
+            key={key}
+            onClick={() => onChange(key)}
+            style={{
+              color: isActive ? "#FFFFFF" : "#8E8E93",
+              fontSize: 13,
+              fontWeight: isActive ? 700 : 400,
+              paddingBottom: 8,
+              paddingTop: 2,
+              borderBottom: isActive ? "2px solid #1A7A5E" : "2px solid transparent",
+              transition: "color 200ms ease",
+              whiteSpace: "nowrap",
+            }}
+          >
+            {label}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 function TodayPage() {
   const lang = useLanguage();
   const t = translations[lang];
 
   const [dateLabel, setDateLabel] = useState("");
   const [activeTab, setActiveTab] = useState<TabKey>("today");
+  const [contentFilter, setContentFilter] = useState<ContentFilter>("all");
   const [articles, setArticles] = useState<SourceArticle[]>([]);
   const [breakingArticle, setBreakingArticle] = useState<SourceArticle | null>(null);
   const [loading, setLoading] = useState(true);
@@ -253,7 +313,7 @@ function TodayPage() {
       (row?.[`${base}${suffix}`] ?? row?.[base]) as T;
 
     const selectCols =
-      "id, topic, read_time_minutes, source_count, created_at, updated_at, is_breaking, is_update, image_url, " +
+      "id, topic, read_time_minutes, source_count, created_at, updated_at, is_breaking, is_update, watchdog_only, image_url, " +
       "headline, body_standard, " +
       "headline_da, body_standard_da, headline_de, body_standard_de, headline_es, body_standard_es";
 
@@ -265,6 +325,8 @@ function TodayPage() {
       .order("created_at", { ascending: false })
       .limit(50);
     if (topicFilter) query = query.eq("topic", topicFilter);
+    if (contentFilter === "watchdog") query = query.eq("watchdog_only", true);
+    if (contentFilter === "articles") query = query.eq("watchdog_only", false);
 
     const [{ data, error }, breakingRes] = await Promise.all([
       query,
@@ -287,6 +349,7 @@ function TodayPage() {
       created_at: row.created_at,
       is_breaking: row.is_breaking,
       is_update: row.is_update,
+      watchdog_only: row.watchdog_only ?? null,
       headline: pick<string>(row, "headline") ?? "",
       body_standard: pick<string | null>(row, "body_standard") ?? null,
       image_url: row.image_url ?? null,
@@ -331,7 +394,7 @@ function TodayPage() {
     setLoading(false);
     setRefreshing(false);
     setPullDistance(0);
-  }, [activeTab]);
+  }, [activeTab, contentFilter]);
 
   useEffect(() => {
     fetchArticles();
@@ -464,8 +527,9 @@ function TodayPage() {
           <p style={{ color: "#8E8E93", fontSize: 13, marginTop: 8 }}>{statsText}</p>
         </div>
 
-        <div style={{ paddingBottom: 4 }}>
+        <div>
           <TopicTabs active={activeTab} onChange={setActiveTab} />
+          <FeedFilterBar active={contentFilter} onChange={setContentFilter} />
         </div>
         <div style={{ height: 1, backgroundColor: "#2C2C2E" }} />
       </header>
