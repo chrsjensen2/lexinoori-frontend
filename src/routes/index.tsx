@@ -58,11 +58,11 @@ function formatDate(d: Date, t: T) {
 function timeAgo(iso: string, t: T) {
   const diff = Date.now() - new Date(iso).getTime();
   const mins = Math.floor(diff / 60000);
-  if (mins < 60) return `${Math.max(mins, 1)}${t.minAgo}`;
+  if (mins < 60) return `${Math.max(mins, 1)}${t.minAgo.split(" ")[0]}`;
   const hrs = Math.floor(mins / 60);
-  if (hrs < 24) return `${hrs}${t.hrAgo}`;
+  if (hrs < 24) return `${hrs}${t.hrAgo.split(" ")[0]}`;
   const days = Math.floor(hrs / 24);
-  return `${days}${t.dayAgo}`;
+  return `${days}${t.dayAgo.split(" ")[0]}`;
 }
 
 function toTopic(t: string | null): Topic | undefined {
@@ -208,9 +208,11 @@ function SourceArticleCard({ article, depth }: { article: SourceArticle; depth: 
 
         <div className="flex items-center gap-2" style={{ marginTop: 12 }}>
           <span style={{ color: "#8E8E93", fontSize: 13 }}>{sourceLabel}</span>
-          <span style={{ color: "#8E8E93", fontSize: 13, marginLeft: "auto" }}>
-            {readTimeLabel(depth, article.read_time_minutes)}
-          </span>
+          {!article.watchdog_only && (
+            <span style={{ color: "#8E8E93", fontSize: 13, marginLeft: "auto" }}>
+              {readTimeLabel(depth, article.read_time_minutes)}
+            </span>
+          )}
           <button
             aria-label={saved ? "Unsave" : "Save"}
             onClick={(e) => {
