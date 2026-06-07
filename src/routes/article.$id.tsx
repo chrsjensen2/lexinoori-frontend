@@ -327,7 +327,7 @@ function ArticleView() {
               Ingen uafhængig bekræftelse
             </div>
             <p style={{ color: "#8E8E93", fontSize: 13, lineHeight: 1.5, marginTop: 6 }}>
-              Denne artikel stammer fra én enkelt kilde og er ikke bekræftet af uafhængige medier.
+              Denne artikel stammer fra én enkelt kilde og er ikke bekræftet af øvrige uafhængige medier.
             </p>
           </section>
 
@@ -342,9 +342,6 @@ function ArticleView() {
                 border: "1px solid #2C2C2E",
               }}
             >
-              <div style={{ color: "#8E8E93", fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", marginBottom: 8 }}>
-                KILDE
-              </div>
               <div style={{ color: "#FFFFFF", fontWeight: 700, fontSize: 16 }}>{watchdogSource.name}</div>
               {watchdogSource.author && (
                 <div style={{ color: "#8E8E93", fontSize: 14, marginTop: 4 }}>{watchdogSource.author}</div>
