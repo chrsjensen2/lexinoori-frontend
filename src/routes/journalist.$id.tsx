@@ -13,7 +13,7 @@ export const Route = createFileRoute("/journalist/$id")({
 type JournalistRow = {
   id: string;
   name: string;
-  source_id: string | null;
+current_source_id: string | null;
   article_count: number | null;
   loaded_language_score: number | null;
   source_diversity_score: number | null;
