@@ -107,22 +107,29 @@ function JournalistContent({ j }: { j: JournalistRow }) {
   const articleCount = j.article_count ?? 0;
   const outlet = j.sources?.name ?? t.independent;
 
-  const derivedConfidence: "LOW" | "MODERATE" | "HIGH" =
-    articleCount >= 500 ? "HIGH" : articleCount >= 100 ? "MODERATE" : "LOW";
-  const confidence =
-    (j.confidence_level?.toUpperCase() as "LOW" | "MODERATE" | "HIGH" | undefined) ??
-    derivedConfidence;
+  type ConfidenceLevel = "BUILDING" | "LOW" | "MODERATE" | "HIGH";
+  const dbConfidence = j.confidence_level?.toUpperCase() as ConfidenceLevel | undefined;
+  const derivedConfidence: ConfidenceLevel =
+    articleCount >= 500 ? "HIGH"
+    : articleCount >= 100 ? "MODERATE"
+    : articleCount >= 20 ? "LOW"
+    : "BUILDING";
+  const confidence = dbConfidence ?? derivedConfidence;
 
   const confidenceLabel =
-    confidence === "LOW" ? t.confidenceLow
-    : confidence === "HIGH" ? t.confidenceHigh
-    : t.confidenceModerate;
-
-  const isInsufficient = confidence === "LOW" || articleCount < 100;
-  const needed = Math.max(0, 100 - articleCount);
+    confidence === "BUILDING" ? "UNDER OPBYGNING"
+    : confidence === "LOW" ? "TILSTRÆKKELIGE DATA"
+    : confidence === "MODERATE" ? "PÅLIDELIGE DATA"
+    : "STÆRKE DATA";
 
   const confidenceColor =
-    confidence === "LOW" ? "#E8873A" : confidence === "HIGH" ? "#00C864" : "#8E8E93";
+    confidence === "BUILDING" ? "#E8873A"
+    : confidence === "LOW" ? "#8E8E93"
+    : confidence === "MODERATE" ? "#1A7A5E"
+    : "#00C864";
+
+  const showNote = confidence === "BUILDING" || confidence === "LOW";
+  const showScores = confidence !== "BUILDING";
 
   return (
     <>
@@ -153,12 +160,12 @@ function JournalistContent({ j }: { j: JournalistRow }) {
               borderRadius: 6,
             }}
           >
-            {confidenceLabel} {t.confidenceSuffix}
+            {confidenceLabel}
           </span>
         </div>
       </div>
 
-      {isInsufficient && (
+      {showNote && (
         <div
           style={{
             margin: "12px 16px 0",
@@ -166,17 +173,18 @@ function JournalistContent({ j }: { j: JournalistRow }) {
             border: "1px solid #2C2C2E",
             borderRadius: 12,
             padding: 16,
-            color: "#E8873A",
             fontSize: 13,
             lineHeight: 1.5,
+            color: confidence === "BUILDING" ? "#E8873A" : "#8E8E93",
           }}
         >
-          {t.insufficientDataMsg} {needed}{" "}
-          {needed === 1 ? t.moreArticleNeeded : t.moreArticlesNeeded}
+          {confidence === "BUILDING"
+            ? "Ikke nok artikler til pålidelige scores endnu"
+            : `Scores baseret på ${articleCount} artikler — tilstrækkeligt til at identificere mønstre`}
         </div>
       )}
 
-      {articleCount >= 100 && (
+      {showScores && (
         <div
           style={{
             margin: "16px 16px 0",
