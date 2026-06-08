@@ -31,6 +31,14 @@ type ArticleResult = {
   is_breaking: boolean | null;
 };
 
+type JournalistResult = {
+  id: string;
+  name: string;
+  article_count: number | null;
+  confidence_level: string | null;
+  outlet: string | null;
+};
+
 type Depth = "Bullets" | "Brief" | "Standard" | "Deep Dive";
 function getDepth(): Depth {
   if (typeof window === "undefined") return "Standard";
@@ -137,6 +145,68 @@ function ResultCard({ article }: { article: ArticleResult }) {
   );
 }
 
+function JournalistCard({ journalist }: { journalist: JournalistResult }) {
+  const articleCount = journalist.article_count ?? 0;
+  const dbConf = journalist.confidence_level?.toUpperCase();
+  const confidence = dbConf ?? (
+    articleCount >= 500 ? "HIGH"
+    : articleCount >= 100 ? "MODERATE"
+    : articleCount >= 20 ? "LOW"
+    : "BUILDING"
+  );
+  const confidenceLabel =
+    confidence === "BUILDING" ? "UNDER OPBYGNING"
+    : confidence === "LOW" ? "TILSTRÆKKELIGE DATA"
+    : confidence === "MODERATE" ? "PÅLIDELIGE DATA"
+    : "STÆRKE DATA";
+  const confidenceColor =
+    confidence === "BUILDING" ? "#E8873A"
+    : confidence === "LOW" ? "#8E8E93"
+    : confidence === "MODERATE" ? "#1A7A5E"
+    : "#00C864";
+
+  return (
+    <Link
+      to="/journalist/$id"
+      params={{ id: journalist.id }}
+      style={{
+        display: "block",
+        backgroundColor: "#1A7A5E",
+        borderRadius: 12,
+        padding: 16,
+        textDecoration: "none",
+      }}
+    >
+      <div style={{ color: "#FFFFFF", fontWeight: 700, fontSize: 20, lineHeight: 1.2 }}>
+        {journalist.name}
+      </div>
+      {journalist.outlet && (
+        <div style={{ color: "rgba(255,255,255,0.8)", fontSize: 14, marginTop: 4 }}>
+          {journalist.outlet}
+        </div>
+      )}
+      <div style={{ color: "rgba(255,255,255,0.6)", fontSize: 13, marginTop: 2 }}>
+        {articleCount} artikler analyseret
+      </div>
+      <div style={{ marginTop: 10 }}>
+        <span
+          style={{
+            backgroundColor: confidenceColor,
+            color: "#FFFFFF",
+            fontSize: 11,
+            fontWeight: 700,
+            letterSpacing: "0.08em",
+            padding: "4px 8px",
+            borderRadius: 6,
+          }}
+        >
+          {confidenceLabel}
+        </span>
+      </div>
+    </Link>
+  );
+}
+
 function SearchPage() {
   const router = useRouter();
   const lang = useLanguage();
@@ -146,6 +216,8 @@ function SearchPage() {
   const [recent, setRecent] = useState(RECENT_DEFAULT);
   const [activeTopic, setActiveTopic] = useState<Topic | null>(null);
   const [results, setResults] = useState<ArticleResult[]>([]);
+  const [journalistResult, setJournalistResult] = useState<JournalistResult | null>(null);
+  const [journalistArticles, setJournalistArticles] = useState<ArticleResult[]>([]);
   const [loading, setLoading] = useState(false);
 
   const TOPICS: { id: Topic; label: string }[] = [
@@ -169,33 +241,89 @@ function SearchPage() {
   useEffect(() => {
     if (!trimmed) {
       setResults([]);
+      setJournalistResult(null);
+      setJournalistArticles([]);
       return;
     }
     let cancelled = false;
     setLoading(true);
     const timer = window.setTimeout(async () => {
       const language = await getUserLanguage();
-      const selectCols =
+      const articleCols =
         "id, topic, read_time_minutes, source_count, created_at, is_breaking, " + TRANSLATED_COLS;
-      const { data } = await (supabase as any)
-        .from("articles")
-        .select(selectCols)
-        .ilike("headline", `%${trimmed}%`)
-        .order("created_at", { ascending: false })
-        .limit(50);
+
+      const mapArticle = (r: any): ArticleResult => ({
+        id: r.id,
+        topic: r.topic,
+        source_count: r.source_count,
+        read_time_minutes: r.read_time_minutes,
+        created_at: r.created_at,
+        is_breaking: r.is_breaking,
+        headline: pickLang<string>(r, "headline", language) ?? "",
+        body_standard: pickLang<string | null>(r, "body_standard", language) ?? null,
+      });
+
+      // Run journalist search + article headline search in parallel
+      const [journalistRes, articleRes] = await Promise.all([
+        (supabase as any)
+          .from("journalists")
+          .select("id, name, article_count, confidence_level, sources:current_source_id(name)")
+          .ilike("name", `%${trimmed}%`)
+          .limit(1)
+          .maybeSingle(),
+        (supabase as any)
+          .from("articles")
+          .select(articleCols)
+          .ilike("headline", `%${trimmed}%`)
+          .order("created_at", { ascending: false })
+          .limit(50),
+      ]);
+
       if (cancelled) return;
-      setResults(
-        ((data as any[]) || []).map((r) => ({
-          id: r.id,
-          topic: r.topic,
-          source_count: r.source_count,
-          read_time_minutes: r.read_time_minutes,
-          created_at: r.created_at,
-          is_breaking: r.is_breaking,
-          headline: pickLang<string>(r, "headline", language) ?? "",
-          body_standard: pickLang<string | null>(r, "body_standard", language) ?? null,
-        }))
-      );
+
+      // Journalist match
+      const jRow = journalistRes.data ?? null;
+      if (jRow) {
+        setJournalistResult({
+          id: jRow.id,
+          name: jRow.name,
+          article_count: jRow.article_count,
+          confidence_level: jRow.confidence_level,
+          outlet: jRow.sources?.name ?? null,
+        });
+
+        // Fetch merged articles where this journalist is a source
+        const { data: saRows } = await (supabase as any)
+          .from("source_articles")
+          .select("cluster_id")
+          .eq("journalist_id", jRow.id)
+          .not("cluster_id", "is", null);
+
+        if (cancelled) return;
+
+        const clusterIds = [...new Set(
+          ((saRows ?? []) as any[]).map((r) => r.cluster_id).filter(Boolean)
+        )];
+
+        if (clusterIds.length > 0) {
+          const { data: jArtRows } = await (supabase as any)
+            .from("articles")
+            .select(articleCols)
+            .in("cluster_id", clusterIds)
+            .order("created_at", { ascending: false })
+            .limit(20);
+          if (cancelled) return;
+          setJournalistArticles(((jArtRows as any[]) ?? []).map(mapArticle));
+        } else {
+          setJournalistArticles([]);
+        }
+      } else {
+        setJournalistResult(null);
+        setJournalistArticles([]);
+      }
+
+      // Article headline results (deduplicated against journalist articles below at render time)
+      setResults(((articleRes.data as any[]) ?? []).map(mapArticle));
       setLoading(false);
     }, 300);
     return () => {
@@ -270,24 +398,57 @@ function SearchPage() {
             ))}
           </div>
         </>
-      ) : results.length > 0 ? (
-        <>
-          <SectionLabel>{t.storiesSection}</SectionLabel>
-          <div style={{ marginTop: 12, padding: "0 16px", display: "flex", flexDirection: "column", gap: 12 }}>
-            {results.map((a) => (
-              <ResultCard key={a.id} article={a} />
-            ))}
-          </div>
-        </>
-      ) : loading ? (
-        <div style={{ color: "#8E8E93", fontSize: 14, padding: "24px 16px" }}>{t.searching}</div>
-      ) : (
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", textAlign: "center", padding: "0 24px", marginTop: "30vh" }}>
-          <div style={{ color: "#8E8E93", fontSize: 16 }}>{t.noResultsFor}</div>
-          <div style={{ color: "#FFFFFF", fontSize: 20, fontWeight: 700, marginTop: 4 }}>{trimmed}</div>
-          <div style={{ color: "#8E8E93", fontSize: 14, marginTop: 8 }}>{t.tryDifferent}</div>
-        </div>
-      )}
+      ) : (() => {
+          const journalistArticleIds = new Set(journalistArticles.map((a) => a.id));
+          const filteredResults = results.filter((a) => !journalistArticleIds.has(a.id));
+          const hasResults =
+            !!journalistResult || journalistArticles.length > 0 || filteredResults.length > 0;
+
+          if (loading && !hasResults) {
+            return (
+              <div style={{ color: "#8E8E93", fontSize: 14, padding: "24px 16px" }}>
+                {t.searching}
+              </div>
+            );
+          }
+          if (!hasResults) {
+            return (
+              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", textAlign: "center", padding: "0 24px", marginTop: "30vh" }}>
+                <div style={{ color: "#8E8E93", fontSize: 16 }}>{t.noResultsFor}</div>
+                <div style={{ color: "#FFFFFF", fontSize: 20, fontWeight: 700, marginTop: 4 }}>{trimmed}</div>
+                <div style={{ color: "#8E8E93", fontSize: 14, marginTop: 8 }}>{t.tryDifferent}</div>
+              </div>
+            );
+          }
+          return (
+            <div style={{ padding: "0 16px", display: "flex", flexDirection: "column", gap: 12, marginTop: 12 }}>
+              {journalistResult && (
+                <>
+                  <SectionLabel mt={0}>JOURNALIST</SectionLabel>
+                  <JournalistCard journalist={journalistResult} />
+                </>
+              )}
+
+              {journalistArticles.length > 0 && (
+                <>
+                  <SectionLabel mt={4}>{journalistResult?.name.toUpperCase()} · ARTIKLER</SectionLabel>
+                  {journalistArticles.map((a) => (
+                    <ResultCard key={a.id} article={a} />
+                  ))}
+                </>
+              )}
+
+              {filteredResults.length > 0 && (
+                <>
+                  <SectionLabel mt={4}>{t.storiesSection}</SectionLabel>
+                  {filteredResults.map((a) => (
+                    <ResultCard key={a.id} article={a} />
+                  ))}
+                </>
+              )}
+            </div>
+          );
+        })()}
     </div>
   );
 }
