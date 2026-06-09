@@ -79,6 +79,10 @@ const da = {
   biasCenter: "CENTRUM",
   biasCenterRight: "CENTRUM-HØJRE",
   biasRight: "HØJRE",
+  // Feed filter
+  filterAll: "Alle",
+  filterArticles: "Artikler",
+  filterWatchdog: "Overvågning",
   // Index / feed
   loadingNews: "Henter seneste nyheder…",
   pullToRefresh: "TRÆK FOR AT OPDATERE",
@@ -289,6 +293,9 @@ const en: typeof da = {
   biasCenter: "CENTER",
   biasCenterRight: "CENTER-RIGHT",
   biasRight: "RIGHT",
+  filterAll: "All",
+  filterArticles: "Articles",
+  filterWatchdog: "Monitoring",
   loadingNews: "Loading latest stories…",
   pullToRefresh: "PULL TO REFRESH",
   releaseToRefresh: "RELEASE TO REFRESH",

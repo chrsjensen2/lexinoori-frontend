@@ -220,16 +220,17 @@ function SearchPage() {
   const [journalistArticles, setJournalistArticles] = useState<ArticleResult[]>([]);
   const [loading, setLoading] = useState(false);
 
-  const TOPICS: { id: Topic; label: string }[] = [
-    { id: "politics", label: t.pillPolitics },
-    { id: "climate", label: t.pillClimate },
-    { id: "technology", label: t.pillTech },
-    { id: "economics", label: t.pillEconomics },
-    { id: "sport", label: t.pillSport },
-    { id: "health", label: t.pillHealth },
-    { id: "culture", label: t.pillCulture },
-    { id: "local", label: t.pillLocal },
-  ];
+  const TOPIC_LABELS: Partial<Record<Topic, string>> = {
+    politics: t.pillPolitics,
+    climate: t.pillClimate,
+    technology: t.pillTech,
+    economics: t.pillEconomics,
+    sport: t.pillSport,
+    health: t.pillHealth,
+    culture: t.pillCulture,
+    local: t.pillLocal,
+    breaking: t.pillBreaking,
+  };
 
   useEffect(() => {
     inputRef.current?.focus();
@@ -243,8 +244,10 @@ function SearchPage() {
       setResults([]);
       setJournalistResult(null);
       setJournalistArticles([]);
+      setActiveTopic(null);
       return;
     }
+    setActiveTopic(null);
     let cancelled = false;
     setLoading(true);
     const timer = window.setTimeout(async () => {
@@ -356,23 +359,33 @@ function SearchPage() {
         </button>
       </div>
 
-      <SectionLabel mt={8}>{t.topicsSection}</SectionLabel>
-      <div style={{ marginTop: 8, display: "flex", gap: 8, overflowX: "auto", padding: "0 16px 4px", scrollbarWidth: "none" }}>
-        {TOPICS.map((topic) => {
-          const active = activeTopic === topic.id;
-          const bg = active ? TOPIC_COLORS[topic.id] : "#1C1C1E";
-          const color = active ? (DARK_TEXT.includes(topic.id) ? "#111111" : "#FFFFFF") : "#8E8E93";
-          return (
-            <button
-              key={topic.id}
-              onClick={() => setActiveTopic(active ? null : topic.id)}
-              style={{ backgroundColor: bg, color, border: active ? "none" : "1px solid #2C2C2E", fontWeight: 700, fontSize: 11, letterSpacing: "0.08em", padding: "6px 8px", borderRadius: 20, whiteSpace: "nowrap", cursor: "pointer" }}
-            >
-              {topic.label}
-            </button>
-          );
-        })}
-      </div>
+      {!showRecent && results.length > 0 && (() => {
+        const availableTopics = [...new Set(
+          results.map((a) => toTopic(a.topic)).filter((tp): tp is Topic => tp !== undefined)
+        )];
+        if (availableTopics.length === 0) return null;
+        return (
+          <>
+            <SectionLabel mt={8}>{t.topicsSection}</SectionLabel>
+            <div style={{ marginTop: 8, display: "flex", gap: 8, overflowX: "auto", padding: "0 16px 4px", scrollbarWidth: "none" }}>
+              {availableTopics.map((topicId) => {
+                const active = activeTopic === topicId;
+                const bg = active ? TOPIC_COLORS[topicId] : "#1C1C1E";
+                const color = active ? (DARK_TEXT.includes(topicId) ? "#111111" : "#FFFFFF") : "#8E8E93";
+                return (
+                  <button
+                    key={topicId}
+                    onClick={() => setActiveTopic(active ? null : topicId)}
+                    style={{ backgroundColor: bg, color, border: active ? "none" : "1px solid #2C2C2E", fontWeight: 700, fontSize: 11, letterSpacing: "0.08em", padding: "6px 8px", borderRadius: 20, whiteSpace: "nowrap", cursor: "pointer" }}
+                  >
+                    {TOPIC_LABELS[topicId] ?? topicId.toUpperCase()}
+                  </button>
+                );
+              })}
+            </div>
+          </>
+        );
+      })()}
 
       {showRecent ? (
         <>
@@ -400,9 +413,12 @@ function SearchPage() {
         </>
       ) : (() => {
           const journalistArticleIds = new Set(journalistArticles.map((a) => a.id));
-          const filteredResults = results.filter((a) => !journalistArticleIds.has(a.id));
+          const deduped = results.filter((a) => !journalistArticleIds.has(a.id));
+          const filteredResults = activeTopic
+            ? deduped.filter((a) => toTopic(a.topic) === activeTopic)
+            : deduped;
           const hasResults =
-            !!journalistResult || journalistArticles.length > 0 || filteredResults.length > 0;
+            !!journalistResult || journalistArticles.length > 0 || deduped.length > 0;
 
           if (loading && !hasResults) {
             return (

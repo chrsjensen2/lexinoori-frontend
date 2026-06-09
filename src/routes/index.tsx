@@ -241,10 +241,12 @@ function FeedFilterBar({
   active: ContentFilter;
   onChange: (f: ContentFilter) => void;
 }) {
+  const lang = useLanguage();
+  const t = translations[lang];
   const options: { key: ContentFilter; label: string }[] = [
-    { key: "all", label: "Alt" },
-    { key: "articles", label: "Artikler" },
-    { key: "watchdog", label: "Vagthund" },
+    { key: "all", label: t.filterAll },
+    { key: "articles", label: t.filterArticles },
+    { key: "watchdog", label: t.filterWatchdog },
   ];
   return (
     <div style={{ display: "flex", gap: 16, padding: "6px 24px 0" }}>
@@ -279,7 +281,7 @@ function TodayPage() {
 
   const [dateLabel, setDateLabel] = useState("");
   const [activeTab, setActiveTab] = useState<TabKey>("today");
-  const [contentFilter, setContentFilter] = useState<ContentFilter>("all");
+  const [contentFilter, setContentFilter] = useState<ContentFilter>("articles");
   const [articles, setArticles] = useState<SourceArticle[]>([]);
   const [breakingArticle, setBreakingArticle] = useState<SourceArticle | null>(null);
   const [loading, setLoading] = useState(true);
