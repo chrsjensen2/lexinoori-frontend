@@ -370,16 +370,16 @@ function TodayPage() {
       setArticles(mapped);
 
       const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
-      const { data: saData } = await (supabase as any)
-        .from("source_articles")
-        .select("journalists:journalist_id(source_id)")
-        .gt("scraped_at", twentyFourHoursAgo);
-      if (seq !== fetchSeq.current) return;
-      const outlets = new Set<string>();
-      for (const row of (saData as any[]) ?? []) {
-        const sid = row?.journalists?.source_id;
-        if (sid) outlets.add(String(sid));
-      }
+const { data: saData } = await (supabase as any)
+  .from("source_articles")
+  .select("source_id")
+  .gt("scraped_at", twentyFourHoursAgo);
+if (seq !== fetchSeq.current) return;
+const outlets = new Set<string>();
+for (const row of (saData as any[]) ?? []) {
+  const sid = row?.source_id;
+  if (sid) outlets.add(String(sid));
+}
       setSourceCount(outlets.size);
 
       const { count: storyCount } = await (supabase as any)
