@@ -699,8 +699,12 @@ function SourceRow({
             )}
           </div>
           <div style={{ color: "#FFFFFF", fontSize: 13, lineHeight: 1.4, marginTop: 2 }}>{truncated}</div>
-          {author && (
-            hasJournalist ? (
+{(() => {
+            const cleanAuthor = author
+              ? author.replace(/^[^\s(]+@[^\s(]+\s*\(([^)]+)\)/, '$1').replace(/^[^\s(]+@[^\s(]+$/, '').trim()
+              : null;
+            if (!cleanAuthor) return null;
+            return hasJournalist ? (
               <button
                 type="button"
                 onClick={(e) => {
@@ -718,12 +722,12 @@ function SourceRow({
                   cursor: "pointer",
                 }}
               >
-                {author}
+                {cleanAuthor}
               </button>
             ) : (
-              <div style={{ color: "#8E8E93", fontSize: 13 }}>{author}</div>
-            )
-          )}
+              <div style={{ color: "#8E8E93", fontSize: 13 }}>{cleanAuthor}</div>
+            );
+          })()}
         </div>
         <a
           href={url}
