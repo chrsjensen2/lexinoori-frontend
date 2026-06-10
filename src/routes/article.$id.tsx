@@ -308,8 +308,8 @@ function ArticleView() {
         )}
         {/* Top vignette so back/Aa buttons read against any image */}
         <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg, rgba(0,0,0,0.4) 0px, transparent 80px)" }} />
-        {/* Topic-tinted gradient over bottom portion */}
-        <div style={{ position: "absolute", inset: 0, background: `linear-gradient(180deg, transparent 0%, ${(topicColor ?? "#1A7A5E")}B3 100%)` }} />
+        {/* Bottom fade — image dissolves into app background */}
+        <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg, transparent 30%, #111111 100%)" }} />
         {/* Topic pill + headline + meta overlaid at bottom */}
         <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, padding: "0 16px 20px", paddingTop: "env(safe-area-inset-top)" }}>
           {TOPIC && (
