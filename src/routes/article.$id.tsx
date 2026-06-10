@@ -262,14 +262,14 @@ function ArticleView() {
       <button
         onClick={() => router.history.back()}
         aria-label="Back"
-        style={{ position: "fixed", top: 16, left: 16, zIndex: 9999, color: "#FFFFFF", ...fixedBtnStyle }}
+        style={{ position: "fixed", top: "calc(env(safe-area-inset-top) + 12px)", left: 16, zIndex: 9999, color: "#FFFFFF", ...fixedBtnStyle }}
       >
         <ArrowLeft size={20} />
       </button>
 
       {/* RIGHT TOP: save+share for watchdog, Aa for normal */}
       {isWatchdog ? (
-        <div style={{ position: "fixed", top: 16, right: 16, zIndex: 9999, display: "flex", gap: 8 }}>
+        <div style={{ position: "fixed", top: "calc(env(safe-area-inset-top) + 12px)", right: 16, zIndex: 9999, display: "flex", gap: 8 }}>
           <button
             aria-label={savedTop ? "Unsave" : "Save"}
             onClick={() => toggle(id)}
@@ -289,20 +289,32 @@ function ArticleView() {
         <button
           aria-label="Reading options"
           onClick={() => setSheet("aa")}
-          style={{ position: "fixed", top: 16, right: 16, zIndex: 9999, height: 40, padding: "0 12px", borderRadius: 8, backgroundColor: "rgba(17,17,17,0.5)", backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)", color: "#FFFFFF", fontSize: 16, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center" }}
+          style={{ position: "fixed", top: "calc(env(safe-area-inset-top) + 12px)", right: 16, zIndex: 9999, height: 40, padding: "0 12px", borderRadius: 8, backgroundColor: "rgba(17,17,17,0.5)", backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)", color: "#FFFFFF", fontSize: 16, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center" }}
         >
           Aa
         </button>
       )}
 
-      {/* HERO - always */}
-      <div style={{ position: "relative", width: "100%", height: 240 }}>
-        <div style={{ position: "absolute", inset: 0, background: `linear-gradient(180deg, ${topicColor} 0%, #111111 100%)` }} />
-        <div style={{ position: "absolute", left: 0, right: 0, bottom: 0, height: 120, background: "linear-gradient(180deg, rgba(17,17,17,0) 0%, #111111 100%)" }} />
-        <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, padding: "0 16px 16px" }}>
-          <div style={{ display: "inline-block", marginBottom: 8 }}>
-            <TopicPill topic={TOPIC} />
-          </div>
+      {/* HERO - full-width image to top edge */}
+      <div style={{ position: "relative", width: "100%", height: "calc(320px + env(safe-area-inset-top))" }}>
+        {article?.image_url ? (
+          <img
+            src={article.image_url}
+            alt=""
+            style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+          />
+        ) : (
+          <div style={{ position: "absolute", inset: 0, background: `linear-gradient(180deg, ${topicColor ?? "#1A7A5E"}99 0%, #111111 100%)` }} />
+        )}
+        {/* Dark gradient over bottom half for text legibility */}
+        <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg, rgba(0,0,0,0) 30%, rgba(0,0,0,0.85) 100%)" }} />
+        {/* Topic pill + headline overlaid at bottom */}
+        <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, padding: "0 16px 20px" }}>
+          {TOPIC && (
+            <div style={{ display: "inline-block", marginBottom: 8 }}>
+              <TopicPill topic={TOPIC} />
+            </div>
+          )}
           <h1 style={{ color: "#FFFFFF", fontWeight: 700, fontSize: 24, lineHeight: 1.2, letterSpacing: "-0.01em" }}>
             {HEADLINE}
           </h1>
