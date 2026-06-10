@@ -306,9 +306,9 @@ function ArticleView() {
         ) : (
           <div style={{ position: "absolute", inset: 0, background: `linear-gradient(180deg, ${topicColor ?? "#1A7A5E"}99 0%, #111111 100%)` }} />
         )}
-        {/* Dark gradient over bottom half for text legibility */}
-        <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg, rgba(0,0,0,0) 30%, rgba(0,0,0,0.85) 100%)" }} />
-        {/* Topic pill + headline overlaid at bottom */}
+        {/* Topic-tinted gradient over bottom portion */}
+        <div style={{ position: "absolute", inset: 0, background: `linear-gradient(180deg, transparent 0%, ${(topicColor ?? "#1A7A5E")}B3 100%)` }} />
+        {/* Topic pill + headline + meta overlaid at bottom */}
         <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, padding: "0 16px 20px" }}>
           {TOPIC && (
             <div style={{ display: "inline-block", marginBottom: 8 }}>
@@ -318,6 +318,29 @@ function ArticleView() {
           <h1 style={{ color: "#FFFFFF", fontWeight: 700, fontSize: 24, lineHeight: 1.2, letterSpacing: "-0.01em" }}>
             {HEADLINE}
           </h1>
+          {!isWatchdog && (
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 10 }}>
+              <span style={{ color: "rgba(255,255,255,0.75)", fontSize: 13, fontWeight: 600 }}>
+                {sourceCount} {sourceCount === 1 ? t.source : t.sources}
+              </span>
+              <div style={{ display: "flex", gap: 8 }}>
+                <button
+                  aria-label={savedTop ? "Unsave" : "Save"}
+                  onClick={() => toggle(id)}
+                  style={{ color: savedTop ? "#00C864" : "#FFFFFF", ...fixedBtnStyle }}
+                >
+                  <Bookmark size={20} fill={savedTop ? "#00C864" : "none"} />
+                </button>
+                <button
+                  aria-label="Share"
+                  onClick={() => shareArticle(HEADLINE, id)}
+                  style={{ color: "#FFFFFF", ...fixedBtnStyle }}
+                >
+                  <Share2 size={20} />
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -454,38 +477,6 @@ function ArticleView() {
       ) : (
         /* ── NORMAL MERGED VIEW ── */
         <>
-          {/* HERO IMAGE */}
-          {article?.image_url && (
-            <img src={article.image_url} alt="" style={{ width: "100%", display: "block", marginTop: 16 }} />
-          )}
-
-          {/* METADATA ROW */}
-          <div className="flex items-center justify-between" style={{ padding: 16, marginTop: 16 }}>
-            <div className="flex items-center gap-2">
-              <span
-                className="flex items-center justify-center"
-                style={{ width: 28, height: 28, borderRadius: 999, backgroundColor: "#2C2C2E", color: "#8E8E93", fontSize: 12, fontWeight: 700 }}
-              >
-                R
-              </span>
-              <span style={{ color: "#FFFFFF", fontSize: 14 }}>
-                {sourceCount} {sourceCount === 1 ? t.source : t.sources}
-              </span>
-            </div>
-            <div className="flex items-center" style={{ gap: 12 }}>
-              <button
-                aria-label={savedTop ? "Unsave" : "Save"}
-                onClick={() => toggle(id)}
-                style={{ color: savedTop ? "#1A7A5E" : "#8E8E93" }}
-              >
-                <Bookmark size={24} fill={savedTop ? "#1A7A5E" : "none"} />
-              </button>
-              <button aria-label="Share" onClick={() => shareArticle(HEADLINE, id)} style={{ color: "#8E8E93" }}>
-                <Share2 size={24} />
-              </button>
-            </div>
-          </div>
-
           {/* WHAT'S NEW */}
           {article?.update_summary && article.update_summary.trim() !== "" && (
             <section
