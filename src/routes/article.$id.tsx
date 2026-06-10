@@ -72,6 +72,7 @@ function ArticleView() {
   const savedTop = isSaved(id);
   const [fontSize, setFontSize] = useState<FontSizeKey>("Medium");
   const [sources, setSources] = useState<{ url: string; headline: string; name: string; loaded_language: any; journalist_id: string | null; author: string | null }[]>([]);
+  const [clusterId, setClusterId] = useState<string | null>(null);
   const lang = useLanguage();
   const t = translations[lang];
 
@@ -152,6 +153,7 @@ function ArticleView() {
         if (!cancelled) setSources([]);
         return;
       }
+      if (!cancelled) setClusterId(clusterId);
       const { data, error } = await (supabase as any)
         .from("source_articles")
         .select("id, url, headline, author, journalist_id, loaded_language, sources:source_id(name)")
@@ -583,7 +585,7 @@ function ArticleView() {
             )}
             <Link
               to="/timeline/$id"
-              params={{ id: "1" }}
+              params={{ id: clusterId ?? "" }}
               style={{ display: "block", width: "100%", textAlign: "center", color: "#1A7A5E", fontSize: 14, marginTop: 20 }}
             >
               {t.viewTimeline}
