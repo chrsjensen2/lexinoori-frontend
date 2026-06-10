@@ -39,6 +39,15 @@ type JournalistResult = {
   outlet: string | null;
 };
 
+type SourceResult = {
+  id: string;
+  name: string;
+  tier: number | null;
+  url: string | null;
+  owner: string | null;
+  article_count: number | null;
+};
+
 type Depth = "Bullets" | "Brief" | "Standard" | "Deep Dive";
 function getDepth(): Depth {
   if (typeof window === "undefined") return "Standard";
@@ -145,6 +154,59 @@ function ResultCard({ article }: { article: ArticleResult }) {
   );
 }
 
+function SourceCard({ source }: { source: SourceResult }) {
+  const tierColor =
+    source.tier === 1 ? "#00C864"
+    : source.tier === 2 ? "#1A7A5E"
+    : "#8E8E93";
+  const tierLabel = source.tier != null ? `TIER ${source.tier}` : null;
+
+  return (
+    <Link
+      to="/outlet/$id"
+      params={{ id: source.id }}
+      style={{
+        display: "block",
+        backgroundColor: "#1E3A5F",
+        borderRadius: 12,
+        padding: 16,
+        textDecoration: "none",
+      }}
+    >
+      <div style={{ color: "#FFFFFF", fontWeight: 700, fontSize: 20, lineHeight: 1.2 }}>
+        {source.name}
+      </div>
+      {source.owner && (
+        <div style={{ color: "rgba(255,255,255,0.7)", fontSize: 14, marginTop: 4 }}>
+          {source.owner}
+        </div>
+      )}
+      {source.article_count != null && source.article_count > 0 && (
+        <div style={{ color: "rgba(255,255,255,0.5)", fontSize: 13, marginTop: 2 }}>
+          {source.article_count} artikler analyseret
+        </div>
+      )}
+      {tierLabel && (
+        <div style={{ marginTop: 10 }}>
+          <span
+            style={{
+              backgroundColor: tierColor,
+              color: "#FFFFFF",
+              fontSize: 11,
+              fontWeight: 700,
+              letterSpacing: "0.08em",
+              padding: "4px 8px",
+              borderRadius: 6,
+            }}
+          >
+            {tierLabel}
+          </span>
+        </div>
+      )}
+    </Link>
+  );
+}
+
 function JournalistCard({ journalist }: { journalist: JournalistResult }) {
   const articleCount = journalist.article_count ?? 0;
   const dbConf = journalist.confidence_level?.toUpperCase();
@@ -216,6 +278,7 @@ function SearchPage() {
   const [recent, setRecent] = useState(RECENT_DEFAULT);
   const [activeTopic, setActiveTopic] = useState<Topic | null>(null);
   const [results, setResults] = useState<ArticleResult[]>([]);
+  const [sourceResult, setSourceResult] = useState<SourceResult | null>(null);
   const [journalistResult, setJournalistResult] = useState<JournalistResult | null>(null);
   const [journalistArticles, setJournalistArticles] = useState<ArticleResult[]>([]);
   const [loading, setLoading] = useState(false);
@@ -242,6 +305,7 @@ function SearchPage() {
   useEffect(() => {
     if (!trimmed) {
       setResults([]);
+      setSourceResult(null);
       setJournalistResult(null);
       setJournalistArticles([]);
       setActiveTopic(null);
@@ -266,8 +330,14 @@ function SearchPage() {
         body_standard: pickLang<string | null>(r, "body_standard", language) ?? null,
       });
 
-      // Run journalist search + article headline search in parallel
-      const [journalistRes, articleRes] = await Promise.all([
+      // Run source + journalist + article searches in parallel
+      const [sourceRes, journalistRes, articleRes] = await Promise.all([
+        (supabase as any)
+          .from("sources")
+          .select("id, name, tier, url, owner, article_count")
+          .ilike("name", `%${trimmed}%`)
+          .limit(1)
+          .maybeSingle(),
         (supabase as any)
           .from("journalists")
           .select("id, name, article_count, confidence_level, sources:current_source_id(name)")
@@ -283,6 +353,10 @@ function SearchPage() {
       ]);
 
       if (cancelled) return;
+
+      // Source match
+      const sRow = sourceRes.data ?? null;
+      setSourceResult(sRow ? { id: sRow.id, name: sRow.name, tier: sRow.tier, url: sRow.url, owner: sRow.owner, article_count: sRow.article_count } : null);
 
       // Journalist match
       const jRow = journalistRes.data ?? null;
@@ -418,7 +492,7 @@ function SearchPage() {
             ? deduped.filter((a) => toTopic(a.topic) === activeTopic)
             : deduped;
           const hasResults =
-            !!journalistResult || journalistArticles.length > 0 || deduped.length > 0;
+            !!sourceResult || !!journalistResult || journalistArticles.length > 0 || deduped.length > 0;
 
           if (loading && !hasResults) {
             return (
@@ -438,9 +512,16 @@ function SearchPage() {
           }
           return (
             <div style={{ padding: "0 16px", display: "flex", flexDirection: "column", gap: 12, marginTop: 12 }}>
+              {sourceResult && (
+                <>
+                  <SectionLabel mt={0}>MEDIE</SectionLabel>
+                  <SourceCard source={sourceResult} />
+                </>
+              )}
+
               {journalistResult && (
                 <>
-                  <SectionLabel mt={0}>JOURNALIST</SectionLabel>
+                  <SectionLabel mt={sourceResult ? 4 : 0}>JOURNALIST</SectionLabel>
                   <JournalistCard journalist={journalistResult} />
                 </>
               )}

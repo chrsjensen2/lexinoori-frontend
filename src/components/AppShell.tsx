@@ -12,6 +12,7 @@ export function AppShell() {
   const isArticle = pathname.startsWith("/article/");
   const isTimeline = pathname.startsWith("/timeline/");
   const isJournalist = pathname.startsWith("/journalist/");
+  const isOutlet = pathname.startsWith("/outlet/");
   const isProfile = pathname === "/profile";
   const isAuth = pathname.startsWith("/auth");
   const isSearch = pathname === "/search";
@@ -21,7 +22,7 @@ export function AppShell() {
   const isFollowing = pathname === "/following";
 
   const showGlobalHeader =
-    !isToday && !isAtlas && !isStories && !isArticle && !isTimeline && !isJournalist && !isProfile && !isAuth && !isSearch && !isDigest && !isSaved && !isFollowing;
+    !isToday && !isAtlas && !isStories && !isArticle && !isTimeline && !isJournalist && !isOutlet && !isProfile && !isAuth && !isSearch && !isDigest && !isSaved && !isFollowing;
   const showBottomNav = !isArticle && !isTimeline && !isAuth && !isStories && !isSearch;
 
   return (

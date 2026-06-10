@@ -18,6 +18,7 @@ import { Route as DigestRouteImport } from './routes/digest'
 import { Route as AtlasRouteImport } from './routes/atlas'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as TimelineIdRouteImport } from './routes/timeline.$id'
+import { Route as OutletIdRouteImport } from './routes/outlet.$id'
 import { Route as JournalistIdRouteImport } from './routes/journalist.$id'
 import { Route as AuthSignupRouteImport } from './routes/auth.signup'
 import { Route as AuthLoginRouteImport } from './routes/auth.login'
@@ -69,6 +70,11 @@ const TimelineIdRoute = TimelineIdRouteImport.update({
   path: '/timeline/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const OutletIdRoute = OutletIdRouteImport.update({
+  id: '/outlet/$id',
+  path: '/outlet/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const JournalistIdRoute = JournalistIdRouteImport.update({
   id: '/journalist/$id',
   path: '/journalist/$id',
@@ -109,6 +115,7 @@ export interface FileRoutesByFullPath {
   '/auth/login': typeof AuthLoginRoute
   '/auth/signup': typeof AuthSignupRoute
   '/journalist/$id': typeof JournalistIdRoute
+  '/outlet/$id': typeof OutletIdRoute
   '/timeline/$id': typeof TimelineIdRoute
 }
 export interface FileRoutesByTo {
@@ -125,6 +132,7 @@ export interface FileRoutesByTo {
   '/auth/login': typeof AuthLoginRoute
   '/auth/signup': typeof AuthSignupRoute
   '/journalist/$id': typeof JournalistIdRoute
+  '/outlet/$id': typeof OutletIdRoute
   '/timeline/$id': typeof TimelineIdRoute
 }
 export interface FileRoutesById {
@@ -142,6 +150,7 @@ export interface FileRoutesById {
   '/auth/login': typeof AuthLoginRoute
   '/auth/signup': typeof AuthSignupRoute
   '/journalist/$id': typeof JournalistIdRoute
+  '/outlet/$id': typeof OutletIdRoute
   '/timeline/$id': typeof TimelineIdRoute
 }
 export interface FileRouteTypes {
@@ -160,6 +169,7 @@ export interface FileRouteTypes {
     | '/auth/login'
     | '/auth/signup'
     | '/journalist/$id'
+    | '/outlet/$id'
     | '/timeline/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -176,6 +186,7 @@ export interface FileRouteTypes {
     | '/auth/login'
     | '/auth/signup'
     | '/journalist/$id'
+    | '/outlet/$id'
     | '/timeline/$id'
   id:
     | '__root__'
@@ -192,6 +203,7 @@ export interface FileRouteTypes {
     | '/auth/login'
     | '/auth/signup'
     | '/journalist/$id'
+    | '/outlet/$id'
     | '/timeline/$id'
   fileRoutesById: FileRoutesById
 }
@@ -209,6 +221,7 @@ export interface RootRouteChildren {
   AuthLoginRoute: typeof AuthLoginRoute
   AuthSignupRoute: typeof AuthSignupRoute
   JournalistIdRoute: typeof JournalistIdRoute
+  OutletIdRoute: typeof OutletIdRoute
   TimelineIdRoute: typeof TimelineIdRoute
 }
 
@@ -277,6 +290,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TimelineIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/outlet/$id': {
+      id: '/outlet/$id'
+      path: '/outlet/$id'
+      fullPath: '/outlet/$id'
+      preLoaderRoute: typeof OutletIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/journalist/$id': {
       id: '/journalist/$id'
       path: '/journalist/$id'
@@ -329,6 +349,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthLoginRoute: AuthLoginRoute,
   AuthSignupRoute: AuthSignupRoute,
   JournalistIdRoute: JournalistIdRoute,
+  OutletIdRoute: OutletIdRoute,
   TimelineIdRoute: TimelineIdRoute,
 }
 export const routeTree = rootRouteImport
