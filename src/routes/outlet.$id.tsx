@@ -261,7 +261,7 @@ function OutletContent({
       >
         {source.url && (
           <img
-            src={source.url + "/favicon.ico"}
+            src={source.url.replace(/\/$/, "") + "/favicon.ico"}
             style={{ width: 24, height: 24, borderRadius: 4, objectFit: "contain" }}
             onError={(e) => (e.currentTarget.style.display = "none")}
           />
