@@ -71,7 +71,7 @@ function ArticleView() {
   const { isSaved, toggle } = useSavedArticles();
   const savedTop = isSaved(id);
   const [fontSize, setFontSize] = useState<FontSizeKey>("Medium");
-  const [sources, setSources] = useState<{ url: string; headline: string; name: string; loaded_language: any; journalist_id: string | null; author: string | null }[]>([]);
+ const [sources, setSources] = useState<{ url: string; headline: string; name: string; loaded_language: any; journalist_id: string | null; author: string | null; source_id: string | null }[]>([]);
   const [clusterId, setClusterId] = useState<string | null>(null);
   const lang = useLanguage();
   const t = translations[lang];
@@ -156,17 +156,18 @@ function ArticleView() {
       if (!cancelled) setClusterId(clusterId);
       const { data, error } = await (supabase as any)
         .from("source_articles")
-        .select("id, url, headline, author, journalist_id, loaded_language, sources:source_id(name)")
+   .select("id, url, headline, author, journalist_id, loaded_language, source_id, sources:source_id(name)")
         .eq("cluster_id", clusterId);
       if (cancelled) return;
       const rows = (data ?? [])
-        .map((r: any) => ({
+  .map((r: any) => ({
           url: r?.url ?? "",
           headline: r?.headline ?? "",
           name: r?.sources?.name ?? "Unknown",
           loaded_language: r?.loaded_language ?? null,
           journalist_id: r?.journalist_id ?? null,
           author: r?.author ?? null,
+          source_id: r?.source_id ?? null,
         }))
         .filter((r: any) => r.url);
       setSources(rows);
@@ -575,7 +576,7 @@ function ArticleView() {
                   {t.sourcesLabel} · {sources.length} {sources.length === 1 ? t.source.toUpperCase() : t.sources.toUpperCase()}
                 </div>
                 {sources.map((s, i) => (
-                  <SourceRow
+              <SourceRow
                     key={`${s.url}-${i}`}
                     name={s.name}
                     headline={s.headline}
@@ -583,6 +584,7 @@ function ArticleView() {
                     loadedLanguage={s.loaded_language}
                     journalistId={s.journalist_id}
                     author={s.author}
+                    sourceId={s.source_id}
                     last={i === sources.length - 1}
                   />
                 ))}
@@ -646,6 +648,7 @@ function SourceRow({
   loadedLanguage,
   journalistId,
   author,
+  sourceId,
   last = false,
 }: {
   name: string;
@@ -654,6 +657,7 @@ function SourceRow({
   loadedLanguage?: any;
   journalistId?: string | null;
   author?: string | null;
+  sourceId?: string | null;
   last?: boolean;
 }) {
   const navigate = useNavigate();
@@ -703,30 +707,37 @@ function SourceRow({
             const cleanAuthor = author
               ? author.replace(/^[^\s(]+@[^\s(]+\s*\(([^)]+)\)/, '$1').replace(/^[^\s(]+@[^\s(]+$/, '').trim()
               : null;
-            if (!cleanAuthor) return null;
-            return hasJournalist ? (
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  navigate({ to: "/journalist/$id", params: { id: journalistId! } });
-                }}
-                style={{
-                  alignSelf: "flex-start",
-                  background: "transparent",
-                  border: "none",
-                  padding: 0,
-                  color: "#8E8E93",
-                  fontSize: 13,
-                  textDecoration: "underline",
-                  cursor: "pointer",
-                }}
-              >
-                {cleanAuthor}
-              </button>
-            ) : (
-              <div style={{ color: "#8E8E93", fontSize: 13 }}>{cleanAuthor}</div>
-            );
+            if (cleanAuthor) {
+              return hasJournalist ? (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigate({ to: "/journalist/$id", params: { id: journalistId! } });
+                  }}
+                  style={{ alignSelf: "flex-start", background: "transparent", border: "none", padding: 0, color: "#8E8E93", fontSize: 13, textDecoration: "underline", cursor: "pointer" }}
+                >
+                  {cleanAuthor}
+                </button>
+              ) : (
+                <div style={{ color: "#8E8E93", fontSize: 13 }}>{cleanAuthor}</div>
+              );
+            }
+            if (sourceId) {
+              return (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigate({ to: "/outlet/$id", params: { id: sourceId } });
+                  }}
+                  style={{ alignSelf: "flex-start", background: "transparent", border: "none", padding: 0, color: "#8E8E93", fontSize: 13, textDecoration: "underline", cursor: "pointer" }}
+                >
+                  {name}
+                </button>
+              );
+            }
+            return null;
           })()}
         </div>
         <a
