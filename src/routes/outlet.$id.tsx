@@ -118,7 +118,6 @@ function OutletPage() {
       }
       const top5Ids = [...jIdCounts.entries()]
         .sort((a, b) => b[1] - a[1])
-        .slice(0, 5)
         .map(([jId]) => jId);
 
       // Phase 2 — journalist names + recent articles in parallel
@@ -132,6 +131,7 @@ function OutletPage() {
               .from("journalists")
               .select("id, name")
               .in("id", top5Ids)
+              .limit(200)
           : Promise.resolve({ data: [] }),
         clusterIds.length > 0
           ? (supabase as any)
@@ -226,12 +226,6 @@ function OutletContent({
   lang: string;
   t: T;
 }) {
-  const tierColor =
-    source.tier === 1 ? "#00C864"
-    : source.tier === 2 ? "#1A7A5E"
-    : "#8E8E93";
-  const tierLabel = source.tier != null ? `TIER ${source.tier}` : "UKENDT";
-
   const biasLabel =
     stats?.avgBiasScore == null ? null
     : stats.avgBiasScore <= -0.6 ? t.biasLeft
@@ -265,6 +259,13 @@ function OutletContent({
           padding: 16,
         }}
       >
+        {source.url && (
+          <img
+            src={source.url + "/favicon.ico"}
+            style={{ width: 24, height: 24, borderRadius: 4, objectFit: "contain" }}
+            onError={(e) => (e.currentTarget.style.display = "none")}
+          />
+        )}
         <div style={{ color: "#FFFFFF", fontWeight: 700, fontSize: 28, lineHeight: 1.1 }}>
           {source.name}
         </div>
@@ -284,21 +285,8 @@ function OutletContent({
             <ExternalLink size={11} />
           </a>
         )}
-        <div style={{ marginTop: 12, display: "flex", alignItems: "center", gap: 8 }}>
-          <span
-            style={{
-              backgroundColor: tierColor,
-              color: "#FFFFFF",
-              fontSize: 11,
-              fontWeight: 700,
-              letterSpacing: "0.08em",
-              padding: "4px 8px",
-              borderRadius: 6,
-            }}
-          >
-            {tierLabel}
-          </span>
-          {source.language && (
+        {source.language && (
+          <div style={{ marginTop: 12 }}>
             <span
               style={{
                 backgroundColor: "#2C2C2E",
@@ -312,8 +300,8 @@ function OutletContent({
             >
               {source.language.toUpperCase()}
             </span>
-          )}
-        </div>
+          </div>
+        )}
       </div>
 
       {/* Stats row */}
@@ -366,7 +354,7 @@ function OutletContent({
               padding: "0 16px",
             }}
           >
-            {lang === "da" ? "TOP JOURNALISTER" : "TOP JOURNALISTS"}
+            {lang === "da" ? "JOURNALISTER" : "JOURNALISTS"}
           </div>
           <div
             style={{
