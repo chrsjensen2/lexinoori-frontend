@@ -295,8 +295,8 @@ function ArticleView() {
         </button>
       )}
 
-      {/* HERO - full-width image to top edge */}
-      <div style={{ position: "relative", width: "100%", height: "calc(320px + env(safe-area-inset-top))" }}>
+      {/* HERO - full-width image behind status bar */}
+      <div style={{ position: "relative", width: "100%", height: "calc(320px + env(safe-area-inset-top))", marginTop: 0 }}>
         {article?.image_url ? (
           <img
             src={article.image_url}
@@ -306,10 +306,12 @@ function ArticleView() {
         ) : (
           <div style={{ position: "absolute", inset: 0, background: `linear-gradient(180deg, ${topicColor ?? "#1A7A5E"}99 0%, #111111 100%)` }} />
         )}
+        {/* Top vignette so back/Aa buttons read against any image */}
+        <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg, rgba(0,0,0,0.4) 0px, transparent 80px)" }} />
         {/* Topic-tinted gradient over bottom portion */}
         <div style={{ position: "absolute", inset: 0, background: `linear-gradient(180deg, transparent 0%, ${(topicColor ?? "#1A7A5E")}B3 100%)` }} />
         {/* Topic pill + headline + meta overlaid at bottom */}
-        <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, padding: "0 16px 20px" }}>
+        <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, padding: "0 16px 20px", paddingTop: "env(safe-area-inset-top)" }}>
           {TOPIC && (
             <div style={{ display: "inline-block", marginBottom: 8 }}>
               <TopicPill topic={TOPIC} />
