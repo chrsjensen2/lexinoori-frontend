@@ -20,6 +20,7 @@ type SourceRow = {
   owner: string | null;
   article_count: number | null;
   journalist_count: number | null;
+  logo_url: string | null;
 };
 
 type OutletStats = {
@@ -67,7 +68,7 @@ function OutletPage() {
       const [sourceRes, statsRes, firstRes] = await Promise.all([
         (supabase as any)
           .from("sources")
-          .select("id, name, url, language, tier, owner, article_count, journalist_count")
+          .select("id, name, url, language, tier, owner, article_count, journalist_count, logo_url")
           .eq("id", id)
           .maybeSingle(),
         (supabase as any)
@@ -259,15 +260,17 @@ function OutletContent({
           padding: 16,
         }}
       >
-        {source.url && (
-          <img
-            src={source.url.replace(/\/$/, "") + "/favicon.ico"}
-            style={{ width: 24, height: 24, borderRadius: 4, objectFit: "contain" }}
-            onError={(e) => (e.currentTarget.style.display = "none")}
-          />
-        )}
-        <div style={{ color: "#FFFFFF", fontWeight: 700, fontSize: 28, lineHeight: 1.1 }}>
-          {source.name}
+        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
+          <div style={{ color: "#FFFFFF", fontWeight: 700, fontSize: 28, lineHeight: 1.1 }}>
+            {source.name}
+          </div>
+          {source.logo_url && (
+            <img
+              src={source.logo_url}
+              alt={source.name}
+              style={{ width: 48, height: 48, borderRadius: 8, objectFit: "contain", flexShrink: 0 }}
+            />
+          )}
         </div>
         {source.owner && (
           <div style={{ color: "rgba(255,255,255,0.7)", fontSize: 14, marginTop: 6 }}>

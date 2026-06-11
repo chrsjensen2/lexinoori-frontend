@@ -46,6 +46,7 @@ type SourceResult = {
   url: string | null;
   owner: string | null;
   article_count: number | null;
+  logo_url: string | null;
 };
 
 type Depth = "Bullets" | "Brief" | "Standard" | "Deep Dive";
@@ -173,18 +174,17 @@ function SourceCard({ source }: { source: SourceResult }) {
         textDecoration: "none",
       }}
     >
-      <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 4 }}>
-        {source.url && (
-          <img
-            src={source.url.replace(/\/$/, "") + "/favicon.ico"}
-            alt=""
-            style={{ width: 20, height: 20, borderRadius: 3, objectFit: "contain", flexShrink: 0 }}
-            onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
-          />
-        )}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <div style={{ color: "#FFFFFF", fontWeight: 700, fontSize: 20, lineHeight: 1.2 }}>
           {source.name}
         </div>
+        {source.logo_url && (
+          <img
+            src={source.logo_url}
+            alt={source.name}
+            style={{ width: 36, height: 36, borderRadius: 6, objectFit: "contain", flexShrink: 0 }}
+          />
+        )}
       </div>
       {source.owner && (
         <div style={{ color: "rgba(255,255,255,0.7)", fontSize: 14, marginTop: 4 }}>
@@ -327,7 +327,7 @@ function SearchPage() {
       const [sourceRes, journalistRes, articleRes] = await Promise.all([
         (supabase as any)
           .from("sources")
-          .select("id, name, tier, url, owner, article_count")
+          .select("id, name, tier, url, owner, article_count, logo_url")
           .ilike("name", `%${trimmed}%`)
           .limit(1)
           .maybeSingle(),
