@@ -349,7 +349,7 @@ function SearchPage() {
 
       // Source match
       const sRow = sourceRes.data ?? null;
-      setSourceResult(sRow ? { id: sRow.id, name: sRow.name, tier: sRow.tier, url: sRow.url, owner: sRow.owner, article_count: sRow.article_count } : null);
+      setSourceResult(sRow ? { id: sRow.id, name: sRow.name, tier: sRow.tier, url: sRow.url, owner: sRow.owner, article_count: sRow.article_count, logo_url: sRow.logo_url ?? null } : null);
 
       // Journalist match
       const jRow = journalistRes.data ?? null;
