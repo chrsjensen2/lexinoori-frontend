@@ -173,8 +173,18 @@ function SourceCard({ source }: { source: SourceResult }) {
         textDecoration: "none",
       }}
     >
-      <div style={{ color: "#FFFFFF", fontWeight: 700, fontSize: 20, lineHeight: 1.2 }}>
-        {source.name}
+      <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 4 }}>
+        {source.url && (
+          <img
+            src={source.url.replace(/\/$/, "") + "/favicon.ico"}
+            alt=""
+            style={{ width: 20, height: 20, borderRadius: 3, objectFit: "contain", flexShrink: 0 }}
+            onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+          />
+        )}
+        <div style={{ color: "#FFFFFF", fontWeight: 700, fontSize: 20, lineHeight: 1.2 }}>
+          {source.name}
+        </div>
       </div>
       {source.owner && (
         <div style={{ color: "rgba(255,255,255,0.7)", fontSize: 14, marginTop: 4 }}>
@@ -184,23 +194,6 @@ function SourceCard({ source }: { source: SourceResult }) {
       {source.article_count != null && source.article_count > 0 && (
         <div style={{ color: "rgba(255,255,255,0.5)", fontSize: 13, marginTop: 2 }}>
           {source.article_count} artikler analyseret
-        </div>
-      )}
-      {tierLabel && (
-        <div style={{ marginTop: 10 }}>
-          <span
-            style={{
-              backgroundColor: tierColor,
-              color: "#FFFFFF",
-              fontSize: 11,
-              fontWeight: 700,
-              letterSpacing: "0.08em",
-              padding: "4px 8px",
-              borderRadius: 6,
-            }}
-          >
-            {tierLabel}
-          </span>
         </div>
       )}
     </Link>
